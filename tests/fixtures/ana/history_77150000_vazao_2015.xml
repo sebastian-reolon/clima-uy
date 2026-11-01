@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DataTable xmlns="http://MRCS/">
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:MainDataTable="SerieHistorica" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="SerieHistorica">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="EstacaoCodigo" type="xs:int" minOccurs="0" />
+                <xs:element name="NivelConsistencia" type="xs:unsignedByte" minOccurs="0" />
+                <xs:element name="DataHora" type="xs:string" minOccurs="0" />
+                <xs:element name="MediaDiaria" type="xs:string" minOccurs="0" />
+                <xs:element name="MetodoObtencaoVazoes" type="xs:string" minOccurs="0" />
+                <xs:element name="Maxima" type="xs:string" minOccurs="0" />
+                <xs:element name="Minima" type="xs:string" minOccurs="0" />
+                <xs:element name="Media" type="xs:string" minOccurs="0" />
+                <xs:element name="DiaMaxima" type="xs:string" minOccurs="0" />
+                <xs:element name="DiaMinima" type="xs:string" minOccurs="0" />
+                <xs:element name="MaximaStatus" type="xs:string" minOccurs="0" />
+                <xs:element name="MinimaStatus" type="xs:string" minOccurs="0" />
+                <xs:element name="MediaStatus" type="xs:string" minOccurs="0" />
+                <xs:element name="MediaAnual" type="xs:string" minOccurs="0" />
+                <xs:element name="MediaAnualStatus" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao01" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao02" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao03" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao04" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao05" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao06" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao07" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao08" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao09" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao10" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao11" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao12" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao13" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao14" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao15" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao16" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao17" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao18" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao19" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao20" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao21" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao22" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao23" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao24" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao25" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao26" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao27" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao28" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao29" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao30" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao31" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao01Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao02Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao03Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao04Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao05Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao06Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao07Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao08Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao09Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao10Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao11Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao12Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao13Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao14Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao15Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao16Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao17Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao18Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao19Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao20Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao21Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao22Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao23Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao24Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao25Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao26Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao27Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao28Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao29Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao30Status" type="xs:string" minOccurs="0" />
+                <xs:element name="Vazao31Status" type="xs:string" minOccurs="0" />
+                <xs:element name="DataIns" type="xs:string" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <diffgr:diffgram xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:diffgr="urn:schemas-microsoft-com:xml-diffgram-v1">
+    <DocumentElement xmlns="">
+      <SerieHistorica diffgr:id="SerieHistorica11" msdata:rowOrder="10">
+        <EstacaoCodigo>77150000</EstacaoCodigo>
+        <NivelConsistencia>2</NivelConsistencia>
+        <DataHora>2016-02-01 00:00:00</DataHora>
+        <MediaDiaria>1</MediaDiaria>
+        <MetodoObtencaoVazoes>1</MetodoObtencaoVazoes>
+        <Maxima>6503.69</Maxima>
+        <Minima>2729.86</Minima>
+        <Media>4847.99</Media>
+        <DiaMaxima>6</DiaMaxima>
+        <DiaMinima>2</DiaMinima>
+        <MaximaStatus>1</MaximaStatus>
+        <MinimaStatus />
+        <MediaStatus>1</MediaStatus>
+        <MediaAnual />
+        <MediaAnualStatus />
+        <Vazao01>2826.54</Vazao01>
+        <Vazao02>2729.86</Vazao02>
+        <Vazao03>2826.54</Vazao03>
+        <Vazao04>3977.21</Vazao04>
+        <Vazao05>5805.76</Vazao05>
+        <Vazao06>6503.69</Vazao06>
+        <Vazao07>6376.19</Vazao07>
+        <Vazao08>5999.52</Vazao08>
+        <Vazao09>5683.73</Vazao09>
+        <Vazao10>5579.94</Vazao10>
+        <Vazao11>5753.34</Vazao11>
+        <Vazao12>5875.94</Vazao12>
+        <Vazao13>5614.45</Vazao13>
+        <Vazao14>5205.67</Vazao14>
+        <Vazao15>4772.43</Vazao15>
+        <Vazao16>4500.9</Vazao16>
+        <Vazao17>4434.02</Vazao17>
+        <Vazao18>4618.91</Vazao18>
+        <Vazao19>4806.82</Vazao19>
+        <Vazao20>4923.36</Vazao20>
+        <Vazao21>4906.95</Vazao21>
+        <Vazao22>4989.24</Vazao22>
+        <Vazao23>5022.31</Vazao23>
+        <Vazao24>4939.8</Vazao24>
+        <Vazao25>4721.03</Vazao25>
+        <Vazao26>4534.49</Vazao26>
+        <Vazao27>4417.36</Vazao27>
+        <Vazao28>4268.58</Vazao28>
+        <Vazao29>3977.21</Vazao29>
+        <Vazao30 />
+        <Vazao31 />
+        <Vazao01Status>1</Vazao01Status>
+        <Vazao02Status>1</Vazao02Status>
+        <Vazao03Status>1</Vazao03Status>
+        <Vazao04Status>1</Vazao04Status>
+        <Vazao05Status>1</Vazao05Status>
+        <Vazao06Status>1</Vazao06Status>
+        <Vazao07Status>1</Vazao07Status>
+        <Vazao08Status>1</Vazao08Status>
+        <Vazao09Status>1</Vazao09Status>
+        <Vazao10Status>1</Vazao10Status>
+        <Vazao11Status>1</Vazao11Status>
+        <Vazao12Status>1</Vazao12Status>
+        <Vazao13Status>1</Vazao13Status>
+        <Vazao14Status>1</Vazao14Status>
+        <Vazao15Status>1</Vazao15Status>
+        <Vazao16Status>1</Vazao16Status>
+        <Vazao17Status>1</Vazao17Status>
+        <Vazao18Status>1</Vazao18Status>
+        <Vazao19Status>1</Vazao19Status>
+        <Vazao20Status>1</Vazao20Status>
+        <Vazao21Status>1</Vazao21Status>
+        <Vazao22Status>1</Vazao22Status>
+        <Vazao23Status>1</Vazao23Status>
+        <Vazao24Status>1</Vazao24Status>
+        <Vazao25Status>1</Vazao25Status>
+        <Vazao26Status>1</Vazao26Status>
+        <Vazao27Status>1</Vazao27Status>
+        <Vazao28Status>1</Vazao28Status>
+        <Vazao29Status>1</Vazao29Status>
+        <Vazao30Status />
+        <Vazao31Status />
+        <DataIns>2024-04-03 00:00:00</DataIns>
+      </SerieHistorica>
+      <SerieHistorica diffgr:id="SerieHistorica13" msdata:rowOrder="12">
+        <EstacaoCodigo>77150000</EstacaoCodigo>
+        <NivelConsistencia>2</NivelConsistencia>
+        <DataHora>2015-12-01 00:00:00</DataHora>
+        <MediaDiaria>1</MediaDiaria>
+        <MetodoObtencaoVazoes>1</MetodoObtencaoVazoes>
+        <Maxima>27356.6</Maxima>
+        <Minima>7753.29</Minima>
+        <Media>16813.3</Media>
+        <DiaMaxima>19</DiaMaxima>
+        <DiaMinima>4</DiaMinima>
+        <MaximaStatus>2</MaximaStatus>
+        <MinimaStatus>2</MinimaStatus>
+        <MediaStatus>2</MediaStatus>
+        <MediaAnual />
+        <MediaAnualStatus />
+        <Vazao01>7841.71</Vazao01>
+        <Vazao02>8289.85</Vazao02>
+        <Vazao03>8109.38</Vazao03>
+        <Vazao04>7753.29</Vazao04>
+        <Vazao05>8357.94</Vazao05>
+        <Vazao06>10330</Vazao06>
+        <Vazao07>13061.6</Vazao07>
+        <Vazao08>15139.9</Vazao08>
+        <Vazao09>15255.8</Vazao09>
+        <Vazao10>13143.4</Vazao10>
+        <Vazao11>10654</Vazao11>
+        <Vazao12>9501.74</Vazao12>
+        <Vazao13>10305.2</Vazao13>
+        <Vazao14>11911.6</Vazao14>
+        <Vazao15>13034.4</Vazao15>
+        <Vazao16>14851.8</Vazao16>
+        <Vazao17>18895.7</Vazao17>
+        <Vazao18>23894.8</Vazao18>
+        <Vazao19>27356.6</Vazao19>
+        <Vazao20>27356.6</Vazao20>
+        <Vazao21>24925.8</Vazao21>
+        <Vazao22>22742.3</Vazao22>
+        <Vazao23>21394.8</Vazao23>
+        <Vazao24>20471.5</Vazao24>
+        <Vazao25>20733.6</Vazao25>
+        <Vazao26>21929.8</Vazao26>
+        <Vazao27>23221.8</Vazao27>
+        <Vazao28>23404.5</Vazao28>
+        <Vazao29>22436.2</Vazao29>
+        <Vazao30>22572.1</Vazao30>
+        <Vazao31>22334.6</Vazao31>
+        <Vazao01Status>2</Vazao01Status>
+        <Vazao02Status>2</Vazao02Status>
+        <Vazao03Status>2</Vazao03Status>
+        <Vazao04Status>2</Vazao04Status>
+        <Vazao05Status>2</Vazao05Status>
+        <Vazao06Status>2</Vazao06Status>
+        <Vazao07Status>2</Vazao07Status>
+        <Vazao08Status>2</Vazao08Status>
+        <Vazao09Status>2</Vazao09Status>
+        <Vazao10Status>2</Vazao10Status>
+        <Vazao11Status>2</Vazao11Status>
+        <Vazao12Status>2</Vazao12Status>
+        <Vazao13Status>2</Vazao13Status>
+        <Vazao14Status>2</Vazao14Status>
+        <Vazao15Status>2</Vazao15Status>
+        <Vazao16Status>2</Vazao16Status>
+        <Vazao17Status>2</Vazao17Status>
+        <Vazao18Status>2</Vazao18Status>
+        <Vazao19Status>2</Vazao19Status>
+        <Vazao20Status>2</Vazao20Status>
+        <Vazao21Status>2</Vazao21Status>
+        <Vazao22Status>2</Vazao22Status>
+        <Vazao23Status>2</Vazao23Status>
+        <Vazao24Status>2</Vazao24Status>
+        <Vazao25Status>2</Vazao25Status>
+        <Vazao26Status>2</Vazao26Status>
+        <Vazao27Status>2</Vazao27Status>
+        <Vazao28Status>2</Vazao28Status>
+        <Vazao29Status>1</Vazao29Status>
+        <Vazao30Status>1</Vazao30Status>
+        <Vazao31Status>1</Vazao31Status>
+        <DataIns>2024-04-03 00:00:00</DataIns>
+      </SerieHistorica>
+      <SerieHistorica diffgr:id="SerieHistorica14" msdata:rowOrder="13">
+        <EstacaoCodigo>77150000</EstacaoCodigo>
+        <NivelConsistencia>2</NivelConsistencia>
+        <DataHora>2015-11-01 00:00:00</DataHora>
+        <MediaDiaria>1</MediaDiaria>
+        <MetodoObtencaoVazoes>1</MetodoObtencaoVazoes>
+        <Maxima>17157.8</Maxima>
+        <Minima>7212.67</Minima>
+        <Media>11431</Media>
+        <DiaMaxima>18</DiaMaxima>
+        <DiaMinima>10</DiaMinima>
+        <MaximaStatus>1</MaximaStatus>
+        <MinimaStatus>1</MinimaStatus>
+        <MediaStatus>1</MediaStatus>
+        <MediaAnual />
+        <MediaAnualStatus />
+        <Vazao01>12254.8</Vazao01>
+        <Vazao02>10704.3</Vazao02>
+        <Vazao03>9382.31</Vazao03>
+        <Vazao04>8289.85</Vazao04>
+        <Vazao05>7797.45</Vazao05>
+        <Vazao06>7713.86</Vazao06>
+        <Vazao07>7597.05</Vazao07>
+        <Vazao08>7423.13</Vazao08>
+        <Vazao09>7231.71</Vazao09>
+        <Vazao10>7212.67</Vazao10>
+        <Vazao11>7930.53</Vazao11>
+        <Vazao12>10059</Vazao12>
+        <Vazao13>12069.5</Vazao13>
+        <Vazao14>13694.2</Vazao14>
+        <Vazao15>15082.1</Vazao15>
+        <Vazao16>16136.1</Vazao16>
+        <Vazao17>16854.7</Vazao17>
+        <Vazao18>17157.8</Vazao18>
+        <Vazao19>17127.4</Vazao19>
+        <Vazao20>16643.8</Vazao20>
+        <Vazao21>15752.2</Vazao21>
+        <Vazao22>15024.4</Vazao22>
+        <Vazao23>14225.9</Vazao23>
+        <Vazao24>13198.1</Vazao24>
+        <Vazao25>11911.6</Vazao25>
+        <Vazao26>10754.6</Vazao26>
+        <Vazao27>9549.68</Vazao27>
+        <Vazao28>8609.53</Vazao28>
+        <Vazao29>7886.07</Vazao29>
+        <Vazao30>7655.37</Vazao30>
+        <Vazao31 />
+        <Vazao01Status>1</Vazao01Status>
+        <Vazao02Status>1</Vazao02Status>
+        <Vazao03Status>1</Vazao03Status>
+        <Vazao04Status>1</Vazao04Status>
+        <Vazao05Status>1</Vazao05Status>
+        <Vazao06Status>1</Vazao06Status>
+        <Vazao07Status>1</Vazao07Status>
+        <Vazao08Status>1</Vazao08Status>
+        <Vazao09Status>1</Vazao09Status>
+        <Vazao10Status>1</Vazao10Status>
+        <Vazao11Status>1</Vazao11Status>
+        <Vazao12Status>1</Vazao12Status>
+        <Vazao13Status>1</Vazao13Status>
+        <Vazao14Status>1</Vazao14Status>
+        <Vazao15Status>1</Vazao15Status>
+        <Vazao16Status>1</Vazao16Status>
+        <Vazao17Status>1</Vazao17Status>
+        <Vazao18Status>1</Vazao18Status>
+        <Vazao19Status>1</Vazao19Status>
+        <Vazao20Status>1</Vazao20Status>
+        <Vazao21Status>1</Vazao21Status>
+        <Vazao22Status>1</Vazao22Status>
+        <Vazao23Status>1</Vazao23Status>
+        <Vazao24Status>1</Vazao24Status>
+        <Vazao25Status>1</Vazao25Status>
+        <Vazao26Status>1</Vazao26Status>
+        <Vazao27Status>1</Vazao27Status>
+        <Vazao28Status>1</Vazao28Status>
+        <Vazao29Status>1</Vazao29Status>
+        <Vazao30Status>1</Vazao30Status>
+        <Vazao31Status />
+        <DataIns>2024-04-03 00:00:00</DataIns>
+      </SerieHistorica>
+    </DocumentElement>
+  </diffgr:diffgram>
+</DataTable>

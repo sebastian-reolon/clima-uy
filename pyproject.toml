@@ -12,8 +12,8 @@ dev = ["pytest"]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["climauy"]
+[tool.setuptools.packages.find]
+include = ["climauy*"]
 
 [tool.setuptools.package-data]
 climauy = ["stations.json"]

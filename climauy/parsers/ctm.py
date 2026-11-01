@@ -21,9 +21,9 @@ _OBS_HOUR_UTC = 10
 
 # CTM spelling -> catalog spelling, where they differ.
 _ALIASES = {"salto grande": "salto grande arriba"}
-# Rows that are not stations: inflow total and the dam release gauges of the table.
+# Rows that are not stations (the inflow total). Names with no catalog id
+# (e.g. the Federación reservoir level) are skipped with a warning instead.
 _IGNORED_ROWS = {"aporte"}
-# Reservoir levels with no catalog entry (Federación): skipped, with a log line.
 
 _DATE = re.compile(r"\d{2}/\d{2}/\d{4}")
 
@@ -71,12 +71,17 @@ def _dates(lines: list[str]) -> list[date]:
 
 
 def _rows(lines: list[str], n: int) -> list[tuple[str, list[float | None]]]:
-    """Rows 'Name v1 .. vn' with exactly n numeric values."""
+    """Rows 'Name v1 .. vn' with exactly n numeric values; others warn."""
     rows = []
     for line in lines:
-        m = re.fullmatch(r"(.+?)\s+((?:-?\d+(?:[.,]\d+)?\s*){%d})" % n, line)
-        if m:
-            rows.append((m.group(1).strip(), [to_float(v) for v in m.group(2).split()]))
+        m = re.fullmatch(r"(.+?)\s+((?:-?\d+(?:[.,]\d+)?\s*)+)", line)
+        if not m:
+            continue
+        vals = m.group(2).split()
+        if len(vals) != n:
+            log.warning("CTM row %r has %d values, expected %d: skipped", m.group(1), len(vals), n)
+            continue
+        rows.append((m.group(1).strip(), [to_float(v) for v in vals]))
     return rows
 
 
@@ -88,6 +93,8 @@ def parse_text(text: str) -> tuple[list[DamDay], list[Obs]]:
     # Dam releases: the "7 a 7" row holds QTurb QVert QTotal per date.
     rel = blocks.get("release", [])
     rel_dates = _dates(rel)
+    if not rel_dates:
+        raise ValueError("CTM report layout changed: no dates in the 'Erogado Medio Diario' block")
     vols = {name: vals for name, vals in _rows(blocks.get("vol", []), len(rel_dates))}
     for line in rel:
         m = re.fullmatch(r"7 a 7((?:\s+-?\d+(?:[.,]\d+)?){%d})" % (3 * len(rel_dates)), line)
@@ -103,6 +110,9 @@ def parse_text(text: str) -> tuple[list[DamDay], list[Obs]]:
                 vol_machadinho_pct=vols.get("Machadinho", [None] * len(rel_dates))[i],
                 vol_ita_pct=vols.get("Itá", [None] * len(rel_dates))[i],
             ))
+
+    if not dams:
+        raise ValueError("CTM report layout changed: no '7 a 7' release row found")
 
     ids = _station_ids()
     for key, variable in (("q", "discharge"), ("level", "level")):
@@ -121,6 +131,10 @@ def parse_text(text: str) -> tuple[list[DamDay], list[Obs]]:
                     continue
                 t = datetime(d.year, d.month, d.day, _OBS_HOUR_UTC, tzinfo=timezone.utc)
                 obs.append(Obs(sid, variable, t, v, "ctm"))
+    if not any(o.variable == "discharge" for o in obs):
+        raise ValueError("CTM report layout changed: no station flow rows found")
+    if not any(o.variable == "level" for o in obs):
+        raise ValueError("CTM report layout changed: no station level rows found")
     return dams, obs
 
 

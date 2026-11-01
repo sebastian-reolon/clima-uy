@@ -22,7 +22,8 @@ def parse(js: bytes, station_id: str, fetched_utc: datetime) -> list[Forecast]:
     The API also returns past days (and ensemble members, ignored here).
     """
     daily = json.loads(js.decode("utf-8"))["daily"]
-    f = fetched_utc.astimezone(timezone.utc)
+    # A naive datetime is taken as UTC, never as local time.
+    f = fetched_utc.replace(tzinfo=timezone.utc) if fetched_utc.tzinfo is None else fetched_utc.astimezone(timezone.utc)
     issued = f.replace(hour=0, minute=0, second=0, microsecond=0)
     out: list[Forecast] = []
     for i, day in enumerate(daily["time"]):

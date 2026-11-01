@@ -3,6 +3,8 @@ import logging
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+import pytest
+
 from climauy.parsers import cpc, ctm, glofas
 
 FIX = Path(__file__).parent / "fixtures"
@@ -31,15 +33,19 @@ def test_ctm_report_2026_11_01():
 
 
 def test_ctm_unknown_station_name_is_skipped_and_logged(caplog):
-    text = (
-        "Niveles Hora 07:00 (m)\n29/10/2026 30/10/2026\n"
-        "Paso de los Libres 8.01 8.04\nPuerto Inventado 1.00 2.00\n"
+    text = _ctm_text().replace(
+        "Garruchos 8840 6312 5076 4474",
+        "Garruchos 8840 6312 5076 4474\nPuerto Inventado 1 2 3 4",
     )
     with caplog.at_level(logging.WARNING, logger="climauy.parsers.ctm"):
         _, obs = ctm.parse_text(text)
-    assert {o.station_id for o in obs} == {"ina_72"}
-    assert len(obs) == 2
     assert "Puerto Inventado" in caplog.text
+    assert not any("Inventado" in o.station_id for o in obs)
+    assert _ctm_obs_count() == len(obs)
+
+
+def _ctm_obs_count():
+    return len(ctm.parse_report(_ctm_pdf())[1])
 
 
 def _glofas(name):
@@ -61,9 +67,16 @@ def test_glofas_salto_forecast():
     assert min(by_day) == datetime(2026, 11, 2, tzinfo=UTC)
 
 
-def test_glofas_uruguaiana_and_naive_fetch_day():
+def test_glofas_uruguaiana_skips_issue_day():
     fc = glofas.parse(_glofas("uruguaiana"), "ana_77150000", datetime(2026, 11, 3, 0, 5, tzinfo=UTC))
     assert min(f.valid_utc for f in fc) == datetime(2026, 11, 4, tzinfo=UTC)
+
+
+def test_glofas_naive_fetched_is_taken_as_utc():
+    js = _glofas("salto")
+    naive = glofas.parse(js, "ina_79", datetime(2026, 11, 1, 21, 0))
+    aware = glofas.parse(js, "ina_79", datetime(2026, 11, 1, 21, 0, tzinfo=UTC))
+    assert naive == aware and naive
 
 
 def _cpc(name):
@@ -94,3 +107,37 @@ def test_cpc_fill_dropped():
     assert [(v.period, v.value) for v in cpc.parse_oni(oni)] == [("1950-DJF", -1.32)]
     assert [(v.period, v.value) for v in cpc.parse_roni(roni)] == [("1950-JFM", -1.08)]
     assert cpc.parse_weekly(weekly) == []
+
+
+def _ctm_text():
+    from pypdf import PdfReader
+    import io
+    return PdfReader(io.BytesIO(_ctm_pdf())).pages[0].extract_text()
+
+
+def test_ctm_garbled_text_raises():
+    text = _ctm_text()
+    with pytest.raises(ValueError):
+        ctm.parse_text("nothing useful here")
+    with pytest.raises(ValueError, match="7 a 7"):
+        ctm.parse_text(text.replace("7 a 7", "siete"))
+    with pytest.raises(ValueError, match="level"):
+        ctm.parse_text(text.replace("Niveles Hora 07:00", "Otra cosa"))
+
+
+def test_ctm_reordered_blocks_parse_identically():
+    import re
+    text = _ctm_text()
+    parts = re.split(r"(?m)^(?=Volumenes|Caudales|Salto Grande - Erogado|Niveles)", text)
+    head, blocks = parts[0], parts[1:]
+    reordered = head + "".join(b.rstrip("\n") + "\n" for b in reversed(blocks))
+    assert reordered != text
+    assert ctm.parse_text(reordered) == ctm.parse_text(text)
+
+
+def test_ctm_row_with_wrong_value_count_warns(caplog):
+    text = _ctm_text().replace("Garruchos 4474", "Garruchos 4474", 1).replace(
+        "Garruchos 8840 6312 5076 4474", "Garruchos 8840 6312 5076")
+    with caplog.at_level(logging.WARNING, logger="climauy.parsers.ctm"):
+        ctm.parse_text(text)
+    assert "Garruchos" in caplog.text and "expected 4" in caplog.text

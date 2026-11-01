@@ -1,6 +1,6 @@
+import dataclasses
 import gzip
 import json
-import dataclasses
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -10,7 +10,8 @@ import pytest
 from climauy.catalog import load_catalog
 from climauy.cli import main
 from climauy.ingest import ingest_archive
-from climauy.store import Store
+from climauy.parsers import flag_outliers
+from climauy.store import Obs, Store
 
 FIX = Path(__file__).parent / "fixtures"
 DAY = "2026-11-01"
@@ -170,28 +171,24 @@ def test_lone_spike_is_stored_as_suspect(tmp_path, store, catalog):
 
 
 @pytest.mark.parametrize("a_first", [True, False])
-def test_quality_independent_of_ingest_order(tmp_path, catalog, a_first):
-    full = [100.0 * 1.6**i for i in range(40)]  # steep rising limb
-    full_a = list(full[:25])
-    full_a[5] = 1e9  # spike only in window A
-    a = _series(full_a)
-    # B starts at reading 8 so the steep limb sits on its truncated left edge.
-    b = _series(full[8:], first=8)
-    with Store(tmp_path / f"{a_first}.sqlite") as st:
-        root = tmp_path / f"data{a_first}"
-        _put(root, "ana", "77150000_uruguaiana.xml", a, hms="100000" if a_first else "110000")
-        _put(root, "ana", "77150000_uruguaiana.xml", b, hms="110000" if a_first else "100000")
+@pytest.mark.parametrize("win_a, win_b", [((0, 25), (8, 40)), ((0, 25), (15, 40)), ((0, 25), (23, 40)), ((0, 25), (25, 40)), ((0, 20), (20, 40))])
+def test_quality_independent_of_ingest_order(tmp_path, catalog, a_first, win_a, win_b):
+    full = [100.0 * 1.6**i for i in range(40)]  # steep rising limb: edges of a window look like outliers
+    full[5] = 1e9  # lone spike
+    st_id = "ana_77150000"
+    with Store(tmp_path / "o.sqlite") as st:
+        root = tmp_path / "data"
+        order = [win_a, win_b] if a_first else [win_b, win_a]
+        for n, (lo, hi) in enumerate(order):
+            _put(root, "ana", "77150000_uruguaiana.xml", _series(full[lo:hi], first=lo), hms=f"1{n}0000")
         ingest_archive(root, st, catalog)
-        rows = st.obs("ana_77150000", "discharge", include_suspect=True)
-    q = {o.time_utc: o.quality for o in rows}
-    # Reference: the whole merged series flagged once.
-    from climauy.parsers import flag_outliers
-    from climauy.store import Obs
-    merged = [Obs("x", "discharge", t, v, "ana") for t, v in zip(sorted(q), [full_a[i] if i < 25 else full[i] for i in range(40)])]
-    expected = {o.time_utc: o.quality for o in flag_outliers(merged)}
-    assert q == expected
-    assert q[sorted(q)[5]] == "suspect"
-    assert q[sorted(q)[8]] == "ok" and q[sorted(q)[24]] == "ok"
+        rows = st.obs(st_id, "discharge", include_suspect=True)
+    got = [o.quality for o in rows]
+    # Reference: the whole series flagged in one pass.
+    expected = [o.quality for o in flag_outliers([Obs(st_id, "discharge", o.time_utc, o.value, "ana") for o in rows])]
+    assert [o.value for o in rows] == pytest.approx(full, abs=0.1)
+    assert got == expected
+    assert got[5] == "suspect" and got[10] == "ok"
 
 
 def test_second_run_does_not_read_ledgered_files(tmp_path, store, catalog, monkeypatch):

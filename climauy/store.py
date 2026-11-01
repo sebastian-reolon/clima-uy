@@ -98,11 +98,6 @@ CREATE TABLE IF NOT EXISTS climate_index (
     value  REAL NOT NULL,
     PRIMARY KEY (name, period)
 );
-CREATE TABLE IF NOT EXISTS processed_file (
-    path TEXT NOT NULL,
-    sha  TEXT NOT NULL,
-    PRIMARY KEY (path, sha)
-);
 CREATE TABLE IF NOT EXISTS file_ledger (
     path     TEXT PRIMARY KEY,
     sha      TEXT NOT NULL,
@@ -229,16 +224,6 @@ class Store:
             (station_id, variable),
         ).fetchone()
         return _dec(row[0]) if row and row[0] else None
-
-    def mark_file_processed(self, path: str, sha: str) -> None:
-        with self._conn:
-            self._conn.execute("INSERT OR IGNORE INTO processed_file (path, sha) VALUES (?,?)", (path, sha))
-
-    def is_file_processed(self, path: str, sha: str) -> bool:
-        return (
-            self._conn.execute("SELECT 1 FROM processed_file WHERE path=? AND sha=?", (path, sha)).fetchone()
-            is not None
-        )
 
     def ledger_get(self, path: str) -> tuple[str, str, int] | None:
         """(status, detail, attempts) for an archive file, or None if never seen."""

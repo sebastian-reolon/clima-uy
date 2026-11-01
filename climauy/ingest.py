@@ -86,14 +86,15 @@ def _store_flagged(store: Store, batch: list[Obs]) -> int:
         merged = {o.time_utc: o for o in stored}
         merged.update(by_time)
         ordered = [merged[t] for t in sorted(merged)]
-        flagged = flag_outliers(ordered)
+        # Qualities are recomputed from scratch: flag_outliers only ever sets "suspect".
+        flagged = flag_outliers([replace(o, quality="ok") for o in ordered])
         pos = {o.time_utc: i for i, o in enumerate(flagged)}
         batch_idx = [pos[t] for t in times]
         lo, hi = min(batch_idx) - _HALF, max(batch_idx) + _HALF
         for i, o in enumerate(flagged):
             if o.time_utc in by_time:
                 out.append(replace(by_time[o.time_utc], quality=o.quality))
-            elif lo <= i <= hi and o.quality != merged[o.time_utc].quality:
+            elif lo <= i <= hi and o.quality != merged[o.time_utc].quality:  # both directions
                 out.append(o)
     store.upsert_obs(out)
     return len(batch)

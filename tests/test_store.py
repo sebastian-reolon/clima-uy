@@ -97,11 +97,20 @@ def test_dam_and_indices(store):
 
 
 def test_file_ledger(store):
-    assert not store.is_file_processed("a.csv", "abc")
-    store.mark_file_processed("a.csv", "abc")
-    store.mark_file_processed("a.csv", "abc")
-    assert store.is_file_processed("a.csv", "abc")
-    assert not store.is_file_processed("a.csv", "def")
+    assert store.ledger_get("a/b.gz") is None
+    store.ledger_set("a/b.gz", "abc", "failed", "boom", 1)
+    assert store.ledger_get("a/b.gz") == ("failed", "boom", 1)
+    store.ledger_set("a/b.gz", "abc", "processed")
+    assert store.ledger_get("a/b.gz") == ("processed", "", 0)
+
+
+def test_obs_around_returns_padding_per_series(store):
+    t0 = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    rows = [Obs("s", "level", t0 + timedelta(hours=i), float(i), "ina") for i in range(10)]
+    rows.append(Obs("s", "level", t0 + timedelta(hours=5), 99.0, "ana"))
+    store.upsert_obs(rows)
+    got = store.obs_around("s", "level", "ina", t0 + timedelta(hours=4), t0 + timedelta(hours=5), 2)
+    assert [o.value for o in got] == [2.0, 3.0, 4.0, 5.0, 6.0, 7.0]
 
 
 def test_persists_and_wal(tmp_path):

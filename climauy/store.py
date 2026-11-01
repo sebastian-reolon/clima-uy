@@ -105,6 +105,14 @@ CREATE TABLE IF NOT EXISTS file_ledger (
     detail   TEXT NOT NULL DEFAULT '',
     attempts INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS backfill_chunk (
+    source       TEXT NOT NULL,
+    series       TEXT NOT NULL,
+    variable     TEXT NOT NULL,
+    chunk_start  TEXT NOT NULL,
+    completed_utc TEXT NOT NULL,
+    PRIMARY KEY (source, series, variable, chunk_start)
+);
 """
 
 
@@ -237,6 +245,22 @@ class Store:
                 "ON CONFLICT (path) DO UPDATE SET sha=excluded.sha, status=excluded.status, "
                 "detail=excluded.detail, attempts=excluded.attempts",
                 (path, sha, status, detail, attempts),
+            )
+
+    def chunk_done(self, source: str, series: str, variable: str, chunk_start: date) -> bool:
+        row = self._conn.execute(
+            "SELECT 1 FROM backfill_chunk WHERE source=? AND series=? AND variable=? AND chunk_start=?",
+            (source, series, variable, chunk_start.isoformat()),
+        ).fetchone()
+        return row is not None
+
+    def chunk_mark(self, source: str, series: str, variable: str, chunk_start: date) -> None:
+        with self._conn:
+            self._conn.execute(
+                "INSERT INTO backfill_chunk (source, series, variable, chunk_start, completed_utc) "
+                "VALUES (?,?,?,?,?) ON CONFLICT (source, series, variable, chunk_start) "
+                "DO UPDATE SET completed_utc=excluded.completed_utc",
+                (source, series, variable, chunk_start.isoformat(), _enc(datetime.now(timezone.utc))),
             )
 
     def obs_around(

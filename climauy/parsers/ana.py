@@ -38,7 +38,8 @@ def parse_telemetry(xml: bytes, station_id: str) -> list[Obs]:
 def parse_history(xml: bytes, station_id: str, variable: str) -> list[Obs]:
     """Monthly rows with one column per day (Vazao01..31 in m3/s, Cota01..31 in cm).
 
-    Each day becomes an Obs at 00:00 Brasilia. When a month appears with both
+    Each day becomes an Obs at 00:00 Brasilia with source "ana_hist" (distinct from
+    15-minute telemetry, which uses "ana"). When a month appears with both
     NivelConsistencia 1 (raw) and 2 (consisted), the consisted row wins.
     """
     prefix, scale = _HISTORY_PREFIX[variable]
@@ -62,5 +63,5 @@ def parse_history(xml: bytes, station_id: str, variable: str) -> list[Obs]:
                 break  # past the end of this month
             v = to_float(row.get(f"{prefix}{day:02d}"))
             if v is not None:
-                out.append(Obs(station_id, variable, local.astimezone(timezone.utc), v * scale, "ana"))
+                out.append(Obs(station_id, variable, local.astimezone(timezone.utc), v * scale, "ana_hist"))
     return out

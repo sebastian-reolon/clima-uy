@@ -88,7 +88,7 @@ def test_ana_history_daily_expansion():
     dec = [o for o in obs if o.time_utc.astimezone(timezone(timedelta(hours=-3))).month == 12
            and o.time_utc.astimezone(timezone(timedelta(hours=-3))).year == 2015]
     assert len(dec) == 31
-    assert all(o.variable == "discharge" and o.source == "ana" for o in obs)
+    assert all(o.variable == "discharge" and o.source == "ana_hist" for o in obs)
     # day 1 at 00:00 Brasilia == 03:00 UTC
     assert min(o.time_utc for o in dec) == datetime(2015, 12, 1, 3, 0, tzinfo=UTC)
     nov = [o for o in obs if o.time_utc.month == 11 and o.time_utc.year == 2015]

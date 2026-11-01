@@ -2,14 +2,21 @@ import re
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta, timezone
 
+import pytest
+
 from climauy.analysis.lag import HoldoutResult, LagResult
 from climauy.analysis.status import StationStatus
 from climauy.catalog import Station
+from climauy.catalog import load_catalog
 from climauy.site.charts import (
+    MAX_PAST_SEASONS,
+    P_BOTTOM,
+    P_TOP,
     forecast_band_svg,
     gauge_svg,
     lag_svg,
     profile_svg,
+    profile_y,
     season_compare_svg,
     sparkline_svg,
 )
@@ -91,7 +98,7 @@ def all_svgs():
         sparkline_svg(obs),
         forecast_band_svg(obs, forecasts()),
         season_compare_svg({"2009-10": [(0, 8.0), (1, 9.0)], "2026-27": [(0, 7.0), (1, 7.5)]}, 11.0),
-        lag_svg(lag_result()),
+        lag_svg(lag_result(), "Paso de los Libres", "Concordia"),
     ]
 
 
@@ -196,12 +203,15 @@ def test_no_banned_typography():
         assert "—" not in svg and " -- " not in svg and " · " not in svg and "→" not in svg
 
 
-def test_profile_font_sizes_readable_at_390():
-    svg = profile_svg([status(s.id, 80.0) for s in CATALOG], CATALOG)
-    width = float(parse(svg).get("viewBox").split()[2])
+def test_wide_chart_font_sizes_readable_at_390():
     rendered = 390 - 2 * 16
-    for size in re.findall(r'font-size="([\d.]+)"', svg):
-        assert float(size) * rendered / width >= 12
+    for svg in all_svgs():
+        root = parse(svg)
+        if "chart-wide" not in root.get("class"):
+            continue
+        width = float(root.get("viewBox").split()[2])
+        for size in re.findall(r'font-size="([\d.]+)"', svg):
+            assert float(size) * rendered / width >= 12
 
 
 def test_charts_render_without_data():
@@ -210,7 +220,7 @@ def test_charts_render_without_data():
         sparkline_svg({}),
         forecast_band_svg({}, []),
         season_compare_svg({}, None),
-        lag_svg(empty_lag),
+        lag_svg(empty_lag, "Paso de los Libres", "Concordia"),
         profile_svg([], CATALOG),
     ):
         root = parse(svg)
@@ -222,3 +232,125 @@ def test_forecast_uses_latest_run_only():
                     datetime(2026, 11, 3, 3, tzinfo=timezone.utc), "main", 99.0)]
     svg = forecast_band_svg({date(2026, 10, 31): 6.0}, forecasts() + old)
     assert "99" not in parse(svg).find("s:desc", NS).text
+
+
+def ys(d):
+    nums = [float(v) for v in re.findall(r"-?\d+(?:\.\d+)?", d)]
+    return nums[1::2]
+
+
+def test_profile_axis_is_log_exceedance():
+    assert profile_y(50) == pytest.approx(P_BOTTOM)
+    assert profile_y(99) == pytest.approx(P_TOP)
+    assert profile_y(99.9) == pytest.approx(P_TOP)  # above 99 sits on the top edge
+    marks = [profile_y(p) for p in (50, 75, 90, 95, 99)]
+    assert marks == sorted(marks, reverse=True)
+    # Log scale: 90 to 99 takes more room than 50 to 75.
+    assert profile_y(90) - profile_y(99) > profile_y(50) - profile_y(75)
+
+
+def test_profile_points_follow_axis():
+    pcts = [55.0, 75.0, 90.0, 95.0, 99.0]
+    sts = [status(s.id, p) for s, p in zip([c for c in CATALOG if c.tributary_of is None], pcts)]
+    got = ys(today_path(profile_svg(sts, CATALOG)).get("d"))
+    assert got == sorted(got, reverse=True)
+    assert got[-1] == pytest.approx(P_TOP, abs=0.1)
+
+
+def test_profile_pins_below_median():
+    sts = [status("a", 80.0), status("b", 30.0), status("c", 85.0), status("d", 90.0), status("e", 91.0)]
+    svg = profile_svg(sts, CATALOG)
+    d = today_path(svg).get("d")
+    assert subpaths(d) == 2  # no drop to the bottom: the line breaks
+    assert max(ys(d)) < P_BOTTOM
+    root = parse(svg)
+    markers = [c for c in root.iter("{http://www.w3.org/2000/svg}circle") if c.get("class") == "below-median"]
+    assert len(markers) == 1 and float(markers[0].get("cy")) == pytest.approx(P_BOTTOM)
+    assert "Paso de los Libres: hoy 30, por debajo de la mediana" in root.find("s:desc", NS).text
+
+
+def texts_of(svg):
+    return ["".join(t.itertext()) for t in parse(svg).iter("{http://www.w3.org/2000/svg}text")]
+
+
+def test_profile_names_crest():
+    sts = [status("a", 80.0), status("b", 85.0), status("c", 88.0), status("d", 96.4), status("e", 91.0)]
+    texts = texts_of(profile_svg(sts, CATALOG))
+    assert "pico hoy: Salto (medido en Concordia)más alto que el 96% de los días" in texts
+
+
+def test_profile_crest_plain_station():
+    sts = [status("a", 97.0), status("b", 85.0)]
+    texts = texts_of(profile_svg(sts, CATALOG))
+    assert "pico hoy: Santo Tomémás alto que el 97% de los días" in texts
+
+
+def test_profile_city_label_stale_names_station():
+    sts = [status("a", 80.0), status("b", 85.0), status("c", stale=True), status("d", 90.0), status("e", 91.0)]
+    texts = texts_of(profile_svg(sts, CATALOG))
+    assert "Bella Unión, medido en Monte Caseros:" in texts
+    assert "desactualizado desde el 29/10" in texts
+
+
+def test_profile_city_label_without_percentile_names_station():
+    sts = [status("a", 80.0), status("b", 85.0), status("c", 88.0), status("d", 90.0), status("e", pct=None)]
+    texts = texts_of(profile_svg(sts, CATALOG))
+    assert "Paysandú, medido en Colón:" in texts
+    assert "sin percentil hoy" in texts
+
+
+def test_profile_city_without_station_data():
+    cat = CATALOG + [station("fb", "Fray Bentos", 7, represents="Fray Bentos")]
+    fb = StationStatus(
+        station_id="fb", variable_used="level", latest_value=None, latest_time_utc=None, stale=True,
+        stale_since=None, level_change_3d_m=None, discharge_change_3d_pct=None, trend=None, trend_basis=None,
+        percentile_today=None, percentile_3d_ago=None, alert_percentile=None, level_m=None, above_alert=None,
+        above_evac=None, history_years=0.0,
+    )
+    texts = texts_of(profile_svg([status(s.id, 80.0) for s in CATALOG] + [fb], cat))
+    assert "Fray Bentos:" in texts
+    assert "sin estación con datos al día" in texts
+
+
+def test_profile_alert_ticks_only_with_data():
+    sts = [status("a", 80.0, alert_pct=95.0), status("b", stale=True, alert_pct=93.0),
+           status("c", pct=None, alert_pct=97.0), status("d", 90.0, alert_pct=96.0), status("e", 91.0)]
+    root = parse(profile_svg(sts, CATALOG))
+    ticks = [l for l in root.iter("{http://www.w3.org/2000/svg}line") if l.get("class") == "alert-tick"]
+    assert len(ticks) == 2
+
+
+def test_profile_real_catalog_names_stem():
+    cat = load_catalog()
+    texts = texts_of(profile_svg([status(s.id, 80.0) for s in cat], cat))
+    assert "aguas arriba" in texts and "desembocadura" in texts
+    assert "Paso de los Libres" in texts
+    assert sum(t in texts for t in ("Itá", "Garruchos", "Salto Grande", "Concordia", "Nueva Palmira")) >= 2
+
+
+def test_gauge_window_above_14_m():
+    st = station("sg", "Salto Grande Arriba", 1, alert_m=35.5, evac_m=36.0)
+    svg = gauge_svg(status("sg", level=34.99), st)
+    assert "Escala de 25 a 37 m" in parse(svg).find("s:desc", NS).text
+    texts = texts_of(svg)
+    assert "25" in texts and "0" not in texts
+
+
+def test_season_title_from_keys():
+    svg = season_compare_svg({"2014-15": [(0, 5.0)], "1997-98": [(0, 6.0)], "2026-27": [(0, 7.0)]}, None)
+    assert parse(svg).find("s:title", NS).text == "Esta temporada contra las crecidas de 1997 y 2014"
+    texts = texts_of(svg)
+    assert "1997" in texts and "2014" in texts and "2026-27" in texts
+
+
+def test_season_too_many_past_seasons():
+    series = {f"{2000 + k}-{k + 1:02d}": [(0, 5.0)] for k in range(MAX_PAST_SEASONS + 2)}
+    with pytest.raises(ValueError):
+        season_compare_svg(series, None)
+
+
+def test_lag_uses_given_names():
+    svg = lag_svg(lag_result(), "Paso de los Libres", "Concordia")
+    root = parse(svg)
+    assert root.find("s:title", NS).text == "Lo que tardó el pico en llegar de Paso de los Libres a Concordia"
+    assert "de Paso de los Libres a Concordia" in root.find("s:desc", NS).text

@@ -14,22 +14,25 @@ from __future__ import annotations
 import math
 from collections import defaultdict
 from datetime import date, timedelta
-from functools import lru_cache
 from statistics import mean
 from typing import Iterable, Sequence
 from xml.sax.saxutils import escape
 
 from ..analysis.lag import LagResult
 from ..analysis.status import StationStatus
-from ..catalog import Station, load_catalog
+from ..catalog import Station
 from ..store import Forecast
 from ..timeutil import local_day
 
+PAPER = "#EEF1EC"
 INK = "#1B2A33"
 INK_2 = "#4F5E66"
 GRID = "#C9D3CC"
 SILT = "#9C7A4D"
-ALERT = "#E3A21A"
+ALERT = "#E3A21A"  # fills and swatches only: 2:1 on paper
+# Darker amber for thin alert lines on paper (3.7:1), kept apart from the sediment
+# brown. site.css names it --alerta-texto.
+ALERT_LINE = "#A87000"
 EVAC = "#C62828"
 LOW = "#3E6B7A"
 
@@ -95,7 +98,7 @@ def _svg(kind: str, width: float, height: float, title: str, desc: str, body: It
 
 
 def _text(x: float, y: float, s: str, anchor: str = "start", fill: str | None = None,
-          weight: int | None = None, cls: str | None = None) -> str:
+          weight: int | None = None, cls: str | None = None, extra: str = "") -> str:
     attrs = f'x="{_f(x)}" y="{_f(y)}"'
     if anchor != "start":
         attrs += f' text-anchor="{anchor}"'
@@ -105,6 +108,8 @@ def _text(x: float, y: float, s: str, anchor: str = "start", fill: str | None = 
         attrs += f' font-weight="{weight}"'
     if cls:
         attrs += f' class="{cls}"'
+    if extra:
+        attrs += " " + extra
     return f"<text {attrs}>{escape(s)}</text>"
 
 
@@ -187,14 +192,30 @@ def _text_width(s: str, size: float) -> float:
     return len(s) * size * 0.43
 
 
-def _legend(items: Sequence[tuple[str, str]], y: float, x: float = 0) -> list[str]:
-    """Legend row: (svg sample markup with {x}, label)."""
+WIDE_FONT_DESKTOP = 14  # .chart-wide text size at >= 56em in site.css
+
+
+def _legend_row(items: Sequence[tuple[str, str]], y: float, size: float) -> list[str]:
     out = []
+    x = 0.0
     for sample, label in items:
-        out.append(sample.format(x0=_f(x), x1=_f(x + 26), xm=_f(x + 13), y=_f(y - 7)))
+        out.append(sample.format(x0=_f(x), x1=_f(x + 26), xm=_f(x + 13), xa=_f(x + 8), xb=_f(x + 18), y=_f(y - 7)))
         out.append(_text(x + 34, y, label, fill=INK_2))
-        x += 34 + _text_width(label, WIDE_FONT) + 26
+        x += 34 + _text_width(label, size) + 24
     return out
+
+
+def _legend(items: Sequence[tuple[str, str]], y: float) -> list[str]:
+    """Legend row of (sample markup with {x0} {x1} {xm} {y}, label).
+
+    Laid out twice: for the phone text size (shown by default) and for the
+    smaller desktop size (hidden until site.css swaps them at >= 56em), so the
+    gaps stay even on both.
+    """
+    return (
+        ['<g class="legend-narrow">'] + _legend_row(items, y, WIDE_FONT) + ["</g>"]
+        + ['<g class="legend-wide" display="none">'] + _legend_row(items, y, WIDE_FONT_DESKTOP) + ["</g>"]
+    )
 
 
 def _sample_line(color: str, width: float, dash: str | None = None) -> str:
@@ -207,9 +228,10 @@ def _sample_line(color: str, width: float, dash: str | None = None) -> str:
 
 
 def _sample_alert_tick() -> str:
+    """A single short tick, as drawn at each station."""
     return (
-        f'<line x1="{{x0}}" y1="{{y}}" x2="{{x1}}" y2="{{y}}" stroke="{ALERT}" stroke-width="3" '
-        'stroke-dasharray="10 6" vector-effect="non-scaling-stroke"/>'
+        '<line x1="{xa}" y1="{y}" x2="{xb}" y2="{y}" '
+        f'stroke="{ALERT_LINE}" stroke-width="3" vector-effect="non-scaling-stroke"/>'
     )
 
 
@@ -219,25 +241,56 @@ def _sample_band(color: str, opacity: float) -> str:
 
 # ---------------------------------------------------------------- profile
 
-P_LEFT, P_RIGHT = 46, 584
-P_TOP, P_BOTTOM = 92, 400
+P_LEFT, P_RIGHT = 84, 584
+P_TOP, P_BOTTOM = 160, 424
 DOTTED = "0 7"  # with round caps: a dotted line
+# Exceedance axis: e = 100 - percentile on a log scale, from the median (e = 50,
+# bottom) to rarer than 99% of days (e = 1, top). Values above 99 sit on the top
+# edge; values below the median are not on the axis and get an open marker.
+E_MIN, E_MAX = 1.0, 50.0
+P_GRID = [(50, "mediana"), (75, "75"), (90, "90"), (95, "95"), (99, "99")]
+# Stations named along the stem when present: id -> short public name.
+ANCHORS = {
+    "ana_73200080": "Itá",
+    "ina_67": "Garruchos",
+    "ina_72": "Paso de los Libres",
+    "ina_77": "Salto Grande",
+    "ina_79": "Concordia",
+    "ina_1699": "Nueva Palmira",
+}
+# Placement priority for the names under the axis; lower first.
+_ANCHOR_PRIORITY = ["ina_72", "ina_77", "ina_67", "ana_73200080", "ina_79", "ina_1699"]
+HALO = f'stroke="{PAPER}" stroke-width="6" stroke-linejoin="round" paint-order="stroke"'
 
 
-def _city_label(station: Station, status: StationStatus | None) -> tuple[str, str]:
-    """(city, how it is measured) for a station that represents a Uruguayan city."""
+def profile_y(p: float) -> float:
+    """Vertical position of percentile p on the profile (clamped to the plot)."""
+    e = min(max(100.0 - p, E_MIN), E_MAX)
+    return P_TOP + (P_BOTTOM - P_TOP) * math.log10(e / E_MIN) / math.log10(E_MAX / E_MIN)
+
+
+def _station_display(station: Station) -> str:
+    """'Salto (medido en Concordia)' for a Uruguayan city, else the station name."""
+    if station.represents and station.represents != station.name:
+        return f"{station.represents} (medido en {station.name})"
+    return station.represents or station.name
+
+
+def _city_label(station: Station, status: StationStatus | None) -> tuple[str, str, str | None]:
+    """(city, how it is measured, state line or None) for a station that represents a Uruguayan city."""
     city = station.represents or station.name
-    if status is None or status.percentile_today is None:
-        if status is not None and status.stale and status.stale_since:
-            return city, f", desactualizado desde el {_day_short(status.stale_since)}"
-        return city, ", sin dato hoy"
-    if city == station.name:
-        return city, ""
-    return city, f", medido en {station.name}"
+    how = f", medido en {station.name}" if city != station.name else ""
+    if status is not None and not status.stale and status.percentile_today is not None:
+        return city, how, None
+    if status is not None and status.stale and status.stale_since:
+        return city, how + ":", f"desactualizado desde el {_day_short(status.stale_since)}"
+    if status is not None and not status.stale:
+        return city, how + ":", "sin percentil hoy"
+    return city, how + ":", "sin estación con datos al día"
 
 
 def _profile_line(station: Station, status: StationStatus | None) -> str:
-    name = f"{station.represents} (medido en {station.name})" if station.represents and station.represents != station.name else station.name
+    name = _station_display(station)
     if status is None:
         return f"{name}: sin dato"
     if status.stale:
@@ -246,6 +299,8 @@ def _profile_line(station: Station, status: StationStatus | None) -> str:
     if status.percentile_today is None:
         return f"{name}: sin percentil"
     parts = [f"hoy {_pct(status.percentile_today)}"]
+    if status.percentile_today < 50:
+        parts[0] += ", por debajo de la mediana"
     if status.percentile_3d_ago is not None:
         parts.append(f"hace 3 días {_pct(status.percentile_3d_ago)}")
     if status.alert_percentile is not None:
@@ -253,12 +308,27 @@ def _profile_line(station: Station, status: StationStatus | None) -> str:
     return f"{name}: " + ", ".join(parts)
 
 
-def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> str:
-    """Long profile of the main river: today's percentile per station, upstream to downstream.
+def _place_rows(items: Sequence[tuple[float, float, str, str]], rows: int, gap: float = 14) -> list[tuple[int, float, str, str]]:
+    """Greedy placement of (start, width, text, anchor-key) labels on up to `rows` rows; drops what does not fit."""
+    taken: list[list[tuple[float, float]]] = [[] for _ in range(rows)]
+    out = []
+    for start, w, s, key in items:
+        for r in range(rows):
+            if all(start + w + gap <= a or start >= b + gap for a, b in taken[r]):
+                taken[r].append((start, start + w))
+                out.append((r, start, s, key))
+                break
+    return out
 
-    Stale stations and stations without a percentile break the line. The
-    today path carries `data-d0`, the same path with each point at its value
-    of 3 days earlier (or today's when that is missing), for morph.js.
+
+def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> str:
+    """Long profile of the main river: how high each station is against its own history, upstream to downstream.
+
+    The y axis is the share of days since 1990 that were lower (see profile_y).
+    Stale stations, stations without a percentile and stations below their
+    median break the line; the last ones get an open marker on the bottom edge.
+    The today path carries `data-d0`, the same path with each point at its
+    value of 3 days earlier (or today's when that is missing), for morph.js.
     """
     by_id = {s.station_id: s for s in statuses}
     stations = sorted((s for s in catalog if s.tributary_of is None), key=lambda s: s.order)
@@ -268,16 +338,15 @@ def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -
     def x(i: int) -> float:
         return P_LEFT + (P_RIGHT - P_LEFT) * (i / (n - 1) if n > 1 else 0.5)
 
-    def y(p: float) -> float:
-        return P_BOTTOM - (P_BOTTOM - P_TOP) * p / 100.0
-
     def fresh(ss: StationStatus | None, attr: str) -> float | None:
         if ss is None or ss.stale:
             return None
         return getattr(ss, attr)
 
-    today = [fresh(ss, "percentile_today") for _, ss in rows]
-    ago = [fresh(ss, "percentile_3d_ago") for _, ss in rows]
+    raw_today = [fresh(ss, "percentile_today") for _, ss in rows]
+    today = [p if p is not None and p >= 50 else None for p in raw_today]
+    raw_ago = [fresh(ss, "percentile_3d_ago") for _, ss in rows]
+    ago = [p if p is not None and p >= 50 else None for p in raw_ago]
 
     body: list[str] = []
     body += _legend(
@@ -288,60 +357,114 @@ def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -
         ],
         y=26,
     )
-    body.append(_text(0, 66, "percentil de su propia historia desde 1990", fill=INK_2))
+    body.append(_text(0, 66, "más alto que el X% de los días desde 1990", fill=INK_2))
 
     # Grid and y axis.
-    for p in (0, 25, 50, 75, 100):
-        body.append(_line(P_LEFT, y(p), P_RIGHT, y(p), GRID, 1))
-        body.append(_text(P_LEFT - 8, y(p) + 7, str(p), anchor="end", fill=INK_2))
+    for p, label in P_GRID:
+        body.append(_line(P_LEFT, profile_y(p), P_RIGHT, profile_y(p), GRID, 1))
+        body.append(_text(P_LEFT - 8, profile_y(p) + 7, label, anchor="end", fill=INK_2))
     # Station ticks along the bottom, like a ruler.
     body.append('<g class="stations">')
     for i in range(n):
         body.append(_line(x(i), P_BOTTOM, x(i), P_BOTTOM + 7, INK_2, 1))
     body.append("</g>")
 
-    # Uruguayan cities: a guide through the plot and a stepped label below it.
+    # Names along the stem: ends first, then anchor stations, on two rows.
+    name_y = P_BOTTOM + 34
+    candidates: list[tuple[float, float, str, str]] = []
+    if n:
+        candidates.append((P_LEFT, _text_width("aguas arriba", WIDE_FONT), "aguas arriba", "start"))
+        w = _text_width("desembocadura", WIDE_FONT)
+        candidates.append((P_RIGHT - w, w, "desembocadura", "end"))
+    index = {st.id: i for i, (st, _) in enumerate(rows)}
+    for sid in _ANCHOR_PRIORITY:
+        if sid in index:
+            label = ANCHORS[sid]
+            w = _text_width(label, WIDE_FONT)
+            start = min(max(x(index[sid]) - w / 2, 0), WIDE_W - w)
+            candidates.append((start, w, label, "anchor"))
+    placed = _place_rows(candidates, rows=2)
+    names = []
+    for r, start, label, key in placed:
+        # Anchored at the point it names, so it stays in place when CSS shrinks the text.
+        if key == "end":
+            pos = f'x="{_f(P_RIGHT)}" text-anchor="end"'
+        elif key == "start":
+            pos = f'x="{_f(start)}"'
+        else:
+            pos = f'x="{_f(start + _text_width(label, WIDE_FONT) / 2)}" text-anchor="middle"'
+        names.append(f'<text {pos} y="{_f(name_y + r * LINE_GAP)}" fill="{INK_2}" {HALO} class="stem-name">'
+                     f"{escape(label)}</text>")
+    names_rows = 1 + max((r for r, *_ in placed), default=0)
+
+    # Uruguayan cities: a guide through the plot and a stepped label below the names.
     cities = [(i, st, ss) for i, (st, ss) in enumerate(rows) if st.represents]
-    label_y = P_BOTTOM + 42
-    for row, (i, st, ss) in enumerate(cities):
-        ly = label_y + row * LINE_GAP
-        body.append(_line(x(i), P_TOP, x(i), ly - 18, GRID, 1, cls="city-guide"))
-        city, how = _city_label(st, ss)
-        body.append(
-            f'<text x="{_f(x(i) + 4)}" y="{_f(ly)}" text-anchor="end">'
-            f'<tspan font-weight="600">{escape(city)}</tspan>'
-            f'<tspan fill="{INK_2}">{escape(how)}</tspan></text>'
-        )
-    # Direction hint on the last label row, where the stepped labels leave the left side free.
-    body.append(_text(P_LEFT, label_y + max(len(cities) - 1, 0) * LINE_GAP, "aguas arriba", fill=INK_2))
+    ly = name_y + names_rows * LINE_GAP + 14
+    guides: list[str] = []
+    city_texts: list[str] = []
+    for i, st, ss in cities:
+        city, how, state = _city_label(st, ss)
+        guides.append(_line(x(i), P_TOP, x(i), ly - 19, GRID, 1, cls="city-guide"))
+        for bold, rest in [(city, how)] + ([("", state)] if state else []):
+            w = _text_width(bold + rest, WIDE_FONT)
+            end = x(i) + 4
+            pos = f'x="{_f(end)}" text-anchor="end"' if end - w >= 0 else 'x="0"'
+            spans = (f'<tspan font-weight="600">{escape(bold)}</tspan>' if bold else "") + (
+                f'<tspan fill="{INK_2}">{escape(rest)}</tspan>' if rest else "")
+            city_texts.append(f'<text {pos} y="{_f(ly)}" class="city">{spans}</text>')
+            ly += LINE_GAP
+    # Guides run under the names, which carry a paper halo.
+    body += guides + names + city_texts
+    height = (ly - LINE_GAP if cities else name_y + (names_rows - 1) * LINE_GAP) + 12
 
-    # Alert ticks under the lines.
+    # Alert ticks under the lines, only where the station has data today.
     for i, (_, ss) in enumerate(rows):
-        if ss is not None and ss.alert_percentile is not None:
-            ay = y(ss.alert_percentile)
-            body.append(_line(x(i) - 5, ay, x(i) + 5, ay, ALERT, 3, cls="alert-tick"))
+        if raw_today[i] is not None and ss is not None and ss.alert_percentile is not None:
+            ay = profile_y(ss.alert_percentile)
+            body.append(_line(x(i) - 5, ay, x(i) + 5, ay, ALERT_LINE, 3, cls="alert-tick"))
 
-    ago_runs = [[(x(i), y(ago[i])) for i in run] for run in _runs(ago)]
+    ago_runs = [[(x(i), profile_y(ago[i])) for i in run] for run in _runs(ago)]
     if ago_runs:
         body.append(_path(_path_d(ago_runs), LOW, 2.5, dash=DOTTED, cls="ago"))
 
     today_idx = _runs(today)
     if today_idx:
-        d = _path_d([[(x(i), y(today[i])) for i in run] for run in today_idx])
-        d0 = _path_d([[(x(i), y(ago[i] if ago[i] is not None else today[i])) for i in run] for run in today_idx])
+        d = _path_d([[(x(i), profile_y(today[i])) for i in run] for run in today_idx])
+        d0 = _path_d([[(x(i), profile_y(raw_ago[i] if raw_ago[i] is not None else today[i])) for i in run]
+                      for run in today_idx])
         body.append(_path(d, SILT, 3.5, cls="today", extra=f' data-d0="{d0}"'))
-    else:
-        body.append(_text((P_LEFT + P_RIGHT) / 2, y(50), "sin datos actuales", anchor="middle", fill=INK_2))
+    for i, p in enumerate(raw_today):
+        if p is not None and p < 50:
+            body.append(f'<circle class="below-median" cx="{_f(x(i))}" cy="{_f(P_BOTTOM)}" r="4.5" fill="{PAPER}" '
+                        f'stroke="{SILT}" stroke-width="2" vector-effect="non-scaling-stroke"/>')
+    if not any(p is not None for p in raw_today):
+        body.append(_text((P_LEFT + P_RIGHT) / 2, (P_TOP + P_BOTTOM) / 2, "sin datos actuales", anchor="middle", fill=INK_2))
+
+    # The crest, named directly.
+    ranked = [(p, i) for i, p in enumerate(raw_today) if p is not None]
+    if ranked:
+        p, i = max(ranked, key=lambda t: (t[0], -t[1]))
+        line1 = f"pico hoy: {_station_display(rows[i][0])}"
+        line2 = f"más alto que el {_pct(p)}% de los días"
+        w = max(_text_width(line1, WIDE_FONT), _text_width(line2, WIDE_FONT))
+        cx = min(max(x(i), w / 2), WIDE_W - w / 2)
+        body.append(_line(x(i), 136, x(i), profile_y(max(p, 50)) - 6, INK, 1, cls="crest-leader"))
+        body.append(
+            f'<text x="{_f(cx)}" y="104" text-anchor="middle" class="crest">'
+            f'<tspan font-weight="600">{escape(line1)}</tspan>'
+            f'<tspan x="{_f(cx)}" dy="{LINE_GAP}">{escape(line2)}</tspan></text>'
+        )
 
     desc = (
-        "Qué tan alto está el río en cada estación, de aguas arriba a aguas abajo, como percentil "
-        "de la historia diaria de esa estación desde 1990 (100 es el día más alto registrado). "
+        "Qué tan alto está el río en cada estación, de aguas arriba a aguas abajo, comparado con la "
+        "historia diaria de esa misma estación desde 1990: un valor de 90 quiere decir más alto que el 90% "
+        "de los días. La escala va de la mediana (abajo) a 99 (arriba); las estaciones por debajo de la "
+        "mediana quedan marcadas en el borde inferior. "
         + "; ".join(_profile_line(st, ss) for st, ss in rows)
         + "."
     )
-    height = label_y + max(len(cities) - 1, 0) * LINE_GAP + 12
     return _svg("chart-wide chart-profile", WIDE_W, height,
-                "Perfil del río Uruguay: percentil de hoy por estación", desc, body)
+                "Perfil del río Uruguay: qué tan alto está cada estación hoy", desc, body)
 
 
 # ---------------------------------------------------------------- gauge
@@ -356,7 +479,7 @@ def gauge_svg(status: StationStatus, station: Station) -> str:
     cotas = []
     if _has_cota(station):
         if station.alert_m is not None:
-            cotas.append(("alerta", station.alert_m, ALERT, "cota alert"))
+            cotas.append(("alerta", station.alert_m, ALERT_LINE, "cota alert"))
         if station.evac_m is not None:
             cotas.append(("evacuación", station.evac_m, EVAC, "cota evac"))
 
@@ -398,7 +521,7 @@ def gauge_svg(status: StationStatus, station: Station) -> str:
             continue
         x0, x1 = x(v) + 1, x(v) + 4 + _text_width(str(v), GAUGE_FONT)
         if not any(x0 <= lx <= x1 for lx in lines_x):
-            body.append(_text(x(v) + 3, plate_y + plate_h - 4, str(v), fill=INK_2))
+            body.append(_text(x(v) + 3, plate_y + plate_h - 4, str(v), fill=INK))
 
     if level is not None:
         lx = x(max(bottom, min(top, level)))
@@ -490,7 +613,8 @@ F_LEFT, F_RIGHT, F_TOP, F_BOTTOM = 64, 584, 96, 316
 OBS_DAYS_BEFORE = 14
 _BANDS = {
     "ina": ("main", [("inferior", "superior", 0.3)]),
-    "glofas": ("median", [("min", "max", 0.14), ("p25", "p75", 0.3)]),
+    # GloFAS: the central half of the ensemble (p25 to p75); min and max stay out.
+    "glofas": ("median", [("p25", "p75", 0.3)]),
 }
 
 
@@ -525,7 +649,8 @@ def forecast_band_svg(obs_daily: dict[date, float], forecast: list[Forecast]) ->
 
     first = issue_day - timedelta(days=OBS_DAYS_BEFORE)
     obs = {d: v for d, v in obs_daily.items() if first <= d <= last_fc}
-    all_vals = list(obs.values()) + [v for q in per_q.values() for v in q.values()]
+    shown_q = [main_q] + [q for band in bands for q in band[:2]]
+    all_vals = list(obs.values()) + [v for q in shown_q for v in per_q.get(q, {}).values()]
     lo, hi, ticks = _ticks(min(all_vals), max(all_vals), 4)
     total = (last_fc - first).days or 1
 
@@ -585,10 +710,13 @@ def forecast_band_svg(obs_daily: dict[date, float], forecast: list[Forecast]) ->
 # ---------------------------------------------------------------- seasons
 
 SEASON_H = 420
-S_LEFT, S_RIGHT, S_TOP, S_BOTTOM = 52, 584, 92, 352
+S_LEFT, S_RIGHT, S_TOP, S_BOTTOM = 52, 530, 72, 352
 SEASON_DAYS = 182
 _MONTH_OFFSETS = [(0, "oct"), (31, "nov"), (61, "dic"), (92, "ene"), (123, "feb"), (151, "mar")]
-_PAST_STYLES = [(LOW, None), (INK_2, "8 5"), (INK, "2 5")]
+# (colour, dash, width) for past seasons, in key order. Each also gets its year
+# written at the line end, so they never depend on colour alone.
+_PAST_STYLES = [(LOW, None, 2.25), (INK_2, "9 5", 2), (INK, "2 4", 1.75), (LOW, "12 4 2 4", 1.5)]
+MAX_PAST_SEASONS = len(_PAST_STYLES)
 
 
 def _season_start(name: str) -> date | None:
@@ -598,15 +726,42 @@ def _season_start(name: str) -> date | None:
         return None
 
 
+def _join_es(items: Sequence[str]) -> str:
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " y " + items[-1]
+
+
+def _spread(ys: list[float], gap: float, lo: float, hi: float) -> list[float]:
+    """Nudge label baselines (in input order) so no two are closer than `gap`, inside [lo, hi]."""
+    order = sorted(range(len(ys)), key=lambda k: ys[k])
+    out = list(ys)
+    prev = -math.inf
+    for k in order:
+        out[k] = max(out[k], prev + gap, lo)
+        prev = out[k]
+    overflow = prev - hi
+    if overflow > 0:
+        for k in order:
+            out[k] -= overflow
+    return out
+
+
 def season_compare_svg(series_by_season: dict[str, list[tuple[int, float]]], alert: float | None,
                        unit: str = "m") -> str:
-    """One line per season from Oct 1 (day 0) to Mar 31; the newest season is drawn in sediment."""
-    title = "Esta temporada contra las crecidas de 2009, 2015 y 2023"
+    """One line per season from Oct 1 (day 0) to Mar 31; the newest season is drawn in sediment.
+
+    Supports up to MAX_PAST_SEASONS seasons besides the newest one and raises
+    ValueError beyond that, since each past season needs its own line style.
+    """
     seasons = {k: v for k, v in sorted(series_by_season.items()) if v}
     if not seasons:
-        return _svg("chart-wide chart-seasons", WIDE_W, SEASON_H, title, "Sin datos de temporadas.",
+        return _svg("chart-wide chart-seasons", WIDE_W, SEASON_H, "Temporadas de crecida", "Sin datos de temporadas.",
                     [_text(WIDE_W / 2, SEASON_H / 2, "sin datos", anchor="middle", fill=INK_2)])
     current = max(seasons)
+    past = [k for k in seasons if k != current]
+    if len(past) > MAX_PAST_SEASONS:
+        raise ValueError(f"season_compare_svg supports up to {MAX_PAST_SEASONS} past seasons, got {len(past)}")
+    years = [k.split("-", 1)[0] for k in past]
+    title = f"Esta temporada contra las crecidas de {_join_es(years)}" if past else f"Temporada {current}"
     vals = [v for s in seasons.values() for _, v in s] + ([alert] if alert is not None else [])
     lo, hi, ticks = _ticks(min(vals), max(vals), 4)
 
@@ -617,7 +772,7 @@ def season_compare_svg(series_by_season: dict[str, list[tuple[int, float]]], ale
         return S_BOTTOM - (S_BOTTOM - S_TOP) * (v - lo) / (hi - lo)
 
     body: list[str] = []
-    body.append(_text(0, 66, f"nivel diario ({unit})" if unit == "m" else f"media diaria ({unit})", fill=INK_2))
+    body.append(_text(0, 40, f"nivel diario ({unit})" if unit == "m" else f"media diaria ({unit})", fill=INK_2))
     step = ticks[1] - ticks[0] if len(ticks) > 1 else 1
     for t in ticks:
         body.append(_line(S_LEFT, y(t), S_RIGHT, y(t), GRID, 1))
@@ -626,21 +781,24 @@ def season_compare_svg(series_by_season: dict[str, list[tuple[int, float]]], ale
         body.append(_line(x(off), S_BOTTOM, x(off), S_BOTTOM + 7, INK_2, 1))
         body.append(_text(x(off) + 4, S_BOTTOM + 30, name, fill=INK_2))
     if alert is not None:
-        body.append(_line(S_LEFT, y(alert), S_RIGHT, y(alert), ALERT, 2.5, cls="cota alert"))
-        body.append(_text(S_RIGHT, y(alert) - 8, f"alerta {_m(alert)}", anchor="end"))
+        body.append(_line(S_LEFT, y(alert), S_RIGHT, y(alert), ALERT_LINE, 2, cls="cota alert"))
+        body.append(_text(S_RIGHT, y(alert) - 8, f"alerta {_m(alert)}", anchor="end", extra=HALO))
 
-    legend: list[tuple[str, str]] = []
-    labels: list[tuple[float, float, str, str, int]] = []
-    past = [k for k in seasons if k != current]
-    for k, (color, dash) in zip(past, _PAST_STYLES):
+    end_labels: list[tuple[float, str, str]] = []
+    for k, year, (color, dash, width) in zip(past, years, _PAST_STYLES):
         s = seasons[k]
         runs = [[(x(d), y(v)) for d, v in run] for run in _consecutive(s)]
-        body.append(_path(_path_d(runs), color, 1.75, dash=dash, cls="season"))
-        legend.append((_sample_line(color, 1.75, dash), k))
+        body.append(_path(_path_d(runs), color, width, dash=dash, cls="season"))
+        end_labels.append((y(max(s)[1]), year, color))
     cur = seasons[current]
-    body.append(_path(_path_d([[(x(d), y(v)) for d, v in run] for run in _consecutive(cur)]), SILT, 3.5, cls="season current"))
-    legend.append((_sample_line(SILT, 3.5), current))
-    body += _legend(legend, y=26)
+    body.append(_path(_path_d([[(x(d), y(v)) for d, v in run] for run in _consecutive(cur)]), SILT, 3.5,
+                      cls="season current"))
+    last_day, last_v = max(cur)
+    body.append(_text(x(last_day) + 8, y(last_v) + 7, current, weight=600, extra=HALO))
+
+    spread = _spread([ly + 7 for ly, _, _ in end_labels], LINE_GAP - 4, S_TOP, S_BOTTOM + 7)
+    for ty, (_, year, color) in zip(spread, end_labels):
+        body.append(_text(S_RIGHT + 8, ty, year, fill=color, weight=600))
 
     parts = []
     for k, s in seasons.items():
@@ -672,20 +830,13 @@ L_LEFT, L_RIGHT, L_TOP, L_BOTTOM = 20, 580, 104, 268
 LAG_MAX_DAYS = 15
 
 
-@lru_cache(maxsize=1)
-def _names() -> dict[str, str]:
-    return {s.id: s.name for s in load_catalog()}
+def lag_svg(result: LagResult, upstream_name: str, downstream_name: str) -> str:
+    """Dot strip of how many days each past flood peak took to travel downstream.
 
-
-def _series_name(ref: str) -> tuple[str, str]:
-    sid, _, variable = ref.partition(":")
-    return _names().get(sid, sid), {"level": "nivel", "discharge": "caudal"}.get(variable, variable)
-
-
-def lag_svg(result: LagResult) -> str:
-    """Dot strip of how many days each past flood peak took to travel downstream."""
-    up, variable = _series_name(result.upstream)
-    down, _ = _series_name(result.downstream)
+    Display names come from the caller (the result only carries station ids).
+    """
+    up, down = upstream_name, downstream_name
+    variable = {"level": "nivel", "discharge": "caudal"}.get(result.upstream.partition(":")[2], "")
     title = f"Lo que tardó el pico en llegar de {up} a {down}"
     events = sorted((date.fromisoformat(k), v) for k, v in result.per_event.items())
     if not events:

@@ -36,6 +36,9 @@
   --grid: #C9D3CC;
   --silt: #9C7A4D;
   --alert: #E3A21A;
+  /* Darker amber for thin alert lines and alert text on paper (3.7:1); the
+     token above stays for fills and swatches, where it reads at 2:1. */
+  --alerta-texto: #A87000;
   --evac: #C62828;
   --low: #3E6B7A;
 
@@ -192,9 +195,11 @@ figcaption {
 }
 
 /*
- * Wide charts use a 600-unit viewBox with 21-unit text, which is 12.5 px at a
+ * Wide charts use a 600-unit viewBox with 23-unit text, which is 13.7 px on a
  * 390 px screen. As the chart widens the text would grow with it, so it is
  * brought back down in user units (font-size inside an SVG is in its units).
+ * Legends are drawn twice in the SVG, laid out for 23 and for 14 units; the
+ * second one replaces the first where the text is 14.
  */
 @media (min-width: 30em) {
   .chart-wide text {
@@ -209,6 +214,12 @@ figcaption {
 @media (min-width: 56em) {
   .chart-wide text {
     font-size: 14px;
+  }
+  .chart-wide .legend-narrow {
+    display: none;
+  }
+  .chart-wide .legend-wide {
+    display: inline;
   }
 }
 

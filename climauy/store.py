@@ -103,6 +103,13 @@ CREATE TABLE IF NOT EXISTS processed_file (
     sha  TEXT NOT NULL,
     PRIMARY KEY (path, sha)
 );
+CREATE TABLE IF NOT EXISTS file_ledger (
+    path     TEXT PRIMARY KEY,
+    sha      TEXT NOT NULL,
+    status   TEXT NOT NULL,
+    detail   TEXT NOT NULL DEFAULT '',
+    attempts INTEGER NOT NULL DEFAULT 0
+);
 """
 
 
@@ -232,3 +239,33 @@ class Store:
             self._conn.execute("SELECT 1 FROM processed_file WHERE path=? AND sha=?", (path, sha)).fetchone()
             is not None
         )
+
+    def ledger_get(self, path: str) -> tuple[str, str, int] | None:
+        """(status, detail, attempts) for an archive file, or None if never seen."""
+        row = self._conn.execute("SELECT status, detail, attempts FROM file_ledger WHERE path=?", (path,)).fetchone()
+        return (row[0], row[1], row[2]) if row else None
+
+    def ledger_set(self, path: str, sha: str, status: str, detail: str = "", attempts: int = 0) -> None:
+        with self._conn:
+            self._conn.execute(
+                "INSERT INTO file_ledger (path, sha, status, detail, attempts) VALUES (?,?,?,?,?) "
+                "ON CONFLICT (path) DO UPDATE SET sha=excluded.sha, status=excluded.status, "
+                "detail=excluded.detail, attempts=excluded.attempts",
+                (path, sha, status, detail, attempts),
+            )
+
+    def obs_around(
+        self, station_id: str, variable: str, source: str, start_utc: datetime, end_utc: datetime, n: int
+    ) -> list[Obs]:
+        """Stored rows (suspect included) of one series in [start, end] plus the n rows before and after."""
+        base = (
+            "SELECT station_id, variable, time_utc, value, source, quality FROM obs "
+            "WHERE station_id=? AND variable=? AND source=? "
+        )
+        a = (station_id, variable, source)
+        s, e = _enc(start_utc), _enc(end_utc)
+        rows = list(self._conn.execute(base + "AND time_utc>=? AND time_utc<=?", (*a, s, e)))
+        rows += self._conn.execute(base + "AND time_utc<? ORDER BY time_utc DESC LIMIT ?", (*a, s, n))
+        rows += self._conn.execute(base + "AND time_utc>? ORDER BY time_utc LIMIT ?", (*a, e, n))
+        rows.sort(key=lambda r: r[2])
+        return [Obs(r[0], r[1], _dec(r[2]), r[3], r[4], r[5]) for r in rows]

@@ -18,8 +18,8 @@ def _ingest() -> int:
     with Store(cfg.db_path) as store:
         report = ingest_archive(cfg.archive_dir, store, load_catalog())
     print(json.dumps(dataclasses.asdict(report)))
-    # Fail only when every new file failed.
-    return 1 if report.errors and report.files_new == 0 else 0
+    # Fail only when every file seen for the first time in this run failed.
+    return 1 if report.files_failed_new and report.files_new == 0 else 0
 
 
 def main(argv: list[str] | None = None) -> int:

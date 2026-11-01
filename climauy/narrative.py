@@ -10,23 +10,25 @@ from .store import IndexValue
 HIGH_PERCENTILE = 90
 MAX_LISTED = 4
 
-# 3-month ONI/RONI codes -> (Spanish span, month number of the LAST month of the span).
-# The period year is read as the year of the last month, so DJF 2026 is
-# diciembre 2025 a febrero 2026 and NDJ 2026 is noviembre 2025 a enero 2026.
+# 3-month ONI/RONI codes -> (Spanish span, center month number). CPC labels each
+# season with the year of its CENTER month: "2026-DJF" is Dec 2025 to Feb 2026 and
+# "2026-NDJ" is Nov 2026 to Jan 2027.
 _SEASONS = {
-    "DJF": ("diciembre-febrero", 2),
-    "JFM": ("enero-marzo", 3),
-    "FMA": ("febrero-abril", 4),
-    "MAM": ("marzo-mayo", 5),
-    "AMJ": ("abril-junio", 6),
-    "MJJ": ("mayo-julio", 7),
-    "JJA": ("junio-agosto", 8),
-    "JAS": ("julio-septiembre", 9),
-    "ASO": ("agosto-octubre", 10),
-    "SON": ("septiembre-noviembre", 11),
-    "OND": ("octubre-diciembre", 12),
-    "NDJ": ("noviembre-enero", 1),
+    "DJF": ("diciembre-febrero", 1),
+    "JFM": ("enero-marzo", 2),
+    "FMA": ("febrero-abril", 3),
+    "MAM": ("marzo-mayo", 4),
+    "AMJ": ("abril-junio", 5),
+    "MJJ": ("mayo-julio", 6),
+    "JJA": ("junio-agosto", 7),
+    "JAS": ("julio-septiembre", 8),
+    "ASO": ("agosto-octubre", 9),
+    "SON": ("septiembre-noviembre", 10),
+    "OND": ("octubre-diciembre", 11),
+    "NDJ": ("noviembre-enero", 12),
 }
+_MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+           "septiembre", "octubre", "noviembre", "diciembre"]
 
 
 def _join(items: list[str]) -> str:
@@ -48,20 +50,25 @@ def _display(station: Station) -> str:
 
 
 def river_summary(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> str:
-    """One to three sentences on the river; "" if no fresh station has a percentile."""
+    """One to three sentences on the river; "" if there is nothing to say.
+
+    Without any fresh percentile, sentence 1 is omitted (no claim about usual values).
+    """
     by_id = {s.station_id: s for s in statuses if not s.stale}
     # Downstream order; stations missing from either side are skipped.
     rows = [(st, by_id[st.id]) for st in sorted(catalog, key=lambda s: s.order) if st.id in by_id]
     ranked = [(st, ss) for st, ss in rows if ss.percentile_today is not None]
-    if not ranked:
-        return ""
 
-    top_st, top_ss = max(ranked, key=lambda r: r[1].percentile_today)
-    pct = top_ss.percentile_today
-    if pct >= HIGH_PERCENTILE:
-        parts = [f"El río está más alto en {_display(top_st)}: más que el {int(pct + 0.5)}% de los días desde 1990."]
-    else:
-        parts = ["El río está dentro de valores habituales en todo el recorrido."]
+    parts = []
+    if ranked:
+        top_st, top_ss = max(ranked, key=lambda r: r[1].percentile_today)
+        pct = top_ss.percentile_today
+        if pct >= HIGH_PERCENTILE:
+            # Round half up, capped at 99 so it never reads "más que el 100%".
+            shown = min(99, int(pct + 0.5))
+            parts.append(f"El río está más alto en {_display(top_st)}: más que el {shown}% de los días desde 1990.")
+        else:
+            parts.append("El río está dentro de valores habituales en todo el recorrido.")
 
     rising = [_display(st) for st, ss in rows if ss.trend == "sube"]
     falling = [_display(st) for st, ss in rows if ss.trend == "baja"]
@@ -82,7 +89,8 @@ def river_summary(statuses: Sequence[StationStatus], catalog: Sequence[Station])
 
 
 def _signed(value: float) -> str:
-    return f"{value:+.2f}".replace(".", ",")
+    # round + 0.0 turns a tiny negative (-0.001) into +0,00 instead of -0,00.
+    return f"{round(value, 2) + 0.0:+.2f}".replace(".", ",")
 
 
 def _period_key(period: str) -> tuple[int, int]:
@@ -91,12 +99,18 @@ def _period_key(period: str) -> tuple[int, int]:
 
 
 def _period_label(period: str) -> str:
-    year, code = period.split("-", 1)
+    year_s, code = period.split("-", 1)
+    year, center = int(year_s), _SEASONS[code][1]
+    if center == 1:
+        return f"diciembre de {year - 1} a febrero de {year}"
+    if center == 12:
+        return f"noviembre de {year} a enero de {year + 1}"
     return f"{_SEASONS[code][0]} de {year}"
 
 
 def enso_summary(indices: Sequence[IndexValue]) -> str:
     """Sentence on the latest RONI and the ONI of the same period; "" without RONI."""
+    # Entries with unknown season codes (or malformed periods) are filtered out.
     ronis = [i for i in indices if i.name == "RONI" and i.period.split("-", 1)[-1] in _SEASONS]
     if not ronis:
         return ""

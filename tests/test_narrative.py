@@ -75,7 +75,7 @@ def test_summary_plural_alert_and_overflow_list():
     out = river_summary(sts, CATALOG)
     assert "Sube en Santo Tomé, Salto (medido en Concordia), Paysandú, Fray Bentos y 1 más." in out
     assert "5 estaciones superan su cota de alerta: " in out
-    assert "Fray Bentos y 1 más." in out.split("alerta: ")[1]
+    assert out.endswith("alerta: Santo Tomé, Salto (medido en Concordia), Paysandú, Fray Bentos y 1 más.")
 
 
 def test_summary_empty_when_no_usable_stations():
@@ -97,10 +97,10 @@ def test_enso_summary_decimal_comma():
 def test_enso_summary_variants():
     neg = enso_summary([IndexValue("RONI", "2026-DJF", -0.4), IndexValue("ONI", "2026-DJF", -0.55)])
     assert neg.startswith("El Pacífico está en condiciones neutrales:")
-    assert "-0,40 para diciembre-febrero de 2026" in neg and "marca -0,55" in neg
+    assert "-0,40 para diciembre de 2025 a febrero de 2026" in neg and "marca -0,55" in neg
     nina = enso_summary([IndexValue("RONI", "2026-NDJ", -0.5)])
     assert nina.startswith("Hay condiciones de La Niña:")
-    assert "noviembre-enero de 2026" in nina and "tradicional" not in nina
+    assert "noviembre de 2026 a enero de 2027" in nina and "tradicional" not in nina
     assert enso_summary([]) == ""
 
 
@@ -112,3 +112,35 @@ def test_no_banned_chars():
     ]
     for out in outs:
         assert "—" not in out and " -- " not in out and " · " not in out
+
+
+def test_enso_latest_period_ordering():
+    def latest(*periods):
+        return enso_summary([IndexValue("RONI", p, 0.0) for p in periods])
+    assert "noviembre de 2026 a enero de 2027" in latest("2026-OND", "2026-NDJ")
+    assert "diciembre de 2026 a febrero de 2027" not in latest("2026-OND", "2026-NDJ")
+    assert "diciembre de 2026 a febrero de 2027" in latest("2026-NDJ", "2027-DJF")
+
+
+def test_enso_tiny_negative_and_unknown_code():
+    out = enso_summary([IndexValue("RONI", "2026-JAS", -0.001), IndexValue("RONI", "2027-XYZ", 2.0)])
+    assert "+0,00 para julio-septiembre de 2026" in out
+
+
+def test_summary_without_percentiles_keeps_other_sentences():
+    sts = [status("a", pct=None, trend="sube", above_alert=True), status("c", pct=None)]
+    out = river_summary(sts, CATALOG)
+    assert out == "Sube en Santo Tomé. 1 estación supera su cota de alerta: Santo Tomé."
+
+
+def test_summary_fresh_without_pct_ignored_for_max():
+    out = river_summary([status("a", pct=None), status("c", pct=92)], CATALOG)
+    assert out == "El río está más alto en Paysandú: más que el 92% de los días desde 1990."
+
+
+def test_percentile_never_reads_100():
+    assert "más que el 99%" in river_summary([status("a", pct=100.0)], CATALOG)
+
+
+def test_summary_nothing_to_say_is_empty():
+    assert river_summary([status("a", pct=None)], CATALOG) == ""

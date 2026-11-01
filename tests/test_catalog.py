@@ -69,6 +69,7 @@ def test_same_point_stations_merged(stations):
     allowed = {
         frozenset({"ana_77150000", "ina_72"}),  # Uruguaiana vs Paso de los Libres
         frozenset({"ana_74720000", "ina_63"}),  # Porto Mauá (BR) vs Alba Posse (AR), twin towns
+        frozenset({"ana_75900000", "ina_69"}),  # Itaqui (BR) vs Alvear (AR), opposite banks
         frozenset({"ina_77", "ina_78"}),  # Salto Grande upstream vs downstream gauge
     }
 

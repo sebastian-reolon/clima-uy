@@ -1,0 +1,831 @@
+[
+  {
+    "id": "ana_72700000",
+    "name": "Machadinho jusante",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -27.5206,
+    "lon": -51.8108,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "72700000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 1
+  },
+  {
+    "id": "ana_73200080",
+    "name": "Itá barramento",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -27.2764,
+    "lon": -52.3772,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "73200080"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 2
+  },
+  {
+    "id": "ana_74050000",
+    "name": "Foz do Chapecó jusante",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -27.1581,
+    "lon": -53.0736,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "74050000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 3
+  },
+  {
+    "id": "ana_74100000",
+    "name": "Iraí",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -27.1756,
+    "lon": -53.2297,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "74100000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 4
+  },
+  {
+    "id": "ana_74329000",
+    "name": "Itapiranga",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -27.1717,
+    "lon": -53.7097,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "74329000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 5
+  },
+  {
+    "id": "ina_60",
+    "name": "Pepirí Miní",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -27.153744,
+    "lon": -53.933149,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "60",
+      "ina_q": "909"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 6
+  },
+  {
+    "id": "ana_74500000",
+    "name": "Alto Uruguai",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -27.3019,
+    "lon": -54.1397,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "74500000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 7
+  },
+  {
+    "id": "ina_61",
+    "name": "El Soberbio",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -27.3,
+    "lon": -54.2,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "61",
+      "ina_q": "910"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 8
+  },
+  {
+    "id": "ina_63",
+    "name": "Alba Posse",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -27.572,
+    "lon": -54.678494,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "63",
+      "ina_q": "912"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 9
+  },
+  {
+    "id": "ana_74720000",
+    "name": "Porto Mauá",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -27.5781,
+    "lon": -54.6831,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "74720000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 10
+  },
+  {
+    "id": "ina_64",
+    "name": "Panambí",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -27.730627,
+    "lon": -54.91305,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "64",
+      "ina_q": "913"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 11
+  },
+  {
+    "id": "ana_74800000",
+    "name": "Porto Lucena",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -27.8525,
+    "lon": -55.0256,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "74800000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 12
+  },
+  {
+    "id": "ina_65",
+    "name": "San Javier",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -27.883333,
+    "lon": -55.133333,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "65",
+      "ina_q": "914"
+    },
+    "represents": null,
+    "alert_m": 8,
+    "evac_m": 10,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [
+      "9644"
+    ],
+    "order": 13
+  },
+  {
+    "id": "ina_66",
+    "name": "Puerto Concepción",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -28.119193,
+    "lon": -55.581369,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "66",
+      "ina_q": "915"
+    },
+    "represents": null,
+    "alert_m": 15.5,
+    "evac_m": 16.5,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 14
+  },
+  {
+    "id": "ana_75550000",
+    "name": "Garruchos",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -28.1822,
+    "lon": -55.6433,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "75550000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 15
+  },
+  {
+    "id": "ina_67",
+    "name": "Garruchos",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -28.183333,
+    "lon": -55.65,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "67",
+      "ina_q": "916"
+    },
+    "represents": null,
+    "alert_m": 12,
+    "evac_m": 14,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 16
+  },
+  {
+    "id": "ina_68",
+    "name": "Santo Tomé",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -28.55,
+    "lon": -56.033333,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "68",
+      "ina_q": "917"
+    },
+    "represents": null,
+    "alert_m": 11.5,
+    "evac_m": 12.5,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [
+      "9645"
+    ],
+    "order": 17
+  },
+  {
+    "id": "ana_75780000",
+    "name": "Passo São Borja",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -28.6244,
+    "lon": -56.0369,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "75780000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 18
+  },
+  {
+    "id": "ina_69",
+    "name": "Alvear",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -29.1,
+    "lon": -56.55,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "69",
+      "ina_q": "918"
+    },
+    "represents": null,
+    "alert_m": 9.5,
+    "evac_m": 11,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 19
+  },
+  {
+    "id": "ana_75900000",
+    "name": "Itaqui",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -29.1175,
+    "lon": -56.5544,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "75900000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 20
+  },
+  {
+    "id": "ina_70",
+    "name": "La Cruz",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -29.18062,
+    "lon": -56.633977,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "70",
+      "ina_q": "919"
+    },
+    "represents": null,
+    "alert_m": 9.5,
+    "evac_m": 11.5,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 21
+  },
+  {
+    "id": "ina_71",
+    "name": "Yapeyú",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -29.470031,
+    "lon": -56.810674,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "71",
+      "ina_q": "920"
+    },
+    "represents": null,
+    "alert_m": 9.5,
+    "evac_m": 10.5,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 22
+  },
+  {
+    "id": "ana_76750000",
+    "name": "Ibirapuitã Alegrete",
+    "country": "BR",
+    "river": "Ibirapuitã",
+    "lat": -29.7683,
+    "lon": -55.7875,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "76750000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": "ana_76800000",
+    "forecast_series": [],
+    "order": 23
+  },
+  {
+    "id": "ana_76800000",
+    "name": "Ibicuí Passo Mariano Pinto",
+    "country": "BR",
+    "river": "Ibicuí",
+    "lat": -29.3092,
+    "lon": -56.0553,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "76800000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": "ina_72",
+    "forecast_series": [],
+    "order": 24
+  },
+  {
+    "id": "ina_72",
+    "name": "Paso de los Libres",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -29.716667,
+    "lon": -57.083333,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "72",
+      "ina_q": "921",
+      "ana": "77140000"
+    },
+    "represents": null,
+    "alert_m": 7.5,
+    "evac_m": 8.5,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [
+      "9646"
+    ],
+    "order": 25
+  },
+  {
+    "id": "ana_77150000",
+    "name": "Uruguaiana",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -29.7486,
+    "lon": -57.0886,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "77150000",
+      "glofas": "-29.675,-57.075"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 26
+  },
+  {
+    "id": "ana_77500000",
+    "name": "Quaraí",
+    "country": "BR",
+    "river": "Quaraí",
+    "lat": -30.3844,
+    "lon": -56.4656,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "77500000"
+    },
+    "represents": "Artigas",
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": "ina_74",
+    "forecast_series": [],
+    "order": 27
+  },
+  {
+    "id": "ina_74",
+    "name": "Monte Caseros",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -30.25,
+    "lon": -57.633333,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "74",
+      "ina_q": "923"
+    },
+    "represents": "Bella Unión",
+    "alert_m": 7.5,
+    "evac_m": 8.5,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 28
+  },
+  {
+    "id": "ina_75",
+    "name": "Mocoretá",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -30.715682,
+    "lon": -57.81776,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "75",
+      "ina_q": "924"
+    },
+    "represents": null,
+    "alert_m": 10.3,
+    "evac_m": 12,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 29
+  },
+  {
+    "id": "ina_77",
+    "name": "Salto Grande Arriba",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -31.27547,
+    "lon": -57.936945,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "77",
+      "ina_q": "926"
+    },
+    "represents": null,
+    "alert_m": 35.5,
+    "evac_m": 36,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 30
+  },
+  {
+    "id": "ina_78",
+    "name": "Salto Grande Abajo",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -31.27547,
+    "lon": -57.936945,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "78",
+      "ina_q": "927"
+    },
+    "represents": null,
+    "alert_m": 17.3,
+    "evac_m": 17.8,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 31
+  },
+  {
+    "id": "ina_79",
+    "name": "Concordia",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -31.4,
+    "lon": -58.016667,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "79",
+      "ina_q": "928",
+      "glofas": "-31.375,-58.025"
+    },
+    "represents": "Salto",
+    "alert_m": 11,
+    "evac_m": 12.5,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 32
+  },
+  {
+    "id": "ana_78500000",
+    "name": "Concordia",
+    "country": "BR",
+    "river": "Uruguay",
+    "lat": -31.4,
+    "lon": -58.0167,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ana": "78500000"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 33
+  },
+  {
+    "id": "ina_80",
+    "name": "Colón",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -32.233333,
+    "lon": -58.116667,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "80",
+      "ina_q": "929"
+    },
+    "represents": "Paysandú",
+    "alert_m": 7.1,
+    "evac_m": 7.9,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 34
+  },
+  {
+    "id": "ina_81",
+    "name": "Concepción del Uruguay",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -32.483333,
+    "lon": -58.233333,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "81",
+      "ina_q": "930"
+    },
+    "represents": null,
+    "alert_m": 5.3,
+    "evac_m": 6.3,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 35
+  },
+  {
+    "id": "ina_82",
+    "name": "Campichuelo",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -32.70101,
+    "lon": -58.1834,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "82",
+      "ina_q": "931"
+    },
+    "represents": null,
+    "alert_m": 5.3,
+    "evac_m": 6.3,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 36
+  },
+  {
+    "id": "ina_99",
+    "name": "Gualeguaychú",
+    "country": "AR",
+    "river": "Gualeguaychú",
+    "lat": -33.014444,
+    "lon": -58.504167,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "99",
+      "ina_q": "948"
+    },
+    "represents": null,
+    "alert_m": 3.5,
+    "evac_m": 3.8,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": "ina_84",
+    "forecast_series": [],
+    "order": 37
+  },
+  {
+    "id": "ina_84",
+    "name": "Boca Gualeguaychú",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -33.066667,
+    "lon": -58.416667,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "84",
+      "ina_q": "933"
+    },
+    "represents": null,
+    "alert_m": 2.9,
+    "evac_m": 3.1,
+    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 38
+  },
+  {
+    "id": "fray_bentos",
+    "name": "Fray Bentos",
+    "country": "UY",
+    "river": "Uruguay",
+    "lat": -33.112132,
+    "lon": -58.314443,
+    "river_km": null,
+    "km_source": null,
+    "sources": {},
+    "represents": "Fray Bentos",
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 39
+  },
+  {
+    "id": "ina_1699",
+    "name": "Nueva Palmira",
+    "country": "AR",
+    "river": "Uruguay",
+    "lat": -33.878478,
+    "lon": -58.422029,
+    "river_km": null,
+    "km_source": null,
+    "sources": {
+      "ina_level": "3280"
+    },
+    "represents": null,
+    "alert_m": null,
+    "evac_m": null,
+    "cota_source": null,
+    "tributary_of": null,
+    "forecast_series": [],
+    "order": 40
+  }
+]

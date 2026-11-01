@@ -1,0 +1,22 @@
+[project]
+name = "clima-uy"
+version = "0.1.0"
+description = "Public reference site about El Niño and the Uruguay River"
+requires-python = ">=3.12"
+dependencies = ["numpy", "jinja2", "pypdf"]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["climauy"]
+
+[tool.setuptools.package-data]
+climauy = ["stations.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

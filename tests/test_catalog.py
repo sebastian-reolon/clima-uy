@@ -60,3 +60,27 @@ def test_config_requires_env(monkeypatch):
     monkeypatch.setenv("CLIMAUY_DB", "/d.sqlite")
     cfg = Config.from_env()
     assert str(cfg.db_path) == "/d.sqlite"
+
+
+def test_same_point_stations_merged(stations):
+    import math
+
+    # Pairs that are intentionally separate: opposite banks, or two gauges of one dam.
+    allowed = {
+        frozenset({"ana_77150000", "ina_72"}),  # Uruguaiana vs Paso de los Libres
+        frozenset({"ana_74720000", "ina_63"}),  # Porto Mauá (BR) vs Alba Posse (AR), twin towns
+        frozenset({"ina_77", "ina_78"}),  # Salto Grande upstream vs downstream gauge
+    }
+
+    def km(a, b):
+        dy = (a.lat - b.lat) * 111.0
+        dx = (a.lon - b.lon) * 111.0 * math.cos(math.radians((a.lat + b.lat) / 2))
+        return math.hypot(dx, dy)
+
+    for i, a in enumerate(stations):
+        for b in stations[i + 1:]:
+            if km(a, b) >= 2.0:
+                continue
+            if a.tributary_of == b.id or b.tributary_of == a.id:
+                continue
+            assert frozenset({a.id, b.id}) in allowed, (a.id, b.id)

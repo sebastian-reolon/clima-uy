@@ -354,3 +354,35 @@ def test_lag_uses_given_names():
     root = parse(svg)
     assert root.find("s:title", NS).text == "Lo que tardó el pico en llegar de Paso de los Libres a Concordia"
     assert "de Paso de los Libres a Concordia" in root.find("s:desc", NS).text
+
+
+@pytest.mark.parametrize("p, text", [(99.5, "99,5%"), (99.99, "99,9%"), (100.0, "100%"), (94.7, "94%"), (99.0, "99,0%")])
+def test_crest_percentile_never_rounds_up(p, text):
+    texts = texts_of(profile_svg([status("a", p), status("b", 50.0)], CATALOG))
+    assert f"pico hoy: Santo Tomémás alto que el {text} de los días" in texts
+
+
+def test_desc_percentile_never_rounds_up():
+    desc = parse(profile_svg([status("a", 99.97, 99.5, alert_pct=99.99), status("b", 94.7)], CATALOG)).find("s:desc", NS).text
+    assert "Santo Tomé: hoy 99,9, hace 3 días 99,5, alerta en 99,9" in desc
+    assert "Paso de los Libres: hoy 94" in desc
+    assert "100" not in desc
+
+
+def test_alert_below_median_open_tick():
+    sts = [status("a", 80.0, alert_pct=40.0), status("b", 85.0)]
+    svg = profile_svg(sts, CATALOG)
+    root = parse(svg)
+    ticks = [l for l in root.iter("{http://www.w3.org/2000/svg}line") if l.get("class") == "alert-tick below-median"]
+    assert len(ticks) == 1 and float(ticks[0].get("y1")) == pytest.approx(P_BOTTOM)
+    assert "alerta en 40, por debajo de la mediana" in root.find("s:desc", NS).text
+
+
+def test_season_current_label_stays_clear_of_year_column():
+    full = [(d, 5.0) for d in range(182)]
+    svg = season_compare_svg({"2009-10": full, "2026-27": full}, None)
+    label = [t for t in parse(svg).iter("{http://www.w3.org/2000/svg}text") if t.get("class") == "current-label"][0]
+    assert label.get("text-anchor") == "end"
+    early = season_compare_svg({"2009-10": full, "2026-27": full[:30]}, None)
+    label = [t for t in parse(early).iter("{http://www.w3.org/2000/svg}text") if t.get("class") == "current-label"][0]
+    assert label.get("text-anchor") is None

@@ -36,9 +36,10 @@
   --grid: #C9D3CC;
   --silt: #9C7A4D;
   --alert: #E3A21A;
-  /* Darker amber for thin alert lines and alert text on paper (3.7:1); the
-     token above stays for fills and swatches, where it reads at 2:1. */
-  --alerta-texto: #A87000;
+  /* Darker amber for thin alert lines and ticks on paper (3.7:1: enough for
+     graphics, not for text, which stays in ink). The token above stays for
+     fills and swatches. */
+  --alerta-linea: #A87000;
   --evac: #C62828;
   --low: #3E6B7A;
 

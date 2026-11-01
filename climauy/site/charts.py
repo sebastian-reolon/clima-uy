@@ -30,8 +30,9 @@ INK_2 = "#4F5E66"
 GRID = "#C9D3CC"
 SILT = "#9C7A4D"
 ALERT = "#E3A21A"  # fills and swatches only: 2:1 on paper
-# Darker amber for thin alert lines on paper (3.7:1), kept apart from the sediment
-# brown. site.css names it --alerta-texto.
+# Darker amber for thin alert lines and ticks on paper (3.7:1, enough for
+# graphics, not for text), kept apart from the sediment brown. site.css names
+# it --alerta-linea. Alert text is set in ink.
 ALERT_LINE = "#A87000"
 EVAC = "#C62828"
 LOW = "#3E6B7A"
@@ -69,7 +70,16 @@ def _m(v: float) -> str:
 
 
 def _pct(p: float) -> str:
-    return str(int(round(p)))
+    """Percentile as text, never rounded up: 94,7 -> "94"; 99,56 -> "99,5"; 100 only when exactly 100.
+
+    Rounding would turn 99,5 into "100", a record that is not one.
+    """
+    if p >= 100.0:
+        return "100"
+    if p >= 99.0:
+        tenths = min(math.floor(p * 10 + 1e-9), 999)
+        return f"{tenths // 10},{tenths % 10}"
+    return str(math.floor(p + 1e-9))
 
 
 def _day(d: date) -> str:
@@ -199,7 +209,7 @@ def _legend_row(items: Sequence[tuple[str, str]], y: float, size: float) -> list
     out = []
     x = 0.0
     for sample, label in items:
-        out.append(sample.format(x0=_f(x), x1=_f(x + 26), xm=_f(x + 13), xa=_f(x + 8), xb=_f(x + 18), y=_f(y - 7)))
+        out.append(sample.format(x0=_f(x), x1=_f(x + 26), xm=_f(x + 13), xa=_f(x + 16), xb=_f(x + 26), y=_f(y - 7)))
         out.append(_text(x + 34, y, label, fill=INK_2))
         x += 34 + _text_width(label, size) + 24
     return out
@@ -304,7 +314,8 @@ def _profile_line(station: Station, status: StationStatus | None) -> str:
     if status.percentile_3d_ago is not None:
         parts.append(f"hace 3 días {_pct(status.percentile_3d_ago)}")
     if status.alert_percentile is not None:
-        parts.append(f"alerta en {_pct(status.alert_percentile)}")
+        below = ", por debajo de la mediana" if status.alert_percentile < 50 else ""
+        parts.append(f"alerta en {_pct(status.alert_percentile)}{below}")
     return f"{name}: " + ", ".join(parts)
 
 
@@ -421,7 +432,12 @@ def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -
     for i, (_, ss) in enumerate(rows):
         if raw_today[i] is not None and ss is not None and ss.alert_percentile is not None:
             ay = profile_y(ss.alert_percentile)
-            body.append(_line(x(i) - 5, ay, x(i) + 5, ay, ALERT_LINE, 3, cls="alert-tick"))
+            if ss.alert_percentile < 50:
+                # Off the axis: an open (broken) tick on the bottom edge, like today's open marker.
+                body.append(_line(x(i) - 5, ay, x(i) + 5, ay, ALERT_LINE, 3, dash="2 2",
+                                  cls="alert-tick below-median"))
+            else:
+                body.append(_line(x(i) - 5, ay, x(i) + 5, ay, ALERT_LINE, 3, cls="alert-tick"))
 
     ago_runs = [[(x(i), profile_y(ago[i])) for i in run] for run in _runs(ago)]
     if ago_runs:
@@ -794,7 +810,13 @@ def season_compare_svg(series_by_season: dict[str, list[tuple[int, float]]], ale
     body.append(_path(_path_d([[(x(d), y(v)) for d, v in run] for run in _consecutive(cur)]), SILT, 3.5,
                       cls="season current"))
     last_day, last_v = max(cur)
-    body.append(_text(x(last_day) + 8, y(last_v) + 7, current, weight=600, extra=HALO))
+    # Right of the last point, unless that would run into the year column at
+    # the right edge late in the season; then left of it, raised off the line.
+    if x(last_day) + 8 + _text_width(current, WIDE_FONT) > S_RIGHT:
+        body.append(_text(x(last_day) - 8, y(last_v) - 10, current, anchor="end", weight=600, extra=HALO,
+                          cls="current-label"))
+    else:
+        body.append(_text(x(last_day) + 8, y(last_v) + 7, current, weight=600, extra=HALO, cls="current-label"))
 
     spread = _spread([ly + 7 for ly, _, _ in end_labels], LINE_GAP - 4, S_TOP, S_BOTTOM + 7)
     for ty, (_, year, color) in zip(spread, end_labels):

@@ -1,0 +1,226 @@
+/* clima-uy: hydrographic-chart paper and staff gauge. */
+
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/barlow-condensed-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/barlow-condensed-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("../fonts/source-serif-4.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/source-serif-4-italic.woff2") format("woff2");
+}
+
+:root {
+  --paper: #EEF1EC;
+  --ink: #1B2A33;
+  --ink-2: #4F5E66;
+  --grid: #C9D3CC;
+  --silt: #9C7A4D;
+  --alert: #E3A21A;
+  --evac: #C62828;
+  --low: #3E6B7A;
+
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-prose: "Source Serif 4", Georgia, serif;
+
+  /* Modular scale, ratio 1.25 over an 18 px body. */
+  --step--1: 0.8rem;      /* 14.4 px */
+  --step-0: 1.125rem;     /* 18 px */
+  --step-1: 1.40625rem;   /* 22.5 px */
+  --step-2: 1.7578rem;    /* 28.1 px */
+  --step-3: 2.1973rem;    /* 35.2 px */
+  --step-4: 2.7466rem;    /* 43.9 px */
+
+  --measure: 68ch;
+  --gutter: 16px;
+  --page: 60rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-prose);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  font-optical-sizing: auto;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.1;
+  margin: 0 0 0.4em;
+}
+h1 { font-size: var(--step-4); }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-2); }
+
+p,
+ul,
+ol {
+  margin: 0 0 1em;
+}
+
+.prose,
+p {
+  max-width: var(--measure);
+}
+
+small,
+.small {
+  font-size: var(--step--1);
+}
+
+a {
+  color: var(--ink);
+  text-decoration-color: var(--silt);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.page {
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* Numbers, station names and labels. */
+.num,
+.station-name,
+table {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--step-0);
+}
+th,
+td {
+  text-align: left;
+  padding: 0.35em 0.5em 0.35em 0;
+  border-bottom: 1px solid var(--grid);
+  vertical-align: baseline;
+}
+th {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+td.num,
+th.num {
+  text-align: right;
+}
+
+.muted {
+  color: var(--ink-2);
+}
+
+/* Charts. The SVGs carry their own presentation attributes; this only sizes them. */
+figure {
+  margin: 0 0 2rem;
+}
+figcaption {
+  font-size: var(--step--1);
+  color: var(--ink-2);
+  max-width: var(--measure);
+  margin-top: 0.5rem;
+}
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart-wide {
+  max-width: 46rem;
+}
+
+.chart-gauge {
+  max-width: 26rem;
+}
+
+.chart-spark {
+  display: inline-block;
+  width: 7.5rem;
+  vertical-align: middle;
+}
+
+/*
+ * Wide charts use a 600-unit viewBox with 21-unit text, which is 12.5 px at a
+ * 390 px screen. As the chart widens the text would grow with it, so it is
+ * brought back down in user units (font-size inside an SVG is in its units).
+ */
+@media (min-width: 40em) {
+  .chart-wide text {
+    font-size: 16px;
+  }
+}
+@media (min-width: 56em) {
+  .chart-wide text {
+    font-size: 14px;
+  }
+}
+
+.site-footer {
+  border-top: 1px solid var(--grid);
+  margin-top: 3rem;
+  padding: 1.25rem 0 2.5rem;
+  font-size: var(--step--1);
+  color: var(--ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

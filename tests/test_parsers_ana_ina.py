@@ -121,9 +121,9 @@ def test_ana_history_cota_is_centimeters_to_meters():
 
 # ---------------------------------------------------------------- outliers
 
-def _series(values, variable="discharge", sid="ana_1", source="ana"):
+def _series(values, variable="discharge", sid="ana_1", source="ana", step=timedelta(hours=1)):
     t0 = datetime(2026, 1, 1, tzinfo=UTC)
-    return [Obs(sid, variable, t0 + timedelta(hours=i), v, source) for i, v in enumerate(values)]
+    return [Obs(sid, variable, t0 + step * i, v, source) for i, v in enumerate(values)]
 
 
 def test_outlier_421_flagged():
@@ -157,6 +157,36 @@ def test_outlier_leaves_rain_and_unsorted_input_alone():
     out = flag_outliers(shuffled)
     assert [o.time_utc for o in out] == [o.time_utc for o in shuffled]  # input order kept
     assert [o.value for o in out if o.quality == "suspect"] == [421]
+
+
+def test_daily_series_never_flagged_even_on_steep_limb():
+    daily = timedelta(days=1)
+    limb = [2.0, 2.2, 3.0, 4.5, 7.0, 9.0, 8.0, 6.0, 4.95, 4.0, 3.5]
+    for variable in ("level", "discharge"):
+        out = flag_outliers(_series(limb, variable=variable, step=daily))
+        assert all(o.quality == "ok" for o in out)
+    # even a blatant spike is left alone at daily resolution
+    spike = [13800] * 10
+    spike[5] = 421
+    assert all(o.quality == "ok" for o in flag_outliers(_series(spike, step=daily)))
+
+
+def test_low_stage_level_wiggle_not_flagged_but_big_jump_is():
+    step = timedelta(minutes=15)
+    vals = [0.4] * 20
+    vals[10] = 0.7  # +75% but only 0.3 m
+    out = flag_outliers(_series(vals, variable="level", step=step))
+    assert all(o.quality == "ok" for o in out)
+    vals[10] = 1.2  # +0.8 m
+    out = flag_outliers(_series(vals, variable="level", step=step))
+    assert [o.quality for o in out].count("suspect") == 1 and out[10].quality == "suspect"
+
+
+def test_421_spike_still_flagged_at_15_minutes():
+    vals = [13800 + (i % 5) * 20 for i in range(40)]
+    vals[20] = 421
+    out = flag_outliers(_series(vals, step=timedelta(minutes=15)))
+    assert [i for i, o in enumerate(out) if o.quality == "suspect"] == [20]
 
 
 # ---------------------------------------------------------------- INA

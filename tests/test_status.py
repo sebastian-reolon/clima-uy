@@ -151,27 +151,30 @@ def test_history_years_ignores_pre_1990():
 
 
 def test_trend_thresholds(store, tmp_path):
-    for delta, expected in [(0.09, "estable"), (0.11, "sube"), (-0.11, "baja"), (-0.09, "estable")]:
+    for delta, expected in [(0.09, "estable"), (0.10, "estable"), (0.11, "sube"), (-0.10, "estable"), (-0.11, "baja"), (-0.09, "estable")]:
         with Store(tmp_path / f"t{delta}.sqlite") as s2:
             base = datetime(2026, 10, 29, 15, tzinfo=timezone.utc)  # D-3 where D = Nov 1
             s2.upsert_obs([ob(base, 5.0), ob(base + timedelta(days=3), 5.0 + delta)])
             [r] = compute_status(s2, [st()], NOW)
             assert r.trend == expected, (delta, r.trend)
-            assert r.change_3d == pytest.approx(delta)
+            assert r.level_change_3d_m == pytest.approx(delta)
+            assert r.trend_basis == "level"
+            assert r.discharge_change_3d_pct is None
 
 
 def test_discharge_trend_percent_when_only_discharge(tmp_path):
     s = st(sources={"ana": "x"})
     n = 11 * 365
     start = datetime(2026, 11, 1, 15, tzinfo=timezone.utc) - timedelta(days=n - 1)
-    for q_new, expected in [(104.0, "estable"), (106.0, "sube"), (94.0, "baja")]:
+    for q_new, expected in [(104.0, "estable"), (105.0, "estable"), (106.0, "sube"), (95.0, "estable"), (94.0, "baja")]:
         with Store(tmp_path / f"q{q_new}.sqlite") as s2:
             put_daily(s2, start, n, lambda i: q_new if i == n - 1 else 100.0, "ana_hist", "discharge")
             [r] = compute_status(s2, [s], NOW)
             assert r.variable_used == "discharge"
             assert r.level_m is None
             assert r.trend == expected, (q_new, r.trend)
-            assert r.change_3d == pytest.approx(q_new - 100.0)
+            assert r.discharge_change_3d_pct == pytest.approx(q_new - 100.0)
+            assert r.level_change_3d_m is None and r.trend_basis == "discharge"
 
 
 def test_alert_flags(store):
@@ -219,3 +222,43 @@ def test_dead_discharge_falls_back_to_live_level(store):
     [r] = compute_status(store, [s], NOW)
     assert r.variable_used == "level" and not r.stale
     assert r.percentile_today == 100.0
+
+
+def test_percentile_non_extreme():
+    assert percentile_of(2.5, [1, 2, 3, 4]) == 50.0
+    assert percentile_of(0.5, [1, 2, 3, 4]) == 0.0
+
+
+def test_alert_percentile_only_with_ina_level(store):
+    n = 11 * 365
+    start = datetime(2026, 11, 1, 15, tzinfo=timezone.utc) - timedelta(days=n - 1)
+    ana = st("a", sources={"ana": "x"}, alert=100.0)
+    ina = st("i", sources={"ina_level": "1"}, alert=100.0)
+    put_daily(store, start, n, lambda i: float(i % 200), "ana_hist", "level", "a")
+    put_daily(store, start, n, lambda i: float(i % 200), "ina", "level", "i")
+    ra, ri = compute_status(store, [ana, ina], NOW)
+    assert ra.alert_percentile is None
+    assert ri.alert_percentile == pytest.approx(50.5, abs=0.5)
+
+
+def test_history_years_is_coverage_not_span(store):
+    # 15-year span, only ~8 years of days (every other day): no percentile.
+    n = 15 * 365
+    start = datetime(2026, 11, 1, 15, tzinfo=timezone.utc) - timedelta(days=n - 1)
+    store.upsert_obs([ob(start + timedelta(days=i), 1.0) for i in range(0, n, 2)] + [ob(utc(2026, 11, 1, 15), 1.0)])
+    [r] = compute_status(store, [st()], NOW)
+    assert 7 < r.history_years < 8
+    assert r.percentile_today is None
+
+
+def test_trend_falls_back_to_discharge_when_level_day_missing(store):
+    s = st(sources={"ina_level": "1", "ina_q": "2"})
+    n = 11 * 365
+    start = datetime(2026, 11, 1, 15, tzinfo=timezone.utc) - timedelta(days=n - 1)
+    put_daily(store, start, n, lambda i: 120.0 if i == n - 1 else 100.0, variable="discharge")
+    # level is fresh but has no reading 3 days before the latest
+    store.upsert_obs([ob(utc(2026, 11, 1, 15), 5.0), ob(utc(2026, 10, 25, 15), 4.0)])
+    [r] = compute_status(store, [s], NOW)
+    assert r.level_m == 5.0 and r.level_change_3d_m is None
+    assert r.trend == "sube" and r.trend_basis == "discharge"
+    assert r.discharge_change_3d_pct == pytest.approx(20.0)

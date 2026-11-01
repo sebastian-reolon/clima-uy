@@ -8,7 +8,7 @@ from typing import Literal, Sequence
 from ..catalog import Station
 from ..store import Store
 from ..timeutil import local_day
-from .daily import BASELINE_START, history_years, percentile_of, station_daily, station_readings
+from .daily import BASELINE_START, family_daily, family_for, history_years, percentile_of, station_readings
 
 STALE_AFTER = timedelta(hours=36)
 MIN_HISTORY_YEARS = 10.0
@@ -24,9 +24,11 @@ class StationStatus:
     latest_time_utc: datetime | None
     stale: bool
     stale_since: date | None
-    # Level change in metres over 3 days (percent when only discharge exists).
-    change_3d: float | None
+    # Latest local day mean minus the mean 3 days earlier; None if stale or a day is missing.
+    level_change_3d_m: float | None
+    discharge_change_3d_pct: float | None
     trend: Literal["sube", "baja", "estable"] | None
+    trend_basis: Literal["level", "discharge"] | None
     percentile_today: float | None
     percentile_3d_ago: float | None
     alert_percentile: float | None
@@ -38,11 +40,6 @@ class StationStatus:
 
 def _is_stale(latest: datetime | None, now_utc: datetime) -> bool:
     return latest is None or now_utc - latest > STALE_AFTER
-
-
-def _series_stale(store: Store, station: Station, variable: str, now_utc: datetime) -> bool:
-    readings = station_readings(store, station, variable)
-    return _is_stale(readings[-1].time_utc if readings else None, now_utc)
 
 
 def _percentiles(daily: dict[date, float], latest_day: date) -> tuple[float | None, float | None]:
@@ -64,42 +61,58 @@ def _percentiles(daily: dict[date, float], latest_day: date) -> tuple[float | No
     )
 
 
+def _change(daily: dict[date, float], latest: datetime | None, stale: bool, pct: bool) -> float | None:
+    """3-day change of daily means ending on the latest reading's local day."""
+    if latest is None or stale:
+        return None
+    d = local_day(latest)
+    now_v, old_v = daily.get(d), daily.get(d - timedelta(days=3))
+    if now_v is None or old_v is None:
+        return None
+    if pct:
+        return 100.0 * (now_v - old_v) / abs(old_v) if old_v else None
+    return now_v - old_v
+
+
 def _trend(change: float, stable_band: float) -> Literal["sube", "baja", "estable"]:
-    # Round to absorb float noise at the band edge (0.1 m exactly is stable).
+    # "Menos de" is read as: a change of exactly the band (0.10 m, 5%) is still
+    # estable. Rounding absorbs float noise at the edge.
     if abs(round(change, 6)) <= stable_band:
         return "estable"
     return "sube" if change > 0 else "baja"
 
 
 def _station_status(store: Store, station: Station, now_utc: datetime) -> StationStatus:
-    discharge_daily = station_daily(store, station, "discharge")
-    level_daily = station_daily(store, station, "level")
+    # Each (station, variable) family's readings are loaded once.
+    q_reads = station_readings(store, station, "discharge")
+    l_reads = station_readings(store, station, "level")
+    discharge_daily = family_daily(q_reads, family_for(station, "discharge"))
+    level_daily = family_daily(l_reads, family_for(station, "level"))
+
+    q_latest = q_reads[-1] if q_reads else None
+    l_latest = l_reads[-1] if l_reads else None
+    q_stale = _is_stale(q_latest.time_utc if q_latest else None, now_utc)
+    l_stale = _is_stale(l_latest.time_utc if l_latest else None, now_utc)
+
     use_q = history_years(discharge_daily) >= MIN_HISTORY_YEARS
-    if use_q and _series_stale(store, station, "discharge", now_utc) and not _series_stale(
-        store, station, "level", now_utc
-    ) and history_years(level_daily) >= MIN_HISTORY_YEARS:
+    if use_q and q_stale and not l_stale and history_years(level_daily) >= MIN_HISTORY_YEARS:
         # Discharge stopped reporting but the gauge still reads: fall back to
         # level so the station is not shown as dead while it is live.
         use_q = False
     variable: Literal["discharge", "level"] = "discharge" if use_q else "level"
     daily = discharge_daily if use_q else level_daily
-
-    readings = station_readings(store, station, variable)
-    latest = readings[-1] if readings else None
+    latest = q_latest if use_q else l_latest
+    stale = q_stale if use_q else l_stale
     latest_time = latest.time_utc if latest else None
-    stale = _is_stale(latest_time, now_utc)
     years = history_years(daily)
 
     p_today = p_ago = None
     if latest is not None and not stale and years >= MIN_HISTORY_YEARS:
         p_today, p_ago = _percentiles(daily, local_day(latest.time_utc))
 
-    # Level: always the level series of the station's own family (INA when
-    # available, because the alert levels are INA's).
-    level_reads = station_readings(store, station, "level")
-    level_latest = level_reads[-1] if level_reads else None
-    level_fresh = level_latest is not None and not _is_stale(level_latest.time_utc, now_utc)
-    level_m = level_latest.value if level_fresh else None
+    # Level: own family's level series (INA when available, because the alert
+    # levels are INA's); cotas only apply to INA-datum series.
+    level_m = l_latest.value if (l_latest is not None and not l_stale) else None
     has_cota = "ina_level" in station.sources
     above_alert = above_evac = None
     if level_m is not None and has_cota:
@@ -108,24 +121,16 @@ def _station_status(store: Store, station: Station, now_utc: datetime) -> Statio
         if station.evac_m is not None:
             above_evac = level_m >= station.evac_m
 
-    # Trend: fresh level data first, else fresh discharge (percent change).
-    # Latest local day mean against the day mean 3 days earlier.
-    change = trend = None
-    if level_fresh:
-        d = local_day(level_latest.time_utc)
-        now_v, old_v = level_daily.get(d), level_daily.get(d - timedelta(days=3))
-        if now_v is not None and old_v is not None:
-            change = now_v - old_v
-            trend = _trend(change, LEVEL_STABLE_M)
-    elif variable == "discharge" and latest is not None and not stale:
-        d = local_day(latest.time_utc)
-        now_v, old_v = discharge_daily.get(d), discharge_daily.get(d - timedelta(days=3))
-        if now_v is not None and old_v:
-            change = 100.0 * (now_v - old_v) / abs(old_v)
-            trend = _trend(change / 100.0, DISCHARGE_STABLE_FRAC)
+    level_change = _change(level_daily, l_latest.time_utc if l_latest else None, l_stale, pct=False)
+    q_change = _change(discharge_daily, q_latest.time_utc if q_latest else None, q_stale, pct=True)
+    trend = basis = None
+    if level_change is not None:
+        trend, basis = _trend(level_change, LEVEL_STABLE_M), "level"
+    elif q_change is not None:
+        trend, basis = _trend(q_change / 100.0, DISCHARGE_STABLE_FRAC), "discharge"
 
     alert_pct = None
-    if station.alert_m is not None and history_years(level_daily) >= MIN_HISTORY_YEARS:
+    if has_cota and station.alert_m is not None and history_years(level_daily) >= MIN_HISTORY_YEARS:
         alert_pct = percentile_of(station.alert_m, [v for d, v in level_daily.items() if d >= BASELINE_START])
 
     return StationStatus(
@@ -135,8 +140,10 @@ def _station_status(store: Store, station: Station, now_utc: datetime) -> Statio
         latest_time_utc=latest_time,
         stale=stale,
         stale_since=local_day(latest_time) if (stale and latest_time) else None,
-        change_3d=change,
+        level_change_3d_m=level_change,
+        discharge_change_3d_pct=q_change,
         trend=trend,
+        trend_basis=basis,
         percentile_today=p_today,
         percentile_3d_ago=p_ago,
         alert_percentile=alert_pct,

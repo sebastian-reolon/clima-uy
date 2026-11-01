@@ -13,7 +13,7 @@ fake jumps.
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import date
 from typing import Sequence
 
 from ..catalog import Station
@@ -55,20 +55,21 @@ def station_readings(store: Store, station: Station, variable: str) -> list[Obs]
     return [o for o in rows if o.source in family]
 
 
-def station_daily(store: Store, station: Station, variable: str) -> dict[date, float]:
-    """Daily means from the chosen family, higher-priority source winning per day."""
-    family = family_for(station, variable)
-    by_source = {src: daily_means([o for o in station_readings(store, station, variable) if o.source == src])
-                 for src in family}
+def family_daily(readings: Sequence[Obs], family: Sequence[str]) -> dict[date, float]:
+    """Daily means from already-loaded readings, higher-priority source winning per day."""
     out: dict[date, float] = {}
     for src in reversed(family):  # lowest priority first, overwritten by better sources
-        out.update(by_source[src])
+        out.update(daily_means([o for o in readings if o.source == src]))
     return out
 
 
+def station_daily(store: Store, station: Station, variable: str) -> dict[date, float]:
+    return family_daily(station_readings(store, station, variable), family_for(station, variable))
+
+
 def history_years(daily: dict[date, float]) -> float:
-    """Span in years of daily means since the 1990 baseline start."""
-    days = [d for d in daily if d >= BASELINE_START]
-    if len(days) < 2:
-        return 0.0
-    return (max(days) - min(days)).days / 365.25
+    """Coverage in years: distinct local days with a daily mean since 1990, over 365.25.
+
+    Gaps do not count, so a 15-year span with 8 years of days is 8 years.
+    """
+    return sum(1 for d in daily if d >= BASELINE_START) / 365.25

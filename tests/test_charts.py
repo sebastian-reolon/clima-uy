@@ -2,8 +2,6 @@ import re
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta, timezone
 
-import pytest
-
 from climauy.analysis.lag import HoldoutResult, LagResult
 from climauy.analysis.status import StationStatus
 from climauy.catalog import Station
@@ -206,13 +204,12 @@ def test_profile_font_sizes_readable_at_390():
         assert float(size) * rendered / width >= 12
 
 
-@pytest.mark.parametrize("empty", [{}, None])
-def test_charts_render_without_data(empty):
+def test_charts_render_without_data():
     empty_lag = LagResult("b:level", "d:level", None, None, {}, {}, False, "No validado: no hay crecidas para estimar el rezago.")
     for svg in (
-        sparkline_svg(empty or {}),
-        forecast_band_svg(empty or {}, []),
-        season_compare_svg(empty or {}, None),
+        sparkline_svg({}),
+        forecast_band_svg({}, []),
+        season_compare_svg({}, None),
         lag_svg(empty_lag),
         profile_svg([], CATALOG),
     ):

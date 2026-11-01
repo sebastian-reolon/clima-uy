@@ -196,6 +196,11 @@ figcaption {
  * 390 px screen. As the chart widens the text would grow with it, so it is
  * brought back down in user units (font-size inside an SVG is in its units).
  */
+@media (min-width: 30em) {
+  .chart-wide text {
+    font-size: 19px;
+  }
+}
 @media (min-width: 40em) {
   .chart-wide text {
     font-size: 16px;

@@ -3,12 +3,16 @@
 Method:
 1. Flood events are the peaks of the downstream series above its 95th
    percentile. For each one, the upstream peak is searched in the 15 days up
-   to and including the downstream peak day (so a lag of 0 is possible); the
-   lag is the difference in days.
+   to and including the downstream peak day. It is accepted only when it is
+   a local maximum strictly inside that window (lag 1 to 14 days): a maximum
+   on the edge means upstream was still rising at the downstream peak, or
+   falling through the whole window, so the event is skipped and counted.
 2. For each fixed held-out window, the lag L is the median of the events
    whose peak lies outside the window, rounded to whole days. A linear fit
    down(t) = a + b*up(t-L) is made on the days outside the window, and inside
-   it the predicted peak is the argmax of the prediction. Persistence uses
+   it the predicted peak is the argmax of the prediction. The fit never uses
+   an upstream predictor from inside the window. A lag of 0 cannot be
+   evaluated (persistence would be the observation itself). Persistence uses
    down(t-L) as the forecast of down(t); both errors are computed on the same
    days.
 3. The lag is "validated" only when, in all three held-out windows, the peak
@@ -51,6 +55,7 @@ PRODUCTION_PAIRS = [
 @dataclass(frozen=True)
 class HoldoutResult:
     event: str
+    lag_days: int  # whole-day lag estimated from the other events
     predicted_peak: date
     observed_peak: date
     peak_error_days: int  # absolute value
@@ -68,6 +73,7 @@ class LagResult:
     holdout: dict[str, HoldoutResult]
     validated: bool
     reason: str  # public sentence, rioplatense Spanish
+    events_skipped: int = 0  # downstream peaks whose upstream peak sat on the window edge
 
 
 def find_flood_events(
@@ -103,16 +109,24 @@ def find_flood_events(
     return sorted(kept)
 
 
-def _event_lags(up: dict[date, float], down: dict[date, float]) -> dict[date, int]:
+def _event_lags(up: dict[date, float], down: dict[date, float]) -> tuple[dict[date, int], int]:
+    """Lag per downstream peak, plus how many peaks were skipped."""
     lags: dict[date, int] = {}
+    skipped = 0
     for peak in find_flood_events(down):
         window = [peak - timedelta(days=k) for k in range(SEARCH_DAYS + 1)]
         present = [d for d in window if d in up]
         if not present:
+            skipped += 1
             continue
         up_peak = max(present, key=lambda d: (up[d], d))  # ties: the later (shorter lag)
-        lags[peak] = (peak - up_peak).days
-    return lags
+        lag = (peak - up_peak).days
+        neighbours = [up[d] for d in (up_peak - timedelta(days=1), up_peak + timedelta(days=1)) if d in up]
+        if not 0 < lag < SEARCH_DAYS or any(up[up_peak] < v for v in neighbours):
+            skipped += 1
+            continue
+        lags[peak] = lag
+    return lags, skipped
 
 
 def _in(d: date, window: tuple[date, date]) -> bool:
@@ -129,11 +143,18 @@ def _holdout(
     """HoldoutResult, or a Spanish failure sentence."""
     others = [lag for peak, lag in lags.items() if not _in(peak, window)]
     if len(others) < MIN_OTHER_EVENTS:
-        return f"en {name} no alcanzan los otros eventos para estimar el rezago"
+        return f"en {name} no alcanzan las otras crecidas para estimar el rezago"
     # Python rounds .5 to even; a half-day median has no better whole-day choice.
-    shift = timedelta(days=int(round(statistics.median(others))))
+    lag = int(round(statistics.median(others)))
+    if lag == 0:
+        return f"en {name} el rezago estimado es 0 días y no se puede evaluar"
+    shift = timedelta(days=lag)
 
-    fit = [(up[t - shift], v) for t, v in down.items() if not _in(t, window) and t - shift in up]
+    fit = [
+        (up[t - shift], v)
+        for t, v in down.items()
+        if not _in(t, window) and not _in(t - shift, window) and t - shift in up
+    ]
     xs = [x for x, _ in fit]
     if len(fit) < 2 or min(xs) == max(xs):
         return f"en {name} no hay datos suficientes para ajustar el modelo"
@@ -148,12 +169,17 @@ def _holdout(
     observed_peak = max(inside, key=lambda t: (down[t], -t.toordinal()))
     return HoldoutResult(
         event=name,
+        lag_days=lag,
         predicted_peak=predicted_peak,
         observed_peak=observed_peak,
         peak_error_days=abs((predicted_peak - observed_peak).days),
         mae_model=float(np.mean([abs(predicted[t] - down[t]) for t in scored])),
         mae_persistence=float(np.mean([abs(down[t - shift] - down[t]) for t in scored])),
     )
+
+
+def _days(n: int) -> str:
+    return f"{n} día" if n == 1 else f"{n} días"
 
 
 def _join_years(names: Sequence[str]) -> str:
@@ -167,16 +193,19 @@ def analyze_lag(
     upstream: str = "",
     downstream: str = "",
 ) -> LagResult:
-    lags = _event_lags(up, down)
+    lags, skipped = _event_lags(up, down)
     values = list(lags.values())
 
+    # Failures in order of importance; only the first one goes into the public sentence.
     failures: list[str] = []
     if len(values) < MIN_EVENTS:
         n = len(values)
         failures.append(
-            "no hay eventos para estimar el rezago" if n == 0
-            else f"solo hay {n} evento{'s' if n != 1 else ''} para estimar el rezago"
+            "no hay crecidas para estimar el rezago" if n == 0
+            else f"solo hay {n} crecida{'s' if n != 1 else ''} para estimar el rezago"
         )
+    if held_out != HELD_OUT_WINDOWS:
+        failures.append("no se evaluaron las tres crecidas de referencia")
     holdout: dict[str, HoldoutResult] = {}
     for name, window in held_out.items():
         res = _holdout(name, window, up, down, lags)
@@ -184,22 +213,22 @@ def analyze_lag(
             failures.append(res)
             continue
         holdout[name] = res
-        misses = []
         if res.peak_error_days > MAX_PEAK_ERROR_DAYS:
-            misses.append(f"el pico se erró por {res.peak_error_days} días")
+            failures.append(f"en {name} el pronóstico le erró al pico por {_days(res.peak_error_days)}")
         if not res.mae_model < res.mae_persistence:
-            misses.append("la persistencia le ganó al modelo")
-        if misses:
-            failures.append(f"en {name} " + " y ".join(misses))
+            failures.append(
+                f"en {name} el pronóstico anduvo peor que suponer que el río sigue igual "
+                f"que hace {_days(res.lag_days)}"
+            )
 
-    validated = not failures
+    validated = not failures and set(holdout) == set(HELD_OUT_WINDOWS)
     if validated:
         reason = (
-            f"validado: en {_join_years(list(held_out))} el pico se acertó con error de "
-            f"{MAX_PEAK_ERROR_DAYS} día o menos y mejor que la persistencia"
+            f"Validado: en {_join_years(list(holdout))} el pico se anticipó con "
+            f"{_days(MAX_PEAK_ERROR_DAYS)} de error o menos y mejor que suponer que el río sigue igual."
         )
     else:
-        reason = "no validado: " + "; ".join(failures)
+        reason = f"No validado: {failures[0] if failures else 'no se evaluaron las tres crecidas de referencia'}."
 
     return LagResult(
         upstream=upstream,
@@ -210,6 +239,7 @@ def analyze_lag(
         holdout=holdout,
         validated=validated,
         reason=reason,
+        events_skipped=skipped,
     )
 
 

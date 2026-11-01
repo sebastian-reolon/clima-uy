@@ -4,6 +4,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from climauy.analysis.lag import (
     HELD_OUT_WINDOWS,
+    _holdout,
     analyze_lag,
     find_flood_events,
     run_production_lags,
@@ -74,8 +75,13 @@ def test_synthetic_shift_3_days_validated():
     assert h.observed_peak == date(2015, 12, 23)
     assert h.peak_error_days <= 1
     assert h.mae_model < h.mae_persistence
+    assert r.events_skipped == 0
+    assert h.lag_days == 3
     assert r.validated, r.reason
-    assert r.reason.startswith("validado")
+    assert r.reason == (
+        "Validado: en 2009, 2015 y 2023 el pico se anticipó con 1 día de error o menos "
+        "y mejor que suponer que el río sigue igual."
+    )
 
 
 def test_gaps_are_handled():
@@ -102,8 +108,8 @@ def test_noisy_not_validated_with_reason():
     )
     r = analyze_lag(up, down, HELD_OUT_WINDOWS)
     assert not r.validated
-    assert r.reason.startswith("no validado")
-    assert any(y in r.reason for y in ("2009", "2015", "2023"))
+    assert r.reason.startswith("No validado: en 20")
+    assert r.reason.count("en 20") == 1  # only the first failure is in the sentence
     assert "—" not in r.reason and " -- " not in r.reason
 
 
@@ -116,7 +122,7 @@ def test_too_few_events_not_validated():
     r = analyze_lag(up, down, HELD_OUT_WINDOWS)
     assert len(r.per_event) == 2
     assert not r.validated
-    assert "2 eventos" in r.reason
+    assert r.reason == "No validado: solo hay 2 crecidas para estimar el rezago."
 
 
 def test_no_events_gives_none_median():
@@ -128,19 +134,18 @@ def test_no_events_gives_none_median():
 
 
 def test_peak_error_is_absolute():
-    # Model and persistence get the same downstream data; a late upstream
-    # bump makes the predicted peak land 5 days early or late; either way
-    # the error must be positive and fail the gate.
+    # In 2015 the downstream flood arrives 9 days after upstream instead of 3,
+    # so the model (L=3) predicts the peak 6 days early. The stored error must
+    # be positive (+6, not -6) so the <= 1 day gate fails.
     up = flood_series(UPSTREAM_PEAKS)
     down = shifted(up, 3)
-    # Move the 2015 downstream flood 6 days later than the shift implies.
     for d in list(down):
         if date(2015, 12, 1) <= d <= date(2016, 1, 31):
             down[d] = up.get(d - timedelta(days=9), down[d])
     r = analyze_lag(up, down, HELD_OUT_WINDOWS)
     assert r.holdout["2015"].peak_error_days >= 5
     assert not r.validated
-    assert "en 2015 el pico se erró por" in r.reason
+    assert r.reason.startswith("No validado: en 2015 el pronóstico le erró al pico por")
 
 
 def test_events_separated_30_days():
@@ -197,3 +202,64 @@ def test_run_production_lags_uses_both_pairs(tmp_path):
         ("ina_72:level", "ina_79:level"),
     ]
     assert all(r.lag_days_median == 3 for r in results)
+
+
+def test_upstream_peak_after_downstream_is_skipped():
+    up = flood_series(UPSTREAM_PEAKS)
+    down = shifted(up, 3)
+    # In 2015 upstream keeps rising until 5 days after the downstream peak:
+    # the window maximum sits on its edge (lag 0), so that event is skipped.
+    up = dict(up)
+    late = date(2015, 12, 23) + timedelta(days=5)
+    for d in list(up):
+        if date(2015, 11, 25) <= d <= date(2016, 1, 20):
+            up[d] = 1000.0 + 10000.0 * math.exp(-((d - late).days ** 2) / (2 * 8.0**2))
+    r = analyze_lag(up, down, HELD_OUT_WINDOWS)
+    assert "2015-12-23" not in r.per_event
+    assert r.events_skipped == 1
+    assert len(r.per_event) == len(UPSTREAM_PEAKS) - 1
+
+
+def test_custom_held_out_windows_never_validate():
+    up = flood_series(UPSTREAM_PEAKS)
+    down = shifted(up, 3)
+    r = analyze_lag(up, down, {"2015": HELD_OUT_WINDOWS["2015"]})
+    assert not r.validated
+
+
+D0 = date(2000, 1, 1)
+
+
+def day(i):
+    return D0 + timedelta(days=i)
+
+
+def test_holdout_needs_two_other_events():
+    up = {day(i): float(i) for i in range(20)}
+    lags = {day(12): 2, day(3): 2}  # only one event outside the window
+    res = _holdout("2009", (day(10), day(14)), up, up, lags)
+    assert res == "en 2009 no alcanzan las otras crecidas para estimar el rezago"
+
+
+def test_holdout_zero_lag_cannot_be_evaluated():
+    up = {day(i): float(i) for i in range(20)}
+    lags = {day(2): 0, day(4): 0, day(17): 1}  # median 0
+    res = _holdout("2009", (day(10), day(14)), up, up, lags)
+    assert res == "en 2009 el rezago estimado es 0 días y no se puede evaluar"
+
+
+def test_holdout_persistence_on_same_scored_days():
+    # up(i) = i; outside the window down(i) = 2*up(i-2) + 1 exactly, inside it
+    # is 3 higher. down(11) is missing, so day 13 has no persistence forecast
+    # and is not scored; day 11 is not scored either.
+    up = {day(i): float(i) for i in range(20)}
+    down = {day(i): 2.0 * i - 3 + (3 if 10 <= i <= 14 else 0) for i in range(2, 20) if i != 11}
+    lags = {day(3): 2, day(18): 2}
+    res = _holdout("2009", (day(10), day(14)), up, down, lags)
+    assert res.lag_days == 2
+    # Scored days 10, 12, 14: model error 3 each.
+    assert abs(res.mae_model - 3.0) < 1e-9
+    # Persistence down(t-2): |13-20|, |20-24|, |24-28| -> 15/3.
+    assert abs(res.mae_persistence - 5.0) < 1e-9
+    assert res.predicted_peak == res.observed_peak == day(14)
+    assert res.peak_error_days == 0

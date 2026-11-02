@@ -107,7 +107,8 @@ def test_footer_on_every_page(site):
 def test_no_banned_typography(site):
     out, _ = site
     for page in PAGES:
-        html = _read(out, page)
+        # «—» is allowed only as the whole content of a table cell (the mockup's empty-cell mark).
+        html = re.sub(r"(<td\b[^>]*>)—(</td>)", r"\1\2", _read(out, page))
         # The middle dot is allowed: Ruling 12 («INA · ANA · CTM») and the profile callouts use it.
         for bad in ("—", "–", "→", "&mdash;", "&ndash;", "&rarr;", " -- "):
             assert bad not in html, (page, bad)
@@ -594,6 +595,8 @@ def _seed_home(store: Store) -> None:
     store.upsert_obs(_daily("ina_70", "level", "ina", _last_days([8.5, 8.4, 8.3, 8.2, 8.12])))
     store.upsert_obs(_daily("ina_71", "level", "ina", _last_days([8.3, 8.2, 8.1, 8.05, 7.98])))
     store.upsert_obs(_daily("ina_72", "level", "ina", _last_days([8.2, 8.1, 8.11, 7.9, 7.66])))  # above 7,50
+    # Uruguaiana: one fresh ANA level, no 3-day change, so it is not an upstream row.
+    store.upsert_obs(_daily("ana_77150000", "level", "ana", _last_days([7.55])))
     # Boca Gualeguaychú, the closest gauge to Fray Bentos: falling.
     store.upsert_obs(_daily("ina_84", "level", "ina", _last_days([2.4, 2.35, 2.3, 2.2, 2.1])))
 
@@ -648,9 +651,9 @@ def test_home_cajetin(home):
     assert pairs == {
         "Estado al": "2026-11-01 12:00 (UY)",
         "Actualización": "cada 3 horas",
-        # Fresh: Monte Caseros, Quaraí, Concordia, Alvear, La Cruz, Yapeyú, Paso de los Libres, Boca
-        # Gualeguaychú. Colón is stale; Fray Bentos has no gauge and is not counted.
-        "Estaciones": "8 con dato, 29 sin",
+        # Fresh: Monte Caseros, Quaraí, Concordia, Alvear, La Cruz, Yapeyú, Paso de los Libres, Uruguaiana,
+        # Boca Gualeguaychú. Colón is stale; Fray Bentos has no gauge and is not counted.
+        "Estaciones": "9 con dato, 28 sin",
         "Fuentes": "INA · ANA · CTM",
         "Historia": "desde 2014",
         "Carácter": "informativo, no oficial",
@@ -673,16 +676,16 @@ def test_home_city_rows(home):
     # Artigas: discharge, no cota, nothing missing to the alert.
     q = by["ana_77500000"]
     assert artigas[2][:2] == ["Quaraí (BR)", f"{num(q.latest_value, 0)} m³/s"]
-    assert artigas[2][2] == ""  # its 3-day change is in %, not metres
+    assert artigas[2][2] == "—"  # its 3-day change is in %, not metres
     assert artigas[2][3].startswith(pct(q.percentile_today))
-    assert artigas[2][4:] == ["", ""]
+    assert artigas[2][4:] == ["—", "—"]
     assert "up" not in artigas[0]
     # Salto: rising, marked as such.
     assert salto[2] == ["Concordia (AR)", "9,30 m", "+0,30", salto[2][3], "11,00", "1,70"]
     assert 'class="up"' in salto[0]
     # Paysandú: Colón stopped on 25/10; the reading carries its date and nothing is said as current.
-    assert paysandu[2][:3] == ["Colón (AR)", "5,25 m (al 25/10)", ""]
-    assert paysandu[2][3:] == ["", "7,10", ""]
+    assert paysandu[2][:3] == ["Colón (AR)", "5,25 m (al 25/10)", "—"]
+    assert paysandu[2][3:] == ["—", "7,10", "—"]
     assert "up" not in paysandu[0]
     # Fray Bentos: no public gauge, the nearest station with data instead.
     assert 'class="sin"' in fray[0]
@@ -700,10 +703,10 @@ def test_home_city_table_labels_cells_for_phones(home):
 def test_home_upstream_rows(home):
     html, _ = home
     rows = _rows(_table(html, after="<h2>Aguas arriba</h2>"))
-    # Ruling 9: the four main-river stations with data right above Bella Unión's, downstream order.
-    # Uruguaiana (no data) and the tributaries in between are skipped.
+    # Ruling 9 (amended): the four main-river stations right above Bella Unión's with fresh data and a
+    # 3-day level change, downstream order. Uruguaiana (no change) and the tributaries are skipped.
     assert [r[1] for r in rows] == ["Alvear", "La Cruz", "Yapeyú", "Paso de los Libres"]
-    assert rows[3][2] == ["7,66 m", "-0,44", ""]
+    assert rows[3][2] == ["7,66 m", "-0,44", "—"]
     assert 'href="/clima-uy/rio/"' in html[html.index("<h2>Aguas arriba</h2>"):html.index("<h2>El Niño</h2>")]
 
 
@@ -727,15 +730,15 @@ def test_home_enso_block(home):
 def test_home_all_stations(home):
     html, _ = home
     block = html[html.index("<h2>Todas las estaciones</h2>"):]
-    assert "<summary>Ver las 8 reglas en orden aguas abajo</summary>" in block
+    assert "<summary>Ver las 9 reglas en orden aguas abajo</summary>" in block
     rows = _rows(_table(block))
     assert [r[1] for r in rows] == [
-        "Alvear AR", "La Cruz AR", "Yapeyú AR", "Paso de los Libres AR", "Quaraí BR · frente a Artigas",
+        "Alvear AR", "La Cruz AR", "Yapeyú AR", "Paso de los Libres AR", "Uruguaiana BR", "Quaraí BR · frente a Artigas",
         "Monte Caseros AR · frente a Bella Unión", "Concordia AR · frente a Salto", "Boca Gualeguaychú AR",
     ]
     libres = rows[3]
     assert 'class="al"' in libres[0]
-    assert libres[2] == ["7,66 m", "-0,44", "", "7,50"]
+    assert libres[2] == ["7,66 m", "-0,44", "—", "7,50"]
     assert sum('class="al"' in r[0] for r in rows) == 1
 
 
@@ -777,3 +780,9 @@ def test_home_with_empty_store(tmp_path):
     assert "No hay estaciones con datos al día." in flat
     assert "Lluvia norte" in flat  # the outlook is hand-loaded, not from the store
     assert "Todavía no hay índices de la NOAA cargados." in flat
+
+
+def test_dash_only_as_an_empty_table_cell(home):
+    html, _ = home
+    assert re.search(r"<td\b[^>]*>—</td>", html)
+    assert "—" not in re.sub(r"<td\b[^>]*>—</td>", "", html)

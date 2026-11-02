@@ -1,5 +1,6 @@
 {% extends "base.html.j2" %}
-{# Sheet 1: the river in front of the Uruguayan cities. Ported from docs/design/plano-mockup.html. #}
+{# Sheet 1: the river in front of the Uruguayan cities. Ported from docs/design/plano-mockup.html.
+   «—» marks an empty table cell, as in the mockup; it is never used in prose. #}
 {% block title %}El río Uruguay frente a las ciudades uruguayas | clima-uy{% endblock %}
 {% block description %}{{ headline[0] }} Nivel del río Uruguay frente a Bella Unión, Artigas, Salto, Paysandú y Fray Bentos comparado con su historia, río arriba y El Niño.{% endblock %}
 {% block main %}
@@ -22,7 +23,7 @@
 {% if r.gauge is none %}
 <tr class="sin"><th scope="row">{{ r.city }}</th><td>sin regla pública</td><td class="obs" colspan="5">{{ r.near }}</td></tr>
 {% else %}
-<tr{% if r.cls %} class="{{ r.cls }}"{% endif %}><th scope="row">{{ r.city }}</th><td data-l="Regla">{{ r.gauge }}</td><td class="n" data-l="Nivel">{{ r.reading }}</td><td class="n d3" data-l="Δ 3 días">{{ r.d3 }}</td><td class="n" data-l="Percentil">{% if r.pct %}{{ r.pct }} <span class="bar"><span style="width:{{ r.bar }}%"></span></span>{% endif %}</td><td class="n" data-l="Alerta">{{ r.alert }}</td><td class="n strong" data-l="Falta">{{ r.falta }}</td></tr>
+<tr{% if r.cls %} class="{{ r.cls }}"{% endif %}><th scope="row">{{ r.city }}</th><td data-l="Regla">{{ r.gauge }}</td><td class="n" data-l="Nivel">{{ r.reading }}</td><td class="n d3" data-l="Δ 3 días">{{ r.d3 or "—" }}</td><td class="n" data-l="Percentil">{% if r.pct %}{{ r.pct }} <span class="bar"><span style="width:{{ r.bar }}%"></span></span>{% else %}—{% endif %}</td><td class="n" data-l="Alerta">{{ r.alert or "—" }}</td><td class="n strong" data-l="Falta">{{ r.falta or "—" }}</td></tr>
 {% endif %}
 {% endfor %}
 </tbody></table></div>
@@ -38,7 +39,7 @@
 {% if upstream_rows %}
 <div class="tw"><table><thead><tr><th>Estación</th><th class="n">Nivel</th><th class="n">Δ 3 días (m)</th><th class="n">Percentil</th></tr></thead><tbody>
 {% for r in upstream_rows %}
-<tr><th scope="row">{{ r.name }}</th><td class="n">{{ r.reading }}</td><td class="n d3">{{ r.d3 }}</td><td class="n">{{ r.pct }}</td></tr>
+<tr><th scope="row">{{ r.name }}</th><td class="n">{{ r.reading }}</td><td class="n d3">{{ r.d3 or "—" }}</td><td class="n">{{ r.pct or "—" }}</td></tr>
 {% endfor %}
 </tbody></table></div>
 {% else %}
@@ -61,7 +62,7 @@
 <details><summary>Ver las {{ all_rows | length }} reglas en orden aguas abajo</summary><div class="tw"><table>
 <thead><tr><th>Estación</th><th class="n">Hoy</th><th class="n">Δ 3 días (m)</th><th class="n">Percentil</th><th class="n">Alerta (m)</th></tr></thead><tbody>
 {% for r in all_rows %}
-<tr{% if r.al %} class="al"{% endif %}><th scope="row">{{ r.name }}<span class="pais">{{ r.where }}</span></th><td class="n">{{ r.today }}</td><td class="n">{{ r.d3 }}</td><td class="n">{{ r.pct }}</td><td class="n">{{ r.alert }}</td></tr>
+<tr{% if r.al %} class="al"{% endif %}><th scope="row">{{ r.name }}<span class="pais">{{ r.where }}</span></th><td class="n">{{ r.today }}</td><td class="n">{{ r.d3 or "—" }}</td><td class="n">{{ r.pct or "—" }}</td><td class="n">{{ r.alert or "—" }}</td></tr>
 {% endfor %}
 </tbody></table></div></details>
 {% else %}

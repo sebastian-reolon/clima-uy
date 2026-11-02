@@ -623,14 +623,15 @@ def _city_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station], st
 
 
 def _upstream_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station], store: Store) -> list[dict]:
-    """Ruling 9: the main-river stations with data right above Bella Unión's station, downstream order."""
+    """Ruling 9 (amended): the main-river stations right above Bella Unión's station with fresh data and a
+    3-day level change, nearest first in the scan, shown downstream. Discharge-only stations drop out."""
     by_status = {s.station_id: s for s in statuses}
     ordered = sorted(catalog, key=lambda s: s.order)
     city = next((s for s in ordered if s.represents == charts.PLAN_UY_CITY and s.river == charts.MAIN_RIVER), None)
     if city is None:
         return []
     above = [s for s in ordered if s.river == charts.MAIN_RIVER and s.order < city.order
-             and _has_data(by_status[s.id])][-HOME_UPSTREAM:]
+             and _has_data(by_status[s.id]) and by_status[s.id].level_change_3d_m is not None][-HOME_UPSTREAM:]
     rows = []
     for st in above:
         ss = by_status[st.id]

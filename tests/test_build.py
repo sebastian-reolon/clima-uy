@@ -768,6 +768,18 @@ def test_home_city_rows(home):
     assert fray[2] == ["sin regla pública", "más cercana: Boca Gualeguaychú (AR) 2,10 m, baja"]
 
 
+def test_home_meta_description_puts_artigas_on_the_cuareim(home):
+    html, _ = home
+    desc = re.search(r'<meta name="description" content="([^"]*)">', html).group(1)
+    assert "frente a Bella Unión, Salto, Paysandú y Fray Bentos, y del Cuareim en Artigas" in htmllib.unescape(desc)
+
+
+def test_sheet_h1_uses_a_shipped_weight():
+    css = (SITE_STATIC / "v2/css/site.css").read_text(encoding="utf-8")
+    h1 = re.search(r"\.resp h1\{([^}]*)\}", css).group(1)
+    assert "font-weight:700" in h1  # Barlow Semi Condensed ships 600 and 700 (design.md)
+
+
 def test_home_percentile_baseline_allows_later_starts(home):
     # Several stations start after 1990 (Alvear, La Cruz, Yapeyú in 2006): the definition says so.
     html, _ = home

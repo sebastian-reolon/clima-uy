@@ -563,6 +563,9 @@ th[scope="row"] {
   .station > .reading-meta {
     grid-row: 2;
   }
+  .station > .reading-meta.city-ref {
+    grid-row: 3;
+  }
 }
 
 .block-title {

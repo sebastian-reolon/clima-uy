@@ -732,10 +732,36 @@ def test_home_enso_block(home):
         ("Pico esperado", "noviembre y diciembre de 2026"),
         ("Lluvia norte, noviembre a enero", "60% sobre lo normal"),
         ("Segunda ventana", "marzo a mayo de 2027"),
-        ("Fuente", "INUMET, boletín de octubre de 2026"),
+        ("Fuente", "INUMET, boletín de octubre de 2026, vía El Observador"),
     ]
     assert 'href="/clima-uy/nino/"' in block
     assert '<a href="https://www.elobservador.com.uy/' in kv
+
+
+def test_outlook_source_names_the_outlet():
+    from climauy.site.build import _outlook_source
+
+    data = {"issued": "2026-10-15"}
+    assert _outlook_source(data) == "INUMET, boletín de octubre de 2026"
+    assert _outlook_source({**data, "source_outlet": "El Observador"}) == (
+        "INUMET, boletín de octubre de 2026, vía El Observador")
+
+
+def test_home_stale_level_next_to_fresh_discharge(tmp_path):
+    """Paso de los Libres: its INA level stopped on 25/10 while its discharge is current. The level is shown
+    with its date, so the 3-day change, the percentile and the alert are left empty in every home table."""
+    with Store(tmp_path / "s.sqlite") as store:
+        _seed(store)
+        start = date(2014, 11, 1)
+        store.upsert_obs(_daily("ina_72", "discharge", "ina", {
+            start + timedelta(days=i): 8000.0 + 3000.0 * math.sin(i / 37.0) for i in range((NOW.date() - start).days + 1)}))
+        store.upsert_obs(_daily("ina_72", "level", "ina", {date(2026, 10, d): 7.0 + d / 100 for d in range(1, 26)}))
+        build_site(store, load_catalog(), tmp_path / "out", NOW, base_url="/clima-uy")
+    html = _read(tmp_path / "out", "index.html")
+    rows = {r[1]: r for r in _rows(_table(html[html.index("<h2>Todas las estaciones</h2>"):]))}
+    libres = rows["Paso de los Libres AR"]
+    assert libres[2] == ["7,25 m (al 25/10)", "—", "—", "—"]
+    assert 'class="al"' not in libres[0]
 
 
 def test_home_all_stations(home):

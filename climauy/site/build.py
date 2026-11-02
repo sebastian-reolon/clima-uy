@@ -653,8 +653,8 @@ def _upstream_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station]
     for st in above:
         ss = by_status[st.id]
         r = _gauge_reading(st, ss, store)
-        rows.append({"name": st.name, "reading": r.text, "d3": _delta(ss) if r.metres else "",
-                     "pct": _pct_cell(ss)[0], "q_pct": _ranks_discharge(r, ss)})
+        rows.append({"name": st.name, "reading": r.text, "d3": _delta(ss) if r.current and r.metres else "",
+                     "pct": _pct_cell(ss)[0] if r.current else "", "q_pct": _ranks_discharge(r, ss)})
     return rows
 
 
@@ -685,6 +685,13 @@ def _north_rain(data: dict, today: date) -> tuple[str, int] | None:
     return None
 
 
+def _outlook_source(data: dict) -> str:
+    """«INUMET, boletín de octubre de 2026, vía El Observador»: the bulletin, and who the link points to."""
+    issued = date.fromisoformat(data["issued"])
+    text = f"INUMET, boletín de {MONTHS[issued.month - 1]} de {issued.year}"
+    return text + (f", vía {data['source_outlet']}" if data.get("source_outlet") else "")
+
+
 def _enso_kv(store: Store, outlook_path: Path, today: date) -> dict:
     """The home's El Niño block: latest RONI and ONI, expected peak, north's rain, second window."""
     data = json.loads(outlook_path.read_text(encoding="utf-8"))
@@ -701,9 +708,7 @@ def _enso_kv(store: Store, outlook_path: Path, today: date) -> dict:
     if rain:
         rows.append((f"Lluvia norte, {rain[0]}", f"{rain[1]}% sobre lo normal"))
     rows.append(("Segunda ventana", data["second_window"]))
-    issued = date.fromisoformat(data["issued"])
-    source = {"label": "Fuente", "text": f"INUMET, boletín de {MONTHS[issued.month - 1]} de {issued.year}",
-              "url": data["source_url"]}
+    source = {"label": "Fuente", "text": _outlook_source(data), "url": data["source_url"]}
     return {"source": source, "period": _season_span(latest.period) if latest else None, "rows": rows}
 
 
@@ -736,10 +741,13 @@ def _all_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station], sto
             continue
         where = f" · frente a {st.represents}" if st.represents and st.represents != st.name else ""
         r = _gauge_reading(st, ss, store)
+        # A level shown with its date («(al 25/10)») is not today's: nothing next to it is said as current.
         rows.append({
             "name": st.name, "where": f"{st.country}{where}", "today": r.text,
-            "d3": _delta(ss) if r.metres else "", "pct": _pct_cell(ss)[0], "al": bool(ss.above_alert),
-            "alert": num(st.alert_m) if r.metres and "ina_level" in st.sources and st.alert_m is not None else "",
+            "d3": _delta(ss) if r.current and r.metres else "", "pct": _pct_cell(ss)[0] if r.current else "",
+            "al": bool(ss.above_alert),
+            "alert": (num(st.alert_m) if r.current and r.metres and "ina_level" in st.sources
+                      and st.alert_m is not None else ""),
             "q_pct": _ranks_discharge(r, ss),
         })
     return rows

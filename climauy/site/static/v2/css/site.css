@@ -132,3 +132,113 @@ tr.al th{color:var(--alert)}
 .skip:focus{left:var(--s4)}
 .sec p.mas{margin-top:var(--s3)}
 .pie .credit a{font-weight:700}
+
+/* Sheets 2 to 5 and the snapshot list (not in the mockup), in the mockup's language:
+   rules and tables, no cards, no shadows. */
+.cab.uno{grid-template-columns:minmax(0,1fr)}
+.resp p.lede{font-size:1.08rem}
+.resp .crumb{margin-top:var(--s3);font-size:.92rem}
+.sec h3{font-size:.98rem;font-weight:750;margin:var(--s6) 0 var(--s2)}
+.sec h4{font-size:.95rem;font-weight:700;margin:var(--s5) 0 var(--s2)}
+.sec ul,.sec ol{max-width:46rem}
+.sec p.leyenda{color:var(--ink-2);font-size:.82rem;margin:0 0 var(--s2)}
+figure{margin:0 0 var(--s5)}
+figcaption{font-size:.82rem;color:var(--ink-2);max-width:46rem;margin-top:var(--s2)}
+code{font-family:inherit;font-weight:600}
+.top-warning{border-left:2px solid var(--line);padding-left:var(--s3);font-size:.92rem}
+.sec p.stamp{font-size:.82rem;color:var(--ink-2)}
+.cities{font-size:.92rem;color:var(--ink-2);margin:0 0 var(--s4)}
+.cities a{color:var(--ink);font-weight:700}
+
+/* /nino/ */
+table.enso{max-width:34rem}
+.sec p.expl{margin-top:var(--s4)}
+table.outlook{max-width:52rem}
+table.outlook td{white-space:normal}
+.resp p.sub{margin-top:var(--s3);color:var(--ink-2);font-size:.92rem}
+table.outlook .p{font-weight:700;font-size:1.05rem}
+table.outlook .rest{display:block;font-size:.78rem;color:var(--ink-2)}
+@media (max-width:40em){
+  table.outlook thead{display:none}
+  table.outlook tr{display:block;padding:.7rem 0;border-bottom:1px solid var(--grid-2)}
+  table.outlook th,table.outlook td{border:0;padding:0}
+  table.outlook tbody th{display:block;font-size:1.05rem;margin-bottom:.15rem}
+  table.outlook td{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:.5rem;padding:.1rem 0}
+  table.outlook td[data-l]::before{content:attr(data-l);color:var(--ink-2);font-size:.82rem;flex:0 0 9.5rem}
+  table.outlook .rest{display:inline}
+}
+
+/* /rio/ charts. The SVGs carry their own colours; this sizes them. Wide charts use a 600-unit
+   viewBox with 23-unit text (13.7 px at 390 px); as the chart widens the text is brought back
+   down in user units. Legends are drawn twice, for 23 and for 14 units. */
+.chart{display:block;width:100%;height:auto;overflow:visible}
+.chart-wide{max-width:46rem}
+.chart-gauge{max-width:26rem}
+.chart-spark{display:inline-block;width:7.5rem;vertical-align:middle}
+@media (min-width:30em){.chart-wide text{font-size:19px}}
+@media (min-width:40em){.chart-wide text{font-size:16px}}
+@media (min-width:56em){
+  .chart-wide text{font-size:12.5px}
+  .chart-wide .legend-narrow{display:none}
+  .chart-wide .legend-wide{display:inline}
+}
+@media (min-width:64em){
+  .chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--s6)}
+  .chart-grid .chart-wide text{font-size:19px}
+  .chart-grid .chart-wide .legend-narrow{display:inline}
+  .chart-grid .chart-wide .legend-wide{display:none}
+}
+.chart-grid figure > h3:first-child,.chart-grid figure > h4:first-child{margin-top:var(--s5)}
+.verdict{font-weight:700;margin:var(--s3) 0}
+.verification{padding-left:1.1rem}
+.verification li{margin-bottom:var(--s2)}
+.verification .station-title{font-weight:700}
+
+/* /rio/ station column: the river is a 2 px water rule down the left, each station a mark on it. */
+.sec .column,.sec .branch-stations{list-style:none;margin:var(--s4) 0 var(--s5);padding:0 0 0 1.75rem;position:relative;max-width:none}
+.column::before{content:"";position:absolute;left:.6rem;top:.4rem;bottom:.4rem;width:2px;background:var(--water)}
+.station{position:relative;padding:var(--s3) 0;border-bottom:1px solid var(--grid-2)}
+.station::before{content:"";position:absolute;left:-1.45rem;top:1.15rem;width:.6rem;height:.6rem;border-radius:50%;background:var(--paper);border:2px solid var(--ink-2)}
+.station.city::before{background:var(--ink);border-color:var(--ink)}
+.station-head{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:var(--s2)}
+.station-name{font-size:1rem;font-weight:700;margin:0}
+.station.city .station-name{font-size:1.15rem}
+.station-how{font-weight:400;color:var(--ink-2)}
+.sec .station-sub,.sec .reading-meta{color:var(--ink-2);font-size:.86rem;line-height:1.35;margin:0}
+.sec .reading{display:flex;flex-wrap:wrap;align-items:center;gap:.15rem var(--s4);margin:var(--s1) 0}
+.reading-value{font-weight:700}
+.reading-change{color:var(--ink-2)}
+.station.is-stale .station-title,.station.is-stale .reading-value{color:var(--ink-2)}
+.station .chart-gauge{margin:var(--s1) 0}
+.branch{position:relative;padding:var(--s3) 0 0}
+.sec .branch-label{color:var(--ink-2);font-size:.86rem;margin:0}
+.sec .branch-stations{margin:var(--s1) 0 var(--s2);padding-left:1.5rem}
+.branch-stations::before{content:"";position:absolute;left:.55rem;top:0;bottom:1.5rem;width:1px;background:var(--water)}
+.branch-stations::after{content:"";position:absolute;left:-1.15rem;bottom:1.5rem;width:1.7rem;height:1px;background:var(--water)}
+.branch-stations .station::before{left:-1.2rem;width:.5rem;height:.5rem}
+/* Three columns only where the reading column keeps a readable measure (below, one column). */
+@media (min-width:64em){
+  .station{display:grid;grid-template-columns:minmax(10rem,15rem) minmax(0,22rem) minmax(0,1fr);grid-template-rows:auto auto 1fr;column-gap:var(--s5);align-items:start}
+  .station > .station-head{grid-column:1;grid-row:1/span 3;display:block}
+  .station > .chart-gauge{grid-column:2;grid-row:1/span 3;margin-top:0}
+  .station > .reading,.station > .reading-meta{grid-column:3}
+  .station > .reading{grid-row:1;margin-top:var(--s3)}
+  .station > .reading-meta{grid-row:2}
+  .station > .reading-meta.city-ref{grid-row:3}
+}
+
+/* /rio/ dams: a ruled grid of readings. */
+.dams{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:0 var(--s5);margin:0 0 var(--s2)}
+.dams div{border-top:1px solid var(--grid-2);padding:var(--s2) 0}
+.dams dt{color:var(--ink-2);font-size:.82rem}
+.dams dd{margin:0;font-weight:700;font-size:1.3rem}
+.dams.is-stale dd,.dams.is-stale dt{color:var(--ink-2)}
+
+/* Lists of links, the citation line, the methodology text. */
+.downloads{padding-left:1.1rem}
+.downloads li{margin-bottom:var(--s1)}
+@media (min-width:48em){.downloads.columns{columns:2;column-gap:var(--s6);max-width:none}}
+.cite{border-left:2px solid var(--line);padding-left:var(--s3);overflow-wrap:anywhere}
+.changelog{padding-left:1.1rem}
+.doc ul,.doc ol{padding-left:1.1rem}
+.doc li{margin-bottom:var(--s1)}

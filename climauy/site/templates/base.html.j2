@@ -10,10 +10,8 @@
 </head>
 <body>
 <a class="skip" href="#contenido">Ir al contenido</a>
-{# Until the home becomes the river summary, the old El Niño home ("home") also marks Río. #}
-{% set rio_current = nav in ("home", "rio") %}
 <div class="hoja"><div class="marco">
-<header class="top"><a class="marca" href="{{ base }}/">clima-uy</a><nav aria-label="Secciones"><a href="{{ base }}/"{% if rio_current %} aria-current="page"{% endif %}>Río</a><a href="{{ base }}/nino/"{% if nav == "nino" %} aria-current="page"{% endif %}>El Niño</a><a href="{{ base }}/datos/"{% if nav == "datos" %} aria-current="page"{% endif %}>Datos</a></nav></header>
+<header class="top"><a class="marca" href="{{ base }}/">clima-uy</a><nav aria-label="Secciones"><a href="{{ base }}/"{% if nav == "rio" %} aria-current="page"{% endif %}>Río</a><a href="{{ base }}/nino/"{% if nav == "nino" %} aria-current="page"{% endif %}>El Niño</a><a href="{{ base }}/datos/"{% if nav == "datos" %} aria-current="page"{% endif %}>Datos</a></nav></header>
 <main id="contenido">
 {% block main %}{% endblock %}
 <section class="sec"><h2>Notas</h2>

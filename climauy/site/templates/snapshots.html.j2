@@ -1,10 +1,15 @@
 {% extends "base.html.j2" %}
+{# Outside the numbered sheets: no «Hoja n de 5». #}
 {% block title %}Fotos diarias | clima-uy{% endblock %}
 {% block description %}Una foto fija por día del monitor del río Uruguay, para citar el estado de un día.{% endblock %}
 {% block main %}
-<article class="doc">
-<h1>Fotos diarias</h1>
-<p class="lede">Cada día queda una foto fija de la portada y del río, con los datos de ese día. Durante el día se actualiza y cuando cambia el día queda como está.</p>
+<div class="cab uno">
+<section class="resp"><h1>Fotos diarias</h1>
+<p>Cada día queda una foto fija de la portada, del río y de El Niño, con los datos de ese día. Durante el día se actualiza y cuando cambia el día queda como está.</p>
+</section>
+</div>
+<section class="sec"><h2>Días</h2>
+<p class="que">De la más nueva a la más vieja.</p>
 {% if days %}
 <ul class="downloads">
 {% for d in days %}
@@ -12,7 +17,7 @@
 {% endfor %}
 </ul>
 {% else %}
-<p class="muted">Todavía no hay fotos.</p>
+<p>Todavía no hay fotos.</p>
 {% endif %}
-</article>
+</section>
 {% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html.j2" %}
+{# Sheet 3: El Niño. The NOAA indices and INUMET's outlook, moved here from the old home.
+   «—» marks an empty table cell, as on the home; it is never used in prose. #}
+{% block title %}El Niño 2026-27 en Uruguay | clima-uy{% endblock %}
+{% block description %}Estado de El Niño con los índices RONI y ONI de la NOAA y la perspectiva de lluvias de INUMET para Uruguay.{% endblock %}
+{% block main %}
+<div class="cab">
+<section class="resp"><h1>{{ headline[0] }}</h1>
+{% if headline[1] %}<p>{{ headline[1] }}</p>{% endif %}
+<p class="sub">Abajo, los dos índices trimestre por trimestre y lo que espera INUMET para las lluvias de los próximos meses.</p>
+</section>
+<dl class="cajetin">
+{% for label, value in cajetin %}
+<dt>{{ label }}</dt><dd>{{ value }}</dd>
+{% endfor %}
+</dl>
+</div>
+<section class="sec"><h2>Los dos índices</h2>
+<p class="que">Anomalía de temperatura del mar en el Pacífico central, en grados, trimestre por trimestre. De 0,5 para arriba es El Niño. La diferencia es el ONI menos el RONI.</p>
+{% if enso_rows %}
+<div class="tw"><table class="enso">
+<thead><tr><th scope="col">Trimestre</th><th scope="col" class="n">RONI (°C)</th><th scope="col" class="n">ONI (°C)</th><th scope="col" class="n">Diferencia</th></tr></thead>
+<tbody>
+{% for r in enso_rows %}
+<tr><th scope="row">{{ r.period }}</th><td class="n">{{ r.roni }}</td><td class="n">{{ r.oni or "—" }}</td><td class="n">{{ r.diff or "—" }}</td></tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}
+<p>Sin datos de índices todavía.</p>
+{% endif %}
+<p class="expl">El ONI mide cuánto más caliente está el Pacífico central que su promedio, y como todo el océano tropical se viene calentando, parte de lo que marca es ese calentamiento general y no El Niño. El RONI compara el Pacífico central con el resto del trópico, así que descuenta ese calentamiento y da un valor menor: es el índice que la NOAA usa ahora como oficial.</p>
+</section>
+<section class="sec"><h2>Qué espera INUMET</h2>
+<p class="que">Probabilidad de que llueva por encima de lo normal, por región. Donde el boletín lo da, también la de lluvia normal y por debajo de lo normal.</p>
+<div class="tw"><table class="outlook">
+<thead><tr><th scope="col">Región</th>{% for s in outlook.seasons %}<th scope="col">{{ s.label }}</th>{% endfor %}</tr></thead>
+<tbody>
+{% for r in outlook.rows %}
+<tr><th scope="row">{{ r.region }}</th>{% for c in r.cells %}<td data-l="{{ c.label }}">{% if c.main %}<span class="p">{{ c.main }}</span>{% if c.rest %} <span class="rest">{{ c.rest }}</span>{% endif %}{% else %}—{% endif %}</td>{% endfor %}</tr>
+{% endfor %}
+</tbody></table></div>
+<p class="mas"><a href="{{ base }}/">Cómo está hoy el río Uruguay frente a las ciudades uruguayas</a></p>
+</section>
+{% endblock %}
+{% block notes %}
+<li>Perspectiva de lluvias: <a href="{{ outlook.source_url }}">{{ outlook.source }}</a> ({{ outlook.issued }}).{% if outlook.north_only %} Para {{ outlook.north_only }} el boletín publicado solo da el dato del norte.{% endif %}</li>
+<li>Se espera una segunda ventana de lluvias de {{ outlook.second_window }}.</li>
+<li>El índice oficial de la NOAA es el RONI; el ONI se muestra al lado para comparar. Los dos son del <a href="{{ noaa_url }}">NOAA CPC</a> y se descargan en <a href="{{ base }}/datos/">Datos</a>.</li>
+{% endblock %}

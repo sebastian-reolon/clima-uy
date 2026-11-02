@@ -12,11 +12,9 @@ from climauy.site.build import FOOTER_TEXT, build_site
 from climauy.store import Forecast, IndexValue, Obs, Store
 
 NOW = datetime(2026, 11, 1, 21, 5, tzinfo=timezone.utc)  # 18:05 in Montevideo
-PAGES = ["index.html", "rio/index.html", "rio/metodologia/index.html", "datos/index.html"]
-# Linked from the nav before the page exists (the El Niño page comes in a later
-# step of the redesign). Remove the entry once the page is built.
-PENDING_PAGES = {"nino/"}
-SHEETS = {"index.html": 1, "rio/index.html": 2, "datos/index.html": 4, "rio/metodologia/index.html": 5}
+PAGES = ["index.html", "rio/index.html", "nino/index.html", "rio/metodologia/index.html", "datos/index.html"]
+SHEETS = {"index.html": 1, "rio/index.html": 2, "nino/index.html": 3, "datos/index.html": 4,
+          "rio/metodologia/index.html": 5}
 ALLOWED_ACRONYMS = {
     "INA", "ANA", "CTM", "SINAE", "CECOED", "INUMET", "NOAA", "RONI", "ONI", "CPC", "CARU", "DINAGUA",
     "UTC", "CSV", "JSON",
@@ -126,7 +124,7 @@ def test_works_without_js(site):
     rows = re.findall(r"<tr\b", table.group(0))
     stations = [s for s in load_catalog()]
     assert len(rows) == len(stations) + 1  # header + one row per station
-    # Task 5: the El Niño sentence ("El Niño sigue activo") moves from the old home to /nino/.
+    assert "El Niño sigue activo" in _flat(_read(out, "nino/index.html"))
 
 
 def test_uy_city_shows_measuring_station(site):
@@ -211,23 +209,38 @@ def test_relative_links_under_base_url(site):
             rel = url[len("/clima-uy/"):].split("#")[0]
             if rel.startswith(("snapshots/", "data/")):
                 continue  # written by the publish step
-            if rel in PENDING_PAGES:
-                continue
             target = out / rel
             if url.endswith("/") or rel == "":
                 target = target / "index.html"
             assert target.is_file(), (page, url)
 
 
-@pytest.mark.skip(reason="Task 5: the old El Niño home (index.html.j2) becomes /nino/; retarget there")
-def test_home_enso_tables(site):
+def test_nino_enso_tables(site):
     out, _ = site
-    flat = _flat(_read(out, "index.html"))
-    assert "julio-septiembre de 2026" in flat
-    assert "+1,69" in flat and "+2,16" in flat
-    assert "Ojo: se espera una segunda ventana de lluvias en marzo a mayo de 2027" in flat
-    assert "INUMET" in flat
-    assert 'href="/clima-uy/rio/"' in _read(out, "index.html")
+    html = _read(out, "nino/index.html")
+    flat = _flat(html)
+    # enso_summary, its lead as the h1 and the indices in the line under it.
+    head = re.search(r'<section class="resp"><h1>(.*?)</h1>\s*<p>(.*?)</p>', html, flags=re.S)
+    assert _flat(head.group(1)) == "El Niño sigue activo."
+    assert _flat(head.group(2)) == ("El índice oficial de la NOAA (RONI) está en +1,69 para julio-septiembre "
+                                    "de 2026; el índice tradicional (ONI) marca +2,16.")
+    rows = _rows(_table(html, "enso"))
+    assert rows[0][1:] == ("julio-septiembre de 2026", ["+1,69", "+2,16", "+0,47"])
+    assert rows[1][1:] == ("junio-agosto de 2026", ["+1,36", "+1,80", "+0,44"])
+    assert "es el índice que la NOAA usa ahora como oficial" in flat
+    titles = [_text(t) for t in re.findall(r"<h2[^>]*>(.*?)</h2>", html, flags=re.S)]
+    assert titles == ["Los dos índices", "Qué espera INUMET", "Notas"]
+    notes = _flat(re.search(r'<ol class="notas">.*?</ol>', html, flags=re.S).group(0))
+    assert "Se espera una segunda ventana de lluvias de marzo a mayo de 2027." in notes
+    assert "Perspectiva de lluvias: INUMET, boletín de octubre de 2026, vía El Observador (15/10/2026)." in notes
+    assert "El índice oficial de la NOAA es el RONI" in notes
+    assert 'href="/clima-uy/"' in html[html.index("<h2>Qué espera INUMET</h2>"):]  # back to the river summary
+    caj = re.search(r'<dl class="cajetin">(.*?)</dl>', html, flags=re.S).group(1)
+    pairs = dict(zip([_flat(x) for x in re.findall(r"<dt>(.*?)</dt>", caj)],
+                     [_flat(x) for x in re.findall(r"<dd>(.*?)</dd>", caj)]))
+    assert pairs == {"Estado al": "julio a septiembre de 2026", "Índice oficial": "RONI",
+                     "Perspectiva": "boletín de octubre de 2026", "Fuentes": "NOAA CPC · INUMET",
+                     "Carácter": "informativo, no oficial"}
 
 
 def test_build_with_empty_store(tmp_path):
@@ -236,6 +249,12 @@ def test_build_with_empty_store(tmp_path):
     assert (tmp_path / "out" / "rio" / "index.html") in written
     html = (tmp_path / "out" / "index.html").read_text(encoding="utf-8")
     assert 'href="/rio/"' in html
+    nino = (tmp_path / "out" / "nino" / "index.html").read_text(encoding="utf-8")
+    assert "<h1>Todavía no hay índices de la NOAA cargados.</h1>" in nino
+    assert "Sin datos de índices todavía." in nino and "<dd>sin índices cargados</dd>" in nino
+    rio = (tmp_path / "out" / "rio" / "index.html").read_text(encoding="utf-8")
+    assert '<p class="lede">No hay estaciones con datos al día.</p>' in rio
+    assert "<dd>sin datos al día</dd>" in rio
 
 
 def test_cli_build(tmp_path, monkeypatch):
@@ -259,7 +278,6 @@ DISCLAIMER = "Esto no es una alerta oficial. Alertas y evacuaciones: SINAE y el 
 
 def test_disclaimer_near_the_top(site):
     out, _ = site
-    # Task 5: the old home's entry ("index.html", 'class="go"') returns when /nino/ is built.
     for page, before in [("rio/index.html", 'class="chart chart-wide chart-profile')]:
         html = _read(out, page)
         i = html.index('class="top-warning"')
@@ -315,14 +333,19 @@ def test_season_captions(site):
     assert "no tiene cota oficial de alerta" in caption("ana_77500000")
 
 
-@pytest.mark.skip(reason="Task 5: the INUMET table moves from the old home to /nino/; retarget there")
 def test_outlook_missing_cells(site):
     out, _ = site
-    html = _read(out, "index.html")
-    table = re.search(r'<table class="outlook-table".*?</table>', html, flags=re.S).group(0)
-    assert _flat(table).count("sin dato") == 8  # NDJ and DJF for the four regions besides Norte
+    html = _read(out, "nino/index.html")
+    table = _table(html, "outlook")
+    rows = _rows(table)
+    assert [r[1] for r in rows] == ["Norte", "Noreste", "Centro", "Este", "Resto del país"]
+    assert rows[0][2] == ["60% normal 30, menos 10", "60%", "50%"]
+    assert sum(c == "—" for r in rows for c in r[2]) == 8  # NDJ and DJF for the four regions besides Norte
+    # Labelled cells, so the table stacks into one block per region on phones.
+    for label in ("octubre a diciembre", "noviembre a enero", "diciembre a febrero"):
+        assert table.count(f'data-l="{label}"') == 5
     flat = _flat(html)
-    assert "Para noviembre-enero y diciembre-febrero el boletín publicado solo da el dato del norte." in flat
+    assert "Para noviembre a enero y diciembre a febrero el boletín publicado solo da el dato del norte." in flat
     assert "elobservador.com.uy" in html
 
 
@@ -457,12 +480,6 @@ REPO = Path(__file__).resolve().parents[1]
 SITE_STATIC = REPO / "climauy" / "site" / "static"
 
 
-def test_pending_pages_are_still_missing(site):
-    out, _ = site
-    for rel in PENDING_PAGES:
-        assert not (out / rel / "index.html").exists(), f"{rel} exists now: remove it from PENDING_PAGES"
-
-
 def test_sheet_css_and_base_keep_the_global_rules():
     css = (SITE_STATIC / "v2/css/site.css").read_text(encoding="utf-8")
     base = (REPO / "climauy/site/templates/base.html.j2").read_text(encoding="utf-8")
@@ -556,6 +573,35 @@ def _nav(html: str) -> dict[str, bool]:
             for href, cur, label in re.findall(r'<a href="([^"]+)"( aria-current="page")?>([^<]+)</a>', nav)}
 
 
+def test_nino_headline_split():
+    from climauy.site.build import _nino_headline
+
+    assert _nino_headline("") == ("Todavía no hay índices de la NOAA cargados.", "")
+    assert _nino_headline("Hay condiciones de La Niña: el índice oficial está en -0,5.") == (
+        "Hay condiciones de La Niña.", "El índice oficial está en -0,5.")
+    assert _nino_headline("Sin dos puntos.") == ("Sin dos puntos.", "")
+
+
+def test_rio_cajetin(site):
+    out, _ = site
+    caj = re.search(r'<dl class="cajetin">(.*?)</dl>', _read(out, "rio/index.html"), flags=re.S).group(1)
+    assert [_flat(x) for x in re.findall(r"<dt>(.*?)</dt>", caj)] == [
+        "Estado al", "Actualización", "Estaciones", "Fuentes", "Carácter"]
+    assert "<dd>2026-11-01 12:00 (UY)</dd>" in caj
+
+
+def test_methodology_is_a_sheet_of_sections(site):
+    out, _ = site
+    html = _read(out, "rio/metodologia/index.html")
+    md = (REPO / "docs" / "metodologia.md").read_text(encoding="utf-8")
+    title = re.search(r"^# (.+)$", md, flags=re.M).group(1)
+    assert re.search(r'<section class="resp"><h1>(.*?)</h1>', html).group(1) == title
+    h2s = [_text(t) for t in re.findall(r"<h2[^>]*>(.*?)</h2>", html, flags=re.S)]
+    assert h2s == re.findall(r"^## (.+)$", md, flags=re.M) + ["Notas"]
+    assert html.count('<section class="sec doc">') == len(h2s) - 1
+    assert 'href="/clima-uy/rio/"' in html
+
+
 def test_nav_marks_the_current_sheet(site):
     out, _ = site
     nav = re.search(r"<nav\b.*?</nav>", _read(out, "rio/index.html"), flags=re.S).group(0)
@@ -563,6 +609,7 @@ def test_nav_marks_the_current_sheet(site):
     assert _nav(_read(out, "index.html")) == {"Río": True, "El Niño": False, "Datos": False}
     assert _nav(_read(out, "rio/index.html")) == {"Río": True, "El Niño": False, "Datos": False}
     assert _nav(_read(out, "rio/metodologia/index.html")) == {"Río": True, "El Niño": False, "Datos": False}
+    assert _nav(_read(out, "nino/index.html")) == {"Río": False, "El Niño": True, "Datos": False}
     assert _nav(_read(out, "datos/index.html")) == {"Río": False, "El Niño": False, "Datos": True}
 
 

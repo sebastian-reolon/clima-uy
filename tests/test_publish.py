@@ -186,7 +186,7 @@ def test_snapshot_dir_by_local_day(built):
     now = datetime(2026, 11, 15, 2, tzinfo=UTC)  # 23:00 on 14/11 in Montevideo
     snap = write_snapshot(out, local_day(now), base_url=BASE)
     assert snap == out / "snapshots" / "2026-11-14"
-    for rel in ("index.html", "rio/index.html", "rio/metodologia/index.html", "data/rio/latest.json"):
+    for rel in ("index.html", "rio/index.html", "nino/index.html", "rio/metodologia/index.html", "data/rio/latest.json"):
         assert (snap / rel).is_file(), rel
     # During the day it is overwritten; another day leaves it fixed.
     (out / "data/rio/latest.json").write_text('{"v": 2}', encoding="utf-8")
@@ -214,14 +214,7 @@ def _targets(page: Path, out: Path) -> list[str]:
     return found
 
 
-# Linked from the nav before the page exists (the El Niño page comes in a later
-# step of the redesign). Remove once the page is built and snapshotted.
-_PENDING = re.compile(r"(?:snapshots/\d{4}-\d{2}-\d{2}/)?nino/")
-
-
 def _resolves(out: Path, rel: str) -> bool:
-    if _PENDING.fullmatch(rel):
-        return True
     target = out / rel
     return (target / "index.html").is_file() if rel == "" or rel.endswith("/") else target.is_file()
 
@@ -231,7 +224,9 @@ def test_snapshot_links_stay_inside_snapshot(built):
     snap = write_snapshot(out, date(2026, 12, 2), base_url=BASE)
     day = "snapshots/2026-12-02/"
     pages = list(snap.rglob("*.html"))
-    assert len(pages) == 3
+    # The home, the river, its methodology and El Niño.
+    assert sorted(str(p.relative_to(snap)) for p in pages) == [
+        "index.html", "nino/index.html", "rio/index.html", "rio/metodologia/index.html"]
     for page in pages:
         assert 'Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>' in page.read_text(
             encoding="utf-8"), page
@@ -248,7 +243,7 @@ def test_snapshot_links_stay_inside_snapshot(built):
 def test_live_pages_links_resolve(built):
     out = built
     write_snapshot(out, local_day(NOW), base_url=BASE)
-    for page in ("index.html", "rio/index.html", "rio/metodologia/index.html", "datos/index.html"):
+    for page in ("index.html", "rio/index.html", "nino/index.html", "rio/metodologia/index.html", "datos/index.html"):
         for rel in _targets(out / page, out):
             assert _resolves(out, rel), f"{page}: {rel}"
 

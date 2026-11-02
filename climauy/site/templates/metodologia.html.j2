@@ -1,9 +1,17 @@
 {% extends "base.html.j2" %}
+{# Sheet 5: docs/metodologia.md, its # title as the h1 and each ## heading as a sheet section. #}
 {% block title %}Metodología del monitor del río | clima-uy{% endblock %}
 {% block description %}De dónde salen los números del monitor del río Uruguay, qué supuestos hay detrás y qué no se puede concluir de ellos.{% endblock %}
 {% block main %}
-<article class="doc prose-page">
+<div class="cab uno">
+<section class="resp"><h1>{{ doc.title }}</h1>
+{{ doc.intro }}
 <p class="crumb"><a href="{{ base }}/rio/">Volver al río Uruguay</a></p>
-{{ body }}
-</article>
+</section>
+</div>
+{% for s in doc.sections %}
+<section class="sec doc"><h2>{{ s.title }}</h2>
+{{ s.body }}
+</section>
+{% endfor %}
 {% endblock %}

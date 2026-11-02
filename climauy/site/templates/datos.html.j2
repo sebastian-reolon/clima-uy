@@ -2,20 +2,23 @@
 {% block title %}Datos para descargar | clima-uy{% endblock %}
 {% block description %}Descargas del monitor del río Uruguay en CSV y JSON, catálogo de estaciones, licencias y cómo citar.{% endblock %}
 {% block main %}
-<article class="doc">
-<h1>Datos</h1>
-<p class="lede">Todo lo que muestra el sitio se puede descargar, con la fuente de cada valor. Las horas están en UTC y los días en hora de Montevideo.</p>
+<div class="cab uno">
+<section class="resp"><h1>Datos</h1>
+<p>Todo lo que muestra el sitio se puede descargar, con la fuente de cada valor. Las horas están en UTC y los días en hora de Montevideo.</p>
+</section>
+</div>
 
-<section aria-labelledby="descargas">
+<section class="sec" aria-labelledby="descargas">
   <h2 id="descargas">Descargas</h2>
+  <p class="que">Lo de hoy, las lecturas y pronósticos de cada mes y la serie diaria de cada estación.</p>
   <ul class="downloads">
     <li><a href="{{ base }}/data/rio/latest.json">Estado de hoy de todas las estaciones y la frase del día (JSON)</a></li>
     <li><a href="{{ base }}/data/rio/stations.csv">Catálogo de estaciones (CSV)</a></li>
     <li><a href="{{ base }}/data/enso/indices.csv">Índices RONI, ONI y Niño 3.4 semanal (CSV)</a></li>
   </ul>
-  <p class="prose">En el estado de hoy, <code>last_data_utc</code> es la hora del dato más nuevo entre las estaciones al día (vacío si no hay ninguna), y cada estación dice la hora de su último dato (<code>latest_time_utc</code>) y de qué fuente es (<code>latest_source</code>).</p>
+  <p>En el estado de hoy, <code>last_data_utc</code> es la hora del dato más nuevo entre las estaciones al día (vacío si no hay ninguna), y cada estación dice la hora de su último dato (<code>latest_time_utc</code>) y de qué fuente es (<code>latest_source</code>).</p>
   <h3>Lecturas crudas y pronósticos, por mes</h3>
-  <p class="prose">Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo. La columna <code>source</code> dice de qué fuente es cada valor; citala junto con este sitio (ver <a href="#licencias">licencias</a>). Cada mes se actualiza hasta el primer día del mes siguiente y después queda fijo.</p>
+  <p>Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo. La columna <code>source</code> dice de qué fuente es cada valor; citala junto con este sitio (ver <a href="#licencias">licencias</a>). Cada mes se actualiza hasta el primer día del mes siguiente y después queda fijo.</p>
   <ul class="downloads">
   {% for m in downloads.months %}
     <li><a href="{{ base }}/data/rio/raw/{{ m.key }}.csv">Lecturas de {{ m.label }} (CSV)</a></li>
@@ -23,7 +26,7 @@
   {% endfor %}
   </ul>
   <h3>Medias diarias por estación</h3>
-  <p class="prose">Una fila por día, con la media del día y cuántas lecturas la forman. Cada serie sale de una sola fuente, la de su estación en el catálogo. El día en curso no está: se agrega cuando termina.</p>
+  <p>Una fila por día, con la media del día y cuántas lecturas la forman. Cada serie sale de una sola fuente, la de su estación en el catálogo. El día en curso no está: se agrega cuando termina.</p>
   {% if downloads.series %}
   <ul class="downloads columns">
   {% for s in downloads.series %}
@@ -31,20 +34,21 @@
   {% endfor %}
   </ul>
   {% else %}
-  <p class="muted">Todavía no hay series cargadas.</p>
+  <p>Todavía no hay series cargadas.</p>
   {% endif %}
 </section>
 
-<section aria-labelledby="catalogo">
+<section class="sec" aria-labelledby="catalogo">
   <h2 id="catalogo">Catálogo de estaciones</h2>
-  <div class="table-wrap">
+  <p class="que">De dónde sale la serie de cada estación y cuáles tienen cota oficial.</p>
+  <p class="leyenda">Fuente de las cotas de alerta y evacuación: {{ cota_sources }}. Las estaciones de ANA no tienen cotas publicadas.</p>
+  <div class="tw">
   <table class="catalog-table">
-    <caption>Fuente de las cotas de alerta y evacuación: {{ cota_sources }}. Las estaciones de ANA no tienen cotas publicadas.</caption>
     <thead><tr><th scope="col">Estación</th><th scope="col">País</th><th scope="col">Río</th><th scope="col">Series</th><th scope="col">Alerta y evacuación</th><th scope="col">Ciudad que representa</th></tr></thead>
     <tbody>
     {% for r in catalog_rows %}
       <tr><th scope="row">{{ r.name }}</th><td>{{ r.country }}</td><td>{{ r.river }}</td><td>{{ r.sources }}</td>
-      <td>{% if r.cotas %}{{ r.cotas }}{% else %}<span class="muted">sin cota oficial</span>{% endif %}</td>
+      <td>{% if r.cotas %}{{ r.cotas }}{% else %}<span class="pais">sin cota oficial</span>{% endif %}</td>
       <td>{{ r.represents }}</td></tr>
     {% endfor %}
     </tbody>
@@ -52,9 +56,9 @@
   </div>
 </section>
 
-<section aria-labelledby="licencias">
+<section class="sec" aria-labelledby="licencias">
   <h2 id="licencias">Licencias y atribución</h2>
-  <p class="prose">Qué se puede descargar de cada fuente depende de lo que esa fuente permite. Si usás estos datos, citá siempre también la fuente original. El detalle, con los links a las condiciones de cada una, está en <a href="{{ licences_url }}">el documento de licencias del repositorio</a>.</p>
+  <p class="que">Qué se puede descargar de cada fuente depende de lo que esa fuente permite. Si usás estos datos, citá siempre también la fuente original. El detalle, con los links a las condiciones de cada una, está en <a href="{{ licences_url }}">el documento de licencias del repositorio</a>.</p>
   <ul class="source-terms">
   {% for t in source_terms %}
     <li><a href="{{ t.url }}">{{ t.name }}</a>. {{ t.text }}{% if t.glofas %} «{{ copernicus }}». Datos: <a href="{{ open_meteo_url }}">{{ open_meteo_text }}</a>.{% endif %}{% if t.withdraw %} El pedido se puede hacer en <a href="{{ repo_url }}/issues">los issues del repositorio</a>.{% endif %}</li>
@@ -62,22 +66,22 @@
   </ul>
 </section>
 
-<section aria-labelledby="citar">
+<section class="sec" aria-labelledby="citar">
   <h2 id="citar">Cómo citar</h2>
-  <p class="prose">Cada día queda una foto fija con link propio. Para citar el estado del río de un día, usá esa foto:</p>
+  <p class="que">Cada día queda una foto fija con link propio. Para citar el estado del río de un día, usá esa foto:</p>
   <p class="cite">clima-uy, monitor del río Uruguay, foto del {{ today_long }}. {{ cite_url }}</p>
 </section>
 
-<section aria-labelledby="codigo">
+<section class="sec" aria-labelledby="codigo">
   <h2 id="codigo">Código</h2>
-  <p class="prose">El procesamiento, los gráficos y esta página están en <a href="{{ repo_url }}">el repositorio público</a>. La metodología está en <a href="{{ base }}/rio/metodologia/">su propia página</a>.</p>
+  <p class="que">El procesamiento, los gráficos y esta página están en <a href="{{ repo_url }}">el repositorio público</a>. La metodología está en <a href="{{ base }}/rio/metodologia/">su propia página</a>.</p>
 </section>
 
-<section aria-labelledby="cambios">
+<section class="sec" aria-labelledby="cambios">
   <h2 id="cambios">Registro de cambios</h2>
+  <p class="que">Lo que cambió en el sitio, por fecha.</p>
   <ul class="changelog">
-    <li><span class="num">1 de noviembre de 2026.</span> Primera versión: la portada de El Niño y el módulo del río Uruguay.</li>
+    <li><strong>1 de noviembre de 2026.</strong> Primera versión: la portada de El Niño y el módulo del río Uruguay.</li>
   </ul>
 </section>
-</article>
 {% endblock %}

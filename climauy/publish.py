@@ -242,7 +242,7 @@ def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc
 
 # ---------------------------------------------------------------- snapshot
 
-SNAPSHOT_PAGES = ("index.html", "rio")
+SNAPSHOT_PAGES = ("index.html", "rio", "nino")
 SNAPSHOT_DATA = ("data/rio/latest.json", "data/rio/stations.csv")
 _DAY_DIR = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -269,7 +269,7 @@ def _rewrite_links(html: str, base: str, day: str) -> str:
 
 
 def write_snapshot(out_dir: Path, day_local: date, base_url: str = "/clima-uy") -> Path:
-    """Copy the home page, the river pages and today's data into snapshots/<day>/.
+    """Copy the home page, the river pages, the El Niño page and today's data into snapshots/<day>/.
 
     The same day is overwritten on every run; past days are never touched.
     Also regenerates snapshots/index.html from the day folders on disk.

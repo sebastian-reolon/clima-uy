@@ -1219,7 +1219,8 @@ def lag_svg(result: LagResult, upstream_name: str, downstream_name: str) -> str:
     r = min(7.0, gap / 2 - 0.5)
 
     body: list[str] = []
-    body.append(_text(0, 26, f"días entre el pico en {up} y el pico en {down}", fill=INK_2))
+    # The figure's heading already names both stations; a longer line here overflows at 390 px.
+    body.append(_text(0, 26, "días que tardó el pico en llegar", fill=INK_2))
     body.append(_text(0, 26 + LINE_GAP, "cada punto es una crecida pasada", fill=INK_2))
     body.append(_line(L_LEFT, L_BOTTOM, L_RIGHT, L_BOTTOM, INK_2, 1))
     for k in range(0, LAG_MAX_DAYS + 1):

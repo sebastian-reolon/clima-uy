@@ -71,12 +71,24 @@ red = alert. Everything else is ink.
   `--water-2`, city callouts under the axis with leader lines and a paper box
   behind each label. A cropped variant (from about Paso de los Libres) on
   phones.
+- Pages without a title block (Datos, Metodología, Fotos diarias): the h1
+  block alone, full width (`.cab.uno`).
+- Other tables on phones: the El Niño outlook stacks like the city table
+  (one block per region, one labelled line per season); long reference
+  tables (catalogue, all stations, forecast checks) scroll inside their
+  wrapper, with their explanatory line above the table, never in a caption.
+- River column (`/rio/`): the river is a 2 px `--water` rule down the left,
+  each station a dot on it (filled ink for a Uruguayan city), tributaries a
+  1 px branch. Three columns (name, gauge, reading) from 64em; one below.
+- Dams: a ruled grid of label and value, no boxes.
 - Notes: ordered list, small, ink-2.
 - Footer: credit «Hecho por Sebastián Reolon», repo link, «Hoja n de N».
 
 ## Motion
 
-None. Only `<details>` opening.
+None. Only `<details>` opening. The old profile's grow-in script
+(`static/js/morph.js`) is no longer loaded by `/rio/`; it stays for the frozen
+snapshots that link it.
 
 ## Must not
 

@@ -15,7 +15,7 @@
   {% endif %}
   {% if v.meta %}<p class="reading-meta">{{ v.meta }}</p>{% endif %}
   {% if v.ref %}{% set r = v.ref %}
-  <p class="reading-meta city-ref">Cota de {{ r.kind }} oficial en {{ r.city }}: <span class="num">{{ r.value }}</span> en su propia regla, según <a href="{{ r.url }}">{{ r.source }}</a> ({{ r.date }}).{% if r.station %} Es otra regla que la de {{ r.station }}: no se comparan.{% endif %}{% if r.other %} El <a href="{{ r.other.url }}">{{ r.other.source }}</a> publicó otro valor ({{ r.other.date }}).{% endif %}</p>
+  <p class="reading-meta city-ref">Cota de {{ r.kind }} oficial en {{ r.city }}: <span class="n">{{ r.value }}</span> en su propia regla, según <a href="{{ r.url }}">{{ r.source }}</a> ({{ r.date }}).{% if r.station %} Es otra regla que la de {{ r.station }}: no se comparan.{% endif %}{% if r.other %} El <a href="{{ r.other.url }}">{{ r.other.source }}</a> publicó otro valor ({{ r.other.date }}).{% endif %}</p>
   {% endif %}
 </li>
 {% endmacro %}
@@ -35,186 +35,192 @@
 {% block title %}El río Uruguay de punta a punta | clima-uy{% endblock %}
 {% block description %}Estado del río Uruguay desde las represas de Brasil hasta Nueva Palmira, estación por estación, con pronósticos y crecidas pasadas.{% endblock %}
 {% block main %}
-<article class="river">
-<section aria-labelledby="hoy" class="today">
-  <h1 class="page-title">El río Uruguay de punta a punta</h1>
-  <h2 id="hoy">El río hoy</h2>
-  <p class="stamp">{{ generated }} {{ last_data }} <a href="{{ snapshot_url }}">Ver la foto de hoy</a></p>
-  <p class="top-warning">{{ disclaimer }} <a href="{{ sinae_url }}">SINAE</a> y el CECOED de tu departamento.</p>
-  <nav class="cities" aria-label="Ciudades uruguayas">Ir a:
-  {% for c in cities %}<a href="#estacion-{{ c.station.id }}">{{ c.title }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
-  </nav>
-  <figure class="profile">
-    {{ profile }}
-    {% if river_text %}
-    <p class="lede">{{ river_text }}</p>
-    {% else %}
-    <p class="lede">No hay estaciones con datos al día.</p>
-    {% endif %}
-    <figcaption>Cada estación comparada con su propia historia diaria desde 1990 (o desde que tiene datos), porque cada regla mide desde su propio cero y las alturas en metros no se pueden comparar entre estaciones. Las que tienen menos de 10 años de historia o están desactualizadas cortan la línea. Los afluentes no están en el perfil.</figcaption>
-  </figure>
+<div class="cab">
+<section class="resp"><h1>El río Uruguay de punta a punta</h1>
+<p class="lede">{% if river_text %}{{ river_text }}{% else %}No hay estaciones con datos al día.{% endif %}</p>
+</section>
+<dl class="cajetin">
+{% for label, value in cajetin %}
+<dt>{{ label }}</dt><dd>{{ value }}</dd>
+{% endfor %}
+</dl>
+</div>
+
+<section class="sec" aria-labelledby="hoy">
+<h2 id="hoy">El río hoy</h2>
+<p class="que">Cada estación comparada con su propia historia diaria desde 1990 (o desde que tiene datos), porque cada regla mide desde su propio cero y las alturas en metros no se pueden comparar entre estaciones. Las que tienen menos de 10 años de historia o están desactualizadas cortan la línea. Los afluentes no están en el perfil.</p>
+<p class="top-warning">{{ disclaimer }} <a href="{{ sinae_url }}">SINAE</a> y el CECOED de tu departamento.</p>
+<p class="stamp">{{ generated }} {{ last_data }} <a href="{{ snapshot_url }}">Ver la foto de hoy</a></p>
+<nav class="cities" aria-label="Ciudades uruguayas">Ir a:
+{% for c in cities %}<a href="#estacion-{{ c.station.id }}">{{ c.title }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+</nav>
+<figure class="profile">
+{{ profile }}
+</figure>
 </section>
 
-<section aria-labelledby="estaciones">
-  <h2 id="estaciones">Estación por estación</h2>
-  <p class="prose">De Brasil a Nueva Palmira, en el orden en que baja el agua. Cada regla está en el cero de su propia estación; las líneas de alerta y evacuación aparecen solo donde hay una cota oficial. Las ciudades uruguayas se miden desde la estación de enfrente. {{ cota_line }}</p>
-  <ol class="column">
-  {% for v in column %}
-    {{ branch_list(v.branches) }}
-    {{ station_item(v) }}
+<section class="sec" aria-labelledby="estaciones">
+<h2 id="estaciones">Estación por estación</h2>
+<p class="que">De Brasil a Nueva Palmira, en el orden en que baja el agua. Cada regla está en el cero de su propia estación; las líneas de alerta y evacuación aparecen solo donde hay una cota oficial. Las ciudades uruguayas se miden desde la estación de enfrente. {{ cota_line }}</p>
+<ol class="column">
+{% for v in column %}
+  {{ branch_list(v.branches) }}
+  {{ station_item(v) }}
+{% endfor %}
+</ol>
+
+<h3>Represas</h3>
+{% if dam %}
+<dl class="dams{% if dam.stale %} is-stale{% endif %}">
+  <div><dt>Machadinho, volumen del embalse</dt><dd>{{ dam.machadinho or "sin dato" }}</dd></div>
+  <div><dt>Itá, volumen del embalse</dt><dd>{{ dam.ita or "sin dato" }}</dd></div>
+  <div><dt>Salto Grande, turbinado</dt><dd>{{ dam.turb }} m³/s</dd></div>
+  <div><dt>Salto Grande, vertido</dt><dd>{{ dam.vert }} m³/s</dd></div>
+  <div><dt>Salto Grande, total que sale</dt><dd>{{ dam.total }} m³/s</dd></div>
+</dl>
+{% if dam.stale %}
+<p class="reading-meta">Informe de CTM Salto Grande: desactualizado desde el {{ dam.date_numeric }}.</p>
+{% else %}
+<p class="reading-meta">Informe de CTM Salto Grande del {{ dam.date }}.</p>
+{% endif %}
+{% else %}
+<p class="reading-meta">Sin informe de CTM Salto Grande todavía.</p>
+{% endif %}
+
+<h3>Todas las estaciones en una tabla</h3>
+<p class="leyenda">Cada nivel está en el cero de su propia estación: los metros no se comparan entre estaciones. Para comparar, el percentil. {{ cota_line }}</p>
+<div class="tw">
+<table class="stations-table">
+  <thead><tr>
+    <th scope="col">Estación</th><th scope="col" class="n">Nivel</th><th scope="col" class="n">Caudal</th>
+    <th scope="col">En 3 días</th><th scope="col" class="n">Percentil</th><th scope="col" class="n">Alerta</th><th scope="col">Último dato</th>
+  </tr></thead>
+  <tbody>
+  {% for v in table %}
+    <tr{% if v.status.stale %} class="sin"{% endif %}>
+      <th scope="row">{{ v.title }}{% if v.station.represents and v.station.represents != v.station.name %} <span class="pais">{{ v.station.name }}</span>{% endif %}</th>
+      <td class="n">{% if v.status.level_m is not none %}{{ v.status.level_m|meters }}{% endif %}</td>
+      <td class="n">{% if v.status.variable_used == "discharge" and v.status.latest_value is not none and not v.status.stale %}{{ v.status.latest_value|num }} m³/s{% endif %}</td>
+      <td>{{ v.change_short }}</td>
+      <td class="n">{% if v.status.percentile_today is not none %}{{ v.status.percentile_today|pct }}{% endif %}</td>
+      <td class="n">{% if v.station.alert_m is not none and "ina_level" in v.station.sources %}{{ v.station.alert_m|meters }}{% endif %}</td>
+      <td>{% if v.status.stale %}{{ v.reading or "sin datos" }}{% else %}{{ v.when or "sin datos" }}{% endif %}</td>
+    </tr>
   {% endfor %}
-  </ol>
+  </tbody>
+</table>
+</div>
+</section>
 
-  <h3 class="block-title">Represas</h3>
-  {% if dam %}
-  <dl class="dams{% if dam.stale %} is-stale{% endif %}">
-    <div><dt>Machadinho, volumen del embalse</dt><dd class="num">{{ dam.machadinho or "sin dato" }}</dd></div>
-    <div><dt>Itá, volumen del embalse</dt><dd class="num">{{ dam.ita or "sin dato" }}</dd></div>
-    <div><dt>Salto Grande, turbinado</dt><dd class="num">{{ dam.turb }} m³/s</dd></div>
-    <div><dt>Salto Grande, vertido</dt><dd class="num">{{ dam.vert }} m³/s</dd></div>
-    <div><dt>Salto Grande, total que sale</dt><dd class="num">{{ dam.total }} m³/s</dd></div>
-  </dl>
-  {% if dam.stale %}
-  <p class="reading-meta">Informe de CTM Salto Grande: desactualizado desde el {{ dam.date_numeric }}.</p>
-  {% else %}
-  <p class="reading-meta">Informe de CTM Salto Grande del {{ dam.date }}.</p>
-  {% endif %}
-  {% else %}
-  <p class="muted">Sin informe de CTM Salto Grande todavía.</p>
-  {% endif %}
+<section class="sec" aria-labelledby="viene">
+<h2 id="viene">Lo que viene</h2>
+<p class="que">Los pronósticos del INA y del modelo global GloFAS, con lo que midió la estación hasta hoy.</p>
+<div class="chart-grid">
+{% for f in forecasts %}
+<figure class="forecast">
+  <h3>{% if f.issuer == "glofas" %}GloFAS{% else %}INA{% endif %}: {{ f.name }}</h3>
+  {% if f.svg %}{{ f.svg }}{% else %}<p class="reading-meta">Sin pronóstico archivado todavía.</p>{% endif %}
+  <figcaption>{{ f.caption }}{% if f.run %} {{ f.run }}{% endif %}{% if f.glofas %} Datos: <a href="{{ open_meteo_url }}">{{ open_meteo_text }}</a>. {{ copernicus }}.{% endif %}</figcaption>
+</figure>
+{% endfor %}
+</div>
+</section>
 
-  <h3 class="block-title">Todas las estaciones en una tabla</h3>
-  <div class="table-wrap">
-  <table class="stations-table">
-    <caption>Cada nivel está en el cero de su propia estación: los metros no se comparan entre estaciones. Para comparar, el percentil. {{ cota_line }}</caption>
-    <thead><tr>
-      <th scope="col">Estación</th><th scope="col" class="num">Nivel</th><th scope="col" class="num">Caudal</th>
-      <th scope="col">En 3 días</th><th scope="col" class="num">Percentil</th><th scope="col" class="num">Alerta</th><th scope="col">Último dato</th>
-    </tr></thead>
+<section class="sec" aria-labelledby="anteriores">
+<h2 id="anteriores">Esta crecida contra las anteriores</h2>
+<p class="que">Las mismas estaciones, temporada por temporada, del 1 de octubre al 31 de marzo. Las crecidas de 2009, 2015 y 2023 salen de los datos de esas estaciones, no de cifras de prensa.</p>
+<div class="chart-grid">
+{% for s in seasons %}
+<figure class="season" id="temporadas-{{ s.id }}">
+  <h3><span class="station-title">{{ s.title }}</span>{% if s.title != s.how %}<span class="station-how">, {{ s.how }}</span>{% endif %}</h3>
+  {{ s.svg }}
+  <figcaption>{{ s.cota }}</figcaption>
+  <div class="tw">
+  <table class="season-table">
+    <thead><tr><th scope="col">Temporada</th><th scope="col" class="n">Máximo</th><th scope="col">Fecha</th>{% if s.has_cota %}<th scope="col" class="n">Días que alcanzó o superó la alerta</th>{% endif %}</tr></thead>
     <tbody>
-    {% for v in table %}
-      <tr{% if v.status.stale %} class="is-stale"{% endif %}>
-        <th scope="row">{{ v.title }}{% if v.station.represents and v.station.represents != v.station.name %} <span class="muted">({{ v.station.name }})</span>{% endif %}</th>
-        <td class="num">{% if v.status.level_m is not none %}{{ v.status.level_m|meters }}{% endif %}</td>
-        <td class="num">{% if v.status.variable_used == "discharge" and v.status.latest_value is not none and not v.status.stale %}{{ v.status.latest_value|num }} m³/s{% endif %}</td>
-        <td>{{ v.change_short }}</td>
-        <td class="num">{% if v.status.percentile_today is not none %}{{ v.status.percentile_today|pct }}{% endif %}</td>
-        <td class="num">{% if v.station.alert_m is not none and "ina_level" in v.station.sources %}{{ v.station.alert_m|meters }}{% endif %}</td>
-        <td>{% if v.status.stale %}{{ v.reading or "sin datos" }}{% else %}{{ v.when or "sin datos" }}{% endif %}</td>
-      </tr>
+    {% for r in s.rows %}
+      <tr><th scope="row">{{ r.season }}</th><td class="n">{{ r.peak }}</td><td>{{ r.date }}</td>{% if s.has_cota %}<td class="n">{{ r.above }}</td>{% endif %}</tr>
     {% endfor %}
     </tbody>
   </table>
   </div>
+</figure>
+{% endfor %}
+</div>
 </section>
 
-<section aria-labelledby="viene">
-  <h2 id="viene">Lo que viene</h2>
-  <div class="chart-grid">
-  {% for f in forecasts %}
-  <figure class="forecast">
-    <h3>{% if f.issuer == "glofas" %}GloFAS{% else %}INA{% endif %}: {{ f.name }}</h3>
-    {% if f.svg %}{{ f.svg }}{% else %}<p class="muted">Sin pronóstico archivado todavía.</p>{% endif %}
-    <figcaption>{{ f.caption }}{% if f.run %} {{ f.run }}{% endif %}{% if f.glofas %} Datos: <a href="{{ open_meteo_url }}">{{ open_meteo_text }}</a>. {{ copernicus }}.{% endif %}</figcaption>
-  </figure>
-  {% endfor %}
+<section class="sec" aria-labelledby="cruces">
+<h2 id="cruces">Lo que surge de unir los datos</h2>
+<p class="que">Cuánto tardó el agua en bajar en crecidas pasadas y qué tan bien acertaron los pronósticos guardados.</p>
+{% if lag_validated %}
+<h3>Lo que tarda el agua en llegar río abajo</h3>
+{% else %}
+<h3>Lo que tardó el agua en crecidas pasadas (no validado como pronóstico)</h3>
+{% endif %}
+<p>Cuántos días pasan entre el pico en Paso de los Libres y el pico aguas abajo. Para que sirva como pronóstico tiene que acertar, con un día de error o menos, el pico de tres crecidas que el cálculo no vio (2009, 2015 y 2023), y andar mejor que suponer que el río sigue igual.</p>
+<div class="chart-grid">
+{% for l in lags %}
+<figure class="lag">
+  <h4>{{ l.title }}</h4>
+  {{ l.svg }}
+  <figcaption>{{ l.summary }}{% if l.skipped %} {{ l.skipped }}{% endif %}</figcaption>
+  <p class="verdict{% if not l.validated %} not-validated{% endif %}">{{ l.reason }}</p>
+  {% if l.rows %}
+  <p class="leyenda">Las tres crecidas que el cálculo no vio. El error medio es la diferencia promedio con lo observado en esos días.</p>
+  <div class="tw">
+  <table class="holdout-table">
+    <thead><tr>
+      <th scope="col">Año</th><th scope="col">Pico pronosticado</th><th scope="col">Pico observado</th><th scope="col" class="n">Error</th>
+      <th scope="col" class="n">Error medio del pronóstico</th><th scope="col" class="n">Error medio si el río sigue igual</th>
+    </tr></thead>
+    <tbody>
+    {% for r in l.rows %}
+      <tr><th scope="row">{{ r.year }}</th><td>{{ r.predicted }}</td><td>{{ r.observed }}</td><td class="n">{{ r.error }}</td>
+      <td class="n">{{ r.mae_model }}</td><td class="n">{{ r.mae_persistence }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
   </div>
-</section>
-
-<section aria-labelledby="anteriores">
-  <h2 id="anteriores">Esta crecida contra las anteriores</h2>
-  <p class="prose">Las mismas estaciones, temporada por temporada, del 1 de octubre al 31 de marzo. Las crecidas de 2009, 2015 y 2023 salen de los datos de esas estaciones, no de cifras de prensa.</p>
-  <div class="chart-grid">
-  {% for s in seasons %}
-  <figure class="season" id="temporadas-{{ s.id }}">
-    <h3><span class="station-title">{{ s.title }}</span>{% if s.title != s.how %}<span class="station-how">, {{ s.how }}</span>{% endif %}</h3>
-    {{ s.svg }}
-    <figcaption>{{ s.cota }}</figcaption>
-    <div class="table-wrap">
-    <table class="season-table">
-      <thead><tr><th scope="col">Temporada</th><th scope="col" class="num">Máximo</th><th scope="col">Fecha</th>{% if s.has_cota %}<th scope="col" class="num">Días que alcanzó o superó la alerta</th>{% endif %}</tr></thead>
-      <tbody>
-      {% for r in s.rows %}
-        <tr><th scope="row">{{ r.season }}</th><td class="num">{{ r.peak }}</td><td>{{ r.date }}</td>{% if s.has_cota %}<td class="num">{{ r.above }}</td>{% endif %}</tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    </div>
-  </figure>
-  {% endfor %}
-  </div>
-</section>
-
-<section aria-labelledby="cruces">
-  <h2 id="cruces">Lo que surge de unir los datos</h2>
-  {% if lag_validated %}
-  <h3>Lo que tarda el agua en llegar río abajo</h3>
-  {% else %}
-  <h3>Lo que tardó el agua en crecidas pasadas (no validado como pronóstico)</h3>
   {% endif %}
-  <p class="prose">Cuántos días pasan entre el pico en Paso de los Libres y el pico aguas abajo. Para que sirva como pronóstico tiene que acertar, con un día de error o menos, el pico de tres crecidas que el cálculo no vio (2009, 2015 y 2023), y andar mejor que suponer que el río sigue igual.</p>
-  <div class="chart-grid">
-  {% for l in lags %}
-  <figure class="lag">
-    <h4>{{ l.title }}</h4>
-    {{ l.svg }}
-    <figcaption>{{ l.summary }}{% if l.skipped %} {{ l.skipped }}{% endif %}</figcaption>
-    <p class="verdict{% if not l.validated %} not-validated{% endif %}">{{ l.reason }}</p>
-    {% if l.rows %}
-    <div class="table-wrap">
-    <table class="holdout-table">
-      <caption>Las tres crecidas que el cálculo no vio. El error medio es la diferencia promedio con lo observado en esos días.</caption>
-      <thead><tr>
-        <th scope="col">Año</th><th scope="col">Pico pronosticado</th><th scope="col">Pico observado</th><th scope="col" class="num">Error</th>
-        <th scope="col" class="num">Error medio del pronóstico</th><th scope="col" class="num">Error medio si el río sigue igual</th>
-      </tr></thead>
+</figure>
+{% endfor %}
+</div>
+
+<h3>Qué tan bien aciertan los pronósticos</h3>
+<p>Cada corrida se guarda y se compara con lo que después midió la estación, según cuántos días antes se pronosticó. Hacen falta al menos 14 corridas para mostrar resultados.</p>
+<ul class="verification">
+{% for v in verification %}
+  <li><span class="station-title">{{ v.label }}</span>{% if v.status %}: {{ v.status }}{% endif %}
+  {% if v.rows %}
+    <div class="tw">
+    <table>
+      <thead><tr><th scope="col">Anticipación</th><th scope="col" class="n">Casos</th><th scope="col" class="n">Error medio</th><th scope="col" class="n">Sesgo</th><th scope="col" class="n">Dentro de la banda</th></tr></thead>
       <tbody>
-      {% for r in l.rows %}
-        <tr><th scope="row">{{ r.year }}</th><td>{{ r.predicted }}</td><td>{{ r.observed }}</td><td class="num">{{ r.error }}</td>
-        <td class="num">{{ r.mae_model }}</td><td class="num">{{ r.mae_persistence }}</td></tr>
+      {% for r in v.rows %}
+        <tr><th scope="row">{{ r.lead }}</th><td class="n">{{ r.n }}</td><td class="n">{{ r.mae }}</td><td class="n">{{ r.bias }}</td><td class="n">{{ r.coverage }}</td></tr>
       {% endfor %}
       </tbody>
     </table>
     </div>
-    {% endif %}
-  </figure>
-  {% endfor %}
-  </div>
-
-  <h3>Qué tan bien aciertan los pronósticos</h3>
-  <p class="prose">Cada corrida se guarda y se compara con lo que después midió la estación, según cuántos días antes se pronosticó. Hacen falta al menos 14 corridas para mostrar resultados.</p>
-  <ul class="verification">
-  {% for v in verification %}
-    <li><span class="station-title">{{ v.label }}</span>{% if v.status %}: {{ v.status }}{% endif %}
-    {% if v.rows %}
-      <div class="table-wrap">
-      <table>
-        <thead><tr><th scope="col">Anticipación</th><th scope="col" class="num">Casos</th><th scope="col" class="num">Error medio</th><th scope="col" class="num">Sesgo</th><th scope="col" class="num">Dentro de la banda</th></tr></thead>
-        <tbody>
-        {% for r in v.rows %}
-          <tr><th scope="row">{{ r.lead }}</th><td class="num">{{ r.n }}</td><td class="num">{{ r.mae }}</td><td class="num">{{ r.bias }}</td><td class="num">{{ r.coverage }}</td></tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      </div>
-    {% endif %}
-    </li>
-  {% endfor %}
-  </ul>
-  <p><a href="{{ base }}/rio/metodologia/">Cómo se calcula todo esto, con sus supuestos y límites</a></p>
+  {% endif %}
+  </li>
+{% endfor %}
+</ul>
+<p class="mas"><a href="{{ base }}/rio/metodologia/">Cómo se calcula todo esto, con sus supuestos y límites</a></p>
 </section>
 
-<section aria-labelledby="datos">
-  <h2 id="datos">Datos</h2>
-  <ul class="downloads">
-    <li><a href="{{ base }}/data/rio/latest.json">Estado de hoy de todas las estaciones (JSON)</a></li>
-    <li><a href="{{ base }}/data/rio/stations.csv">Catálogo de estaciones (CSV)</a></li>
-    <li><a href="{{ snapshot_url }}">Foto de hoy, con link permanente</a></li>
-  </ul>
-  <p><a href="{{ base }}/datos/">Todas las descargas, licencias, cómo citar y registro de cambios</a></p>
+<section class="sec" aria-labelledby="datos">
+<h2 id="datos">Datos</h2>
+<p class="que">El estado de hoy y el catálogo, para descargar.</p>
+<ul class="downloads">
+  <li><a href="{{ base }}/data/rio/latest.json">Estado de hoy de todas las estaciones (JSON)</a></li>
+  <li><a href="{{ base }}/data/rio/stations.csv">Catálogo de estaciones (CSV)</a></li>
+  <li><a href="{{ snapshot_url }}">Foto de hoy, con link permanente</a></li>
+</ul>
+<p class="mas"><a href="{{ base }}/datos/">Todas las descargas, licencias, cómo citar y registro de cambios</a></p>
 </section>
-</article>
 {% endblock %}
-{% block scripts %}
-<script src="{{ base }}/static/js/morph.js" defer></script>
+{% block notes %}
+<li>El resumen del río frente a las ciudades uruguayas está en <a href="{{ base }}/">la portada</a>.</li>
 {% endblock %}

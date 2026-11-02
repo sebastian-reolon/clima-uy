@@ -27,7 +27,7 @@ from ..fmt import (
     BASELINE_YEAR, MONTHS, SEASONS as CPC_SEASONS, day_long, day_numeric, day_short, days, hour_local, is_record, is_season,
     meters, num, pct, record_text, season_key, season_label, signed, since_year,
 )
-from ..narrative import river_headline, river_summary
+from ..narrative import enso_summary, river_headline, river_summary
 from .. import publish
 from ..publish import series_exported
 from ..store import Store
@@ -415,13 +415,14 @@ def _enso_rows(store: Store) -> list[dict]:
         o = oni.get(p)
         rows.append({
             "period": season_label(p), "roni": signed(roni[p]),
-            "oni": signed(o) if o is not None else "sin dato",
+            "oni": signed(o) if o is not None else "",
             "diff": signed(o - roni[p]) if o is not None else "",
         })
     return rows
 
 
 def _outlook(path: Path) -> dict:
+    """INUMET's outlook for /nino/: one row per region, one cell per season, and what the notes cite."""
     data = json.loads(path.read_text(encoding="utf-8"))
     rows = []
     for region in data["regions"]:
@@ -429,13 +430,18 @@ def _outlook(path: Path) -> dict:
         for season in data["seasons"]:
             v = region.get(season["code"])
             if not v or v[0] is None:
-                cells.append({"main": "", "rest": ""})
+                cells.append({"main": "", "rest": "", "label": season["label"]})
                 continue
             rest = "" if v[1] is None or v[2] is None else f"normal {v[1]}, menos {v[2]}"
-            cells.append({"main": f"{v[0]}%", "rest": rest})
+            cells.append({"main": f"{v[0]}%", "rest": rest, "label": season["label"]})
         rows.append({"region": region["name"], "cells": cells})
-    return {"source": data["source"], "source_url": data["source_url"],
-            "seasons": data["seasons"], "rows": rows}
+    # Seasons for which the bulletin only gives the north («Para noviembre a enero y ... solo da el norte»).
+    others = [r for r in data["regions"] if r["name"] != "Norte"]
+    north_only = [s["label"] for s in data["seasons"]
+                  if others and all(not r.get(s["code"]) or r[s["code"]][0] is None for r in others)]
+    return {"source": _outlook_source(data), "source_url": data["source_url"],
+            "issued": day_numeric(date.fromisoformat(data["issued"])), "second_window": data["second_window"],
+            "north_only": " y ".join(north_only), "seasons": data["seasons"], "rows": rows}
 
 
 def _downloads(store: Store, catalog: Sequence[Station], now_utc: datetime) -> dict:
@@ -482,7 +488,7 @@ def _source_terms() -> list[dict]:
         ("GloFAS vía Open-Meteo", SOURCES[3][1], glofas),
         ("NOAA CPC", SOURCES[4][1], "Se pueden descargar los índices completos: son de dominio público en Estados Unidos."),
         ("INUMET", SOURCES[5][1],
-         "Se citan en la portada sus probabilidades para los próximos meses, con su link; no hay descarga."),
+         "Se citan en la página de El Niño sus probabilidades para los próximos meses, con su link; no hay descarga."),
     ]
     withdraw = {"INA y Prefectura Naval Argentina": "ina" in full, "CTM Salto Grande": "ctm" in full}
     return [{"name": n, "url": u, "text": t, "glofas": n.startswith("GloFAS"), "withdraw": withdraw.get(n, False)}
@@ -518,6 +524,7 @@ def _catalog_rows(catalog: Sequence[Station]) -> list[dict]:
 
 HOME_SOURCES = "INA · ANA · CTM"  # Ruling 12
 HOME_UPDATES = "cada 3 horas"
+CHARACTER = "informativo, no oficial"  # the cajetín's «Carácter» row on every sheet that has one
 HOME_UPSTREAM = 4  # Ruling 9
 COTA_NOTE_SOURCE = "DINAGUA"  # the Uruguayan cotas the notes list, measured on each city's own gauge
 # How the Uruguayan bank calls a river the catalogue names from the Brazilian side.
@@ -726,7 +733,7 @@ def _cajetin(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> l
         ("Estaciones", f"{len(fresh)} con dato, {len(gauged) - len(fresh)} sin"),
         ("Fuentes", HOME_SOURCES),
         ("Historia", f"desde {first}" if first else "sin historia cargada"),
-        ("Carácter", "informativo, no oficial"),
+        ("Carácter", CHARACTER),
     ]
 
 
@@ -774,6 +781,62 @@ def _notes(refs_path: Path, catalog: Sequence[Station], statuses: Sequence[Stati
         others.append(f"{st.represents} se mide en {st.name}, sobre el río {river}{how}. "
                       "Esa estación no tiene cota de alerta.")
     return {"cotas": cotas, "others": others}
+
+
+# ---------------------------------------------------------------- the other sheets
+
+NINO_SOURCES = "NOAA CPC · INUMET"
+
+
+def _nino_cajetin(store: Store, outlook_path: Path) -> list[tuple[str, str]]:
+    """/nino/ title block: «Estado al» is the season of the latest RONI, in words."""
+    ronis = [i for i in store.indices("RONI") if is_season(i.period)]
+    latest = max(ronis, key=lambda i: season_key(i.period)) if ronis else None
+    issued = date.fromisoformat(json.loads(outlook_path.read_text(encoding="utf-8"))["issued"])
+    return [
+        ("Estado al", _season_span(latest.period) if latest else "sin índices cargados"),
+        ("Índice oficial", "RONI"),
+        ("Perspectiva", f"boletín de {MONTHS[issued.month - 1]} de {issued.year}"),
+        ("Fuentes", NINO_SOURCES),
+        ("Carácter", CHARACTER),
+    ]
+
+
+def _nino_headline(summary: str) -> tuple[str, str]:
+    """enso_summary split for the sheet: its lead («El Niño sigue activo») as the h1, the indices under it."""
+    if not summary:
+        return "Todavía no hay índices de la NOAA cargados.", ""
+    lead, sep, rest = summary.partition(": ")
+    if not sep:
+        return summary, ""
+    return lead + ".", rest[:1].upper() + rest[1:]
+
+
+def _rio_cajetin(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> list[tuple[str, str]]:
+    """/rio/ title block: the home's, without «Historia» (each station says since when it has history)."""
+    return [(k, v) for k, v in _cajetin(statuses, catalog) if k != "Historia"]
+
+
+def _doc_parts(md: str) -> dict:
+    """A Markdown doc split for a sheet: the # title, the text under it, then one section per ## heading."""
+    lines = md.splitlines()
+    title, intro, sections = "", [], []
+    for line in lines:
+        if line.startswith("# ") and not title:
+            title = line[2:].strip()
+        elif line.startswith("## "):
+            heading = render_md(line)  # «<h2>…</h2>», inline Markdown rendered
+            sections.append({"title": heading.removeprefix("<h2>").removesuffix("</h2>"), "lines": []})
+        elif sections:
+            sections[-1]["lines"].append(line)
+        else:
+            intro.append(line)
+    return {
+        "title": title,
+        "intro": Markup(render_md("\n".join(intro))),
+        "sections": [{"title": Markup(s["title"]), "body": Markup(render_md("\n".join(s["lines"])))}
+                     for s in sections],
+    }
 
 
 # ---------------------------------------------------------------- build
@@ -824,7 +887,7 @@ def build_site(
     method_path: Path = METHOD_PATH,
     refs_path: Path = REFS_PATH,
 ) -> list[Path]:
-    """Write the four pages and the static assets into out_dir; returns the pages written."""
+    """Write the five pages and the static assets into out_dir; returns the pages written."""
     base = base_url.rstrip("/")
     out_dir.mkdir(parents=True, exist_ok=True)
     static_out = out_dir / "static"
@@ -855,7 +918,6 @@ def build_site(
         "copernicus": copernicus_notice(today.year),
     }
     pages = {
-        # The old El Niño home (index.html.j2) is not rendered: Task 5 turns it into /nino/.
         "index.html": ("home.html.j2", {
             "nav": "rio",
             "sheet": 1,
@@ -876,6 +938,7 @@ def build_site(
             "nav": "rio",
             "sheet": 2,
             "river_text": river_text,
+            "cajetin": _rio_cajetin(statuses, catalog),
             "profile": Markup(charts.profile_svg(statuses, catalog)),
             "snapshot_url": f"{base}/snapshots/{today.isoformat()}/",
             "last_data": (f"Último dato del río: {day_long(local_day(last_data))} a las {hour_local(last_data)}."
@@ -891,10 +954,19 @@ def build_site(
             "lags": _lag_views(lag_results, by_id),
             "lag_validated": all(r.validated for r in lag_results) and bool(lag_results),
         }),
+        "nino/index.html": ("nino.html.j2", {
+            "nav": "nino",
+            "sheet": 3,
+            "headline": _nino_headline(enso_summary(store.indices("RONI") + store.indices("ONI"))),
+            "cajetin": _nino_cajetin(store, outlook_path),
+            "enso_rows": _enso_rows(store),
+            "outlook": _outlook(outlook_path),
+            "noaa_url": SOURCES[4][1],
+        }),
         "rio/metodologia/index.html": ("metodologia.html.j2", {
             "nav": "rio",
             "sheet": 5,
-            "body": Markup(render_md(method_path.read_text(encoding="utf-8"))),
+            "doc": _doc_parts(method_path.read_text(encoding="utf-8")),
         }),
         "datos/index.html": ("datos.html.j2", {
             "nav": "datos",

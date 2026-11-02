@@ -15,9 +15,9 @@
 </dl>
 </div>
 <section class="sec"><h2>Ciudades uruguayas</h2>
-<p class="que">Nivel en la regla de enfrente. Percentil: qué parte de los días desde {{ baseline_year }} estuvo más bajo. Cada regla tiene su propio cero, así que los metros no se comparan entre filas.</p>
+<p class="que">Nivel en la regla de enfrente. Percentil: qué parte de los días desde {{ baseline_year }} estuvo más bajo. Cada regla tiene su propio cero, así que los metros no se comparan entre filas.{% if city_rows | selectattr("q_pct") | list %} Donde la estación mide caudal, el percentil es del caudal.{% endif %}</p>
 <div class="tw"><table class="ciu">
-<thead><tr><th>Ciudad</th><th>Regla</th><th class="n">Nivel</th><th class="n">Δ 3 días (m)</th><th class="n">Percentil</th><th class="n">Alerta (m)</th><th class="n">Falta (m)</th></tr></thead>
+<thead><tr><th scope="col">Ciudad</th><th scope="col">Regla</th><th scope="col" class="n">Nivel</th><th scope="col" class="n">Δ 3 días (m)</th><th scope="col" class="n">Percentil</th><th scope="col" class="n">Alerta (m)</th><th scope="col" class="n">Falta (m)</th></tr></thead>
 <tbody>
 {% for r in city_rows %}
 {% if r.gauge is none %}
@@ -35,9 +35,9 @@
 </section>
 <div class="dos">
 <section class="sec"><h2>Aguas arriba</h2>
-<p class="que">Lo que pasa antes de llegar a Bella Unión.</p>
+<p class="que">Lo que pasa antes de llegar a Bella Unión.{% if upstream_rows | selectattr("q_pct") | list %} Donde la estación mide caudal, el percentil es del caudal.{% endif %}</p>
 {% if upstream_rows %}
-<div class="tw"><table><thead><tr><th>Estación</th><th class="n">Nivel</th><th class="n">Δ 3 días (m)</th><th class="n">Percentil</th></tr></thead><tbody>
+<div class="tw"><table><thead><tr><th scope="col">Estación</th><th scope="col" class="n">Nivel</th><th scope="col" class="n">Δ 3 días (m)</th><th scope="col" class="n">Percentil</th></tr></thead><tbody>
 {% for r in upstream_rows %}
 <tr><th scope="row">{{ r.name }}</th><td class="n">{{ r.reading }}</td><td class="n d3">{{ r.d3 or "—" }}</td><td class="n">{{ r.pct or "—" }}</td></tr>
 {% endfor %}
@@ -53,14 +53,15 @@
 {% else %}
 <p class="que">Todavía no hay índices de la NOAA cargados. Abajo, la perspectiva de INUMET.</p>
 {% endif %}
-<dl class="kv">{% for label, value in enso_kv.rows %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}</dl>
+<dl class="kv">{% for label, value in enso_kv.rows %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}<dt>{{ enso_kv.source.label }}</dt><dd><a href="{{ enso_kv.source.url }}">{{ enso_kv.source.text }}</a></dd></dl>
 <p><a href="{{ base }}/nino/">Por qué los dos índices dan distinto</a></p>
 </section>
 </div>
 <section class="sec"><h2>Todas las estaciones</h2>
 {% if all_rows %}
-<details><summary>Ver las {{ all_rows | length }} reglas en orden aguas abajo</summary><div class="tw"><table>
-<thead><tr><th>Estación</th><th class="n">Hoy</th><th class="n">Δ 3 días (m)</th><th class="n">Percentil</th><th class="n">Alerta (m)</th></tr></thead><tbody>
+{% if all_rows | selectattr("q_pct") | list %}<p class="que">Donde la estación mide caudal, el percentil es del caudal.</p>{% endif %}
+<details><summary>Ver las {{ all_rows | length }} estaciones en orden aguas abajo</summary><div class="tw"><table>
+<thead><tr><th scope="col">Estación</th><th scope="col" class="n">Hoy</th><th scope="col" class="n">Δ 3 días (m)</th><th scope="col" class="n">Percentil</th><th scope="col" class="n">Alerta (m)</th></tr></thead><tbody>
 {% for r in all_rows %}
 <tr{% if r.al %} class="al"{% endif %}><th scope="row">{{ r.name }}<span class="pais">{{ r.where }}</span></th><td class="n">{{ r.today }}</td><td class="n">{{ r.d3 or "—" }}</td><td class="n">{{ r.pct or "—" }}</td><td class="n">{{ r.alert or "—" }}</td></tr>
 {% endfor %}
@@ -72,7 +73,7 @@
 {% endblock %}
 {% block notes %}
 {% if notes.cotas %}
-<li>Las cotas oficiales uruguayas se miden en la regla de cada ciudad: {{ notes.cotas.list }} (<a href="{{ notes.cotas.url }}">{{ notes.cotas.source }}</a>, {{ notes.cotas.date }}). No se comparan con las reglas de enfrente.</li>
+<li>Las cotas oficiales uruguayas se miden en la regla de cada ciudad: {% for g in notes.cotas %}{{ g.list }} (<a href="{{ g.url }}">{{ g.source }}</a>, {{ g.date }}){% if not loop.last %}; {% endif %}{% endfor %}. No se comparan con las reglas de enfrente.</li>
 {% endif %}
 {% for text in notes.others %}
 <li>{{ text }}</li>

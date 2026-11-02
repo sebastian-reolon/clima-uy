@@ -549,23 +549,37 @@ def _pct_cell(ss: StationStatus) -> tuple[str, int | None]:
     return pct(p), min(100, math.floor(p + 1e-9))
 
 
-def _gauge_reading(st: Station, ss: StationStatus, store: Store) -> tuple[str, bool]:
-    """(reading, current) on the series a home table reads.
+@dataclass(frozen=True)
+class Reading:
+    text: str
+    current: bool
+    metres: bool  # the reading is a level: the 3-day change and the alert, both in m, sit next to it
 
-    An INA gauge is read in metres, the datum its cota is on; any other station
-    in the variable its status uses (Quaraí: m³/s). A reading that is not
-    current carries its local date, «6,05 m (al 31/10)», so it is never read as today's.
+
+def _gauge_reading(st: Station, ss: StationStatus, store: Store) -> Reading:
+    """The reading a home table shows for a station.
+
+    An INA gauge is read in metres, the datum its cota is on, even when its
+    status ranks the discharge; any other station in the variable its status
+    uses (Quaraí: m³/s). A reading that is not current carries its local date,
+    «6,05 m (al 31/10)», so it is never read as today's.
     """
     variable = "level" if "ina_level" in st.sources else ss.variable_used
-    if variable == "level" and ss.level_m is not None:
-        return _value(ss.level_m, "level"), True
+    metres = variable == "level"
+    if metres and ss.level_m is not None:
+        return Reading(_value(ss.level_m, "level"), True, True)
     if variable == ss.variable_used and _has_data(ss):
-        return _value(ss.latest_value, variable), True
+        return Reading(_value(ss.latest_value, variable), True, metres)
     readings = station_readings(store, st, variable)
     if not readings:
-        return "sin datos", False
+        return Reading("sin datos", False, metres)
     last = readings[-1]
-    return f"{_value(last.value, variable)} (al {day_short(local_day(last.time_utc))})", False
+    return Reading(f"{_value(last.value, variable)} (al {day_short(local_day(last.time_utc))})", False, metres)
+
+
+def _ranks_discharge(r: Reading, ss: StationStatus) -> bool:
+    """A level shown next to a percentile of the discharge (the station's main series)."""
+    return r.current and r.metres and ss.variable_used == "discharge" and ss.percentile_today is not None
 
 
 def _city_stations(catalog: Sequence[Station]) -> list[Station]:
@@ -598,9 +612,11 @@ def _city_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station], st
     for st in _city_stations(catalog):
         ss = by_status[st.id]
         if not st.sources:
-            rows.append({"city": st.represents, "gauge": None, "near": _nearest_text(st, catalog, by_status)})
+            rows.append({"city": st.represents, "gauge": None, "near": _nearest_text(st, catalog, by_status),
+                         "q_pct": False})
             continue
-        reading, current = _gauge_reading(st, ss, store)
+        r = _gauge_reading(st, ss, store)
+        reading, current = r.text, r.current
         has_cota = "ina_level" in st.sources and st.alert_m is not None
         falta = ""
         if has_cota and current and ss.level_m is not None:
@@ -616,8 +632,9 @@ def _city_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station], st
             classes.append("al")
         rows.append({
             "city": st.represents, "gauge": f"{st.name} ({st.country})", "reading": reading,
-            "d3": _delta(ss) if current else "", "pct": p, "bar": bar,
+            "d3": _delta(ss) if current and r.metres else "", "pct": p, "bar": bar,
             "alert": num(st.alert_m) if has_cota else "", "falta": falta, "cls": " ".join(classes),
+            "q_pct": _ranks_discharge(r, ss),
         })
     return rows
 
@@ -635,8 +652,9 @@ def _upstream_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station]
     rows = []
     for st in above:
         ss = by_status[st.id]
-        rows.append({"name": st.name, "reading": _gauge_reading(st, ss, store)[0], "d3": _delta(ss),
-                     "pct": _pct_cell(ss)[0]})
+        r = _gauge_reading(st, ss, store)
+        rows.append({"name": st.name, "reading": r.text, "d3": _delta(ss) if r.metres else "",
+                     "pct": _pct_cell(ss)[0], "q_pct": _ranks_discharge(r, ss)})
     return rows
 
 
@@ -683,7 +701,10 @@ def _enso_kv(store: Store, outlook_path: Path, today: date) -> dict:
     if rain:
         rows.append((f"Lluvia norte, {rain[0]}", f"{rain[1]}% sobre lo normal"))
     rows.append(("Segunda ventana", data["second_window"]))
-    return {"period": _season_span(latest.period) if latest else None, "rows": rows}
+    issued = date.fromisoformat(data["issued"])
+    source = {"label": "Fuente", "text": f"INUMET, boletín de {MONTHS[issued.month - 1]} de {issued.year}",
+              "url": data["source_url"]}
+    return {"source": source, "period": _season_span(latest.period) if latest else None, "rows": rows}
 
 
 def _cajetin(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> list[tuple[str, str]]:
@@ -704,8 +725,9 @@ def _cajetin(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> l
     ]
 
 
-def _all_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> list[dict]:
-    """Every station with data, downstream, each in the variable its status uses."""
+def _all_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station], store: Store) -> list[dict]:
+    """Every station with data, downstream. «Hoy» reads like the other tables (an INA gauge in metres);
+    the percentile stays the status one, of the station's main series."""
     by_status = {s.station_id: s for s in statuses}
     rows = []
     for st in sorted(catalog, key=lambda s: s.order):
@@ -713,10 +735,12 @@ def _all_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> 
         if not _has_data(ss):
             continue
         where = f" · frente a {st.represents}" if st.represents and st.represents != st.name else ""
+        r = _gauge_reading(st, ss, store)
         rows.append({
-            "name": st.name, "where": f"{st.country}{where}", "today": _value(ss.latest_value, ss.variable_used),
-            "d3": _delta(ss), "pct": _pct_cell(ss)[0], "al": bool(ss.above_alert),
-            "alert": num(st.alert_m) if "ina_level" in st.sources and st.alert_m is not None else "",
+            "name": st.name, "where": f"{st.country}{where}", "today": r.text,
+            "d3": _delta(ss) if r.metres else "", "pct": _pct_cell(ss)[0], "al": bool(ss.above_alert),
+            "alert": num(st.alert_m) if r.metres and "ina_level" in st.sources and st.alert_m is not None else "",
+            "q_pct": _ranks_discharge(r, ss),
         })
     return rows
 
@@ -727,13 +751,12 @@ def _notes(refs_path: Path, catalog: Sequence[Station], statuses: Sequence[Stati
     by_status = {s.station_id: s for s in statuses}
     order = [st.represents for st in _city_stations(catalog)]
     official = [(c, cities[c]) for c in order if c in cities and cities[c]["source"] == COTA_NOTE_SOURCE]
-    cotas = None
-    if official:
-        ref = official[0][1]
-        cotas = {
-            "list": ", ".join(f"{c} {_cota_m(r['value_m'])}" for c, r in official),
-            "source": ref["source"], "url": ref["url"], "date": day_numeric(date.fromisoformat(ref["date"])),
-        }
+    # One group per (source, url, date), in city order, so each cota cites its own document.
+    groups: dict[tuple[str, str, str], list[str]] = {}
+    for c, r in official:
+        groups.setdefault((r["source"], r["url"], r["date"]), []).append(f"{c} {_cota_m(r['value_m'])}")
+    cotas = [{"list": ", ".join(items), "source": src, "url": url, "date": day_numeric(date.fromisoformat(d))}
+             for (src, url, d), items in groups.items()]
     others = []
     for st in _city_stations(catalog):
         if not st.sources or "ina_level" in st.sources:
@@ -811,7 +834,7 @@ def build_site(
     river_text = river_summary(statuses, catalog)
     fresh = [s.latest_time_utc for s in statuses if not s.stale and s.latest_time_utc is not None]
     last_data = max(fresh) if fresh else None
-    all_rows = _all_rows(statuses, catalog)
+    all_rows = _all_rows(statuses, catalog, store)
     fc_views, ver_views = _forecast_views(store, by_id, verify_production(store, catalog))
     lag_results = run_production_lags(store, catalog)
 

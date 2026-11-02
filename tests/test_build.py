@@ -595,6 +595,9 @@ def _seed_home(store: Store) -> None:
     store.upsert_obs(_daily("ina_70", "level", "ina", _last_days([8.5, 8.4, 8.3, 8.2, 8.12])))
     store.upsert_obs(_daily("ina_71", "level", "ina", _last_days([8.3, 8.2, 8.1, 8.05, 7.98])))
     store.upsert_obs(_daily("ina_72", "level", "ina", _last_days([8.2, 8.1, 8.11, 7.9, 7.66])))  # above 7,50
+    # Paso de los Libres also has a decade of INA discharge, so its status ranks the discharge.
+    store.upsert_obs(_daily("ina_72", "discharge", "ina", {
+        start + timedelta(days=i): 8000.0 + 3000.0 * math.sin(i / 37.0) for i in range(n)}))
     # Uruguaiana: one fresh ANA level, no 3-day change, so it is not an upstream row.
     store.upsert_obs(_daily("ana_77150000", "level", "ana", _last_days([7.55])))
     # Boca Gualeguaychú, the closest gauge to Fray Bentos: falling.
@@ -701,12 +704,18 @@ def test_home_city_table_labels_cells_for_phones(home):
 
 
 def test_home_upstream_rows(home):
+    from climauy.fmt import pct
+
     html, _ = home
     rows = _rows(_table(html, after="<h2>Aguas arriba</h2>"))
     # Ruling 9 (amended): the four main-river stations right above Bella Unión's with fresh data and a
     # 3-day level change, downstream order. Uruguaiana (no change) and the tributaries are skipped.
     assert [r[1] for r in rows] == ["Alvear", "La Cruz", "Yapeyú", "Paso de los Libres"]
-    assert rows[3][2] == ["7,66 m", "-0,44", "—"]
+    # An INA gauge with a ranked discharge: the level in metres, the percentile of the discharge, said so.
+    libres = {s.station_id: s for s in home[1]}["ina_72"]
+    assert libres.variable_used == "discharge"
+    assert rows[3][2] == ["7,66 m", "-0,44", pct(libres.percentile_today)]
+    assert "Donde la estación mide caudal, el percentil es del caudal." in _flat(html[html.index("<h2>Aguas arriba</h2>"):])
     assert 'href="/clima-uy/rio/"' in html[html.index("<h2>Aguas arriba</h2>"):html.index("<h2>El Niño</h2>")]
 
 
@@ -723,14 +732,19 @@ def test_home_enso_block(home):
         ("Pico esperado", "noviembre y diciembre de 2026"),
         ("Lluvia norte, noviembre a enero", "60% sobre lo normal"),
         ("Segunda ventana", "marzo a mayo de 2027"),
+        ("Fuente", "INUMET, boletín de octubre de 2026"),
     ]
     assert 'href="/clima-uy/nino/"' in block
+    assert '<a href="https://www.elobservador.com.uy/' in kv
 
 
 def test_home_all_stations(home):
-    html, _ = home
+    from climauy.fmt import pct
+
+    html, statuses = home
     block = html[html.index("<h2>Todas las estaciones</h2>"):]
-    assert "<summary>Ver las 9 reglas en orden aguas abajo</summary>" in block
+    assert "<summary>Ver las 9 estaciones en orden aguas abajo</summary>" in block
+    assert "Donde la estación mide caudal, el percentil es del caudal." in _flat(block)
     rows = _rows(_table(block))
     assert [r[1] for r in rows] == [
         "Alvear AR", "La Cruz AR", "Yapeyú AR", "Paso de los Libres AR", "Uruguaiana BR", "Quaraí BR · frente a Artigas",
@@ -738,7 +752,11 @@ def test_home_all_stations(home):
     ]
     libres = rows[3]
     assert 'class="al"' in libres[0]
-    assert libres[2] == ["7,66 m", "-0,44", "—", "7,50"]
+    # Hoy in metres next to the alert in metres, even though the status ranks the discharge.
+    by = {s.station_id: s for s in statuses}
+    assert libres[2] == ["7,66 m", "-0,44", pct(by["ina_72"].percentile_today), "7,50"]
+    quarai = rows[5]
+    assert quarai[2][0].endswith("m³/s") and quarai[2][1] == "—" and quarai[2][3] == "—"
     assert sum('class="al"' in r[0] for r in rows) == 1
 
 
@@ -786,3 +804,44 @@ def test_dash_only_as_an_empty_table_cell(home):
     html, _ = home
     assert re.search(r"<td\b[^>]*>—</td>", html)
     assert "—" not in re.sub(r"<td\b[^>]*>—</td>", "", html)
+
+
+def test_home_tables_scope_their_column_headers(home):
+    html, _ = home
+    for thead in re.findall(r"<thead>.*?</thead>", html, flags=re.S):
+        ths = re.findall(r"<th\b[^>]*>", thead)
+        assert ths and all('scope="col"' in th for th in ths)
+
+
+def test_home_city_at_alert_and_nearest_skips_stale(tmp_path):
+    with Store(tmp_path / "a.sqlite") as store:
+        # Concordia (Salto) at 11,20 m, over its 11,00 alert.
+        store.upsert_obs(_daily("ina_79", "level", "ina", _last_days([10.6, 10.8, 11.0, 11.2])))
+        # Boca Gualeguaychú, the closest gauge to Fray Bentos, stopped on 20/10; Gualeguaychú reads today.
+        store.upsert_obs(_daily("ina_84", "level", "ina", {date(2026, 10, 20): 2.5}))
+        store.upsert_obs(_daily("ina_99", "level", "ina", {date(2026, 11, 1): 2.2}))
+        build_site(store, load_catalog(), tmp_path / "out", NOW, base_url="")
+    html = _read(tmp_path / "out", "index.html")
+    rows = {r[1]: r for r in _rows(_table(html, "ciu"))}
+    salto = rows["Salto"]
+    assert "al" in salto[0].split('"')[1].split() and "up" in salto[0].split('"')[1].split()
+    assert salto[2][1] == "11,20 m" and salto[2][4:] == ["11,00", "llegó"]
+    assert "El río pasó la cota de alerta frente a Salto." in _flat(html)
+    assert rows["Fray Bentos"][2][1] == "más cercana: Gualeguaychú (AR) 2,20 m"
+
+
+def test_home_notes_group_cotas_by_source_and_date(tmp_path):
+    import json
+
+    refs = json.loads((REPO / "content/referencias_uy.json").read_text(encoding="utf-8"))
+    refs["cities"]["Fray Bentos"]["date"] = "2026-09-01"
+    refs["cities"]["Fray Bentos"]["url"] = "https://example.org/otro.pdf"
+    path = tmp_path / "refs.json"
+    path.write_text(json.dumps(refs), encoding="utf-8")
+    with Store(tmp_path / "n.sqlite") as store:
+        build_site(store, load_catalog(), tmp_path / "out", NOW, base_url="", refs_path=path)
+    notes = re.search(r'<ol class="notas">(.*?)</ol>', _read(tmp_path / "out", "index.html"), flags=re.S).group(1)
+    assert ("Las cotas oficiales uruguayas se miden en la regla de cada ciudad: Bella Unión 6,30 m, Salto 11,40 m, "
+            "Paysandú 6,00 m (DINAGUA, 3/8/2026); Fray Bentos 3,90 m (DINAGUA, 1/9/2026). "
+            "No se comparan con las reglas de enfrente.") in _flat(notes)
+    assert 'href="https://example.org/otro.pdf"' in notes and f'href="{DINAGUA_URL}"' in notes

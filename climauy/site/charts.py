@@ -275,6 +275,8 @@ def _city_label(station: Station, status: StationStatus | None) -> tuple[str, st
         return city, how + ":", f"desactualizado desde el {_day_short(status.stale_since)}"
     if status is not None and not status.stale:
         return city, how + ":", "sin percentil hoy"
+    if not station.sources:
+        return city, how + ":", "sin regla pública"  # Fray Bentos: as the home's city table says it
     return city, how + ":", "sin estación con datos al día"
 
 

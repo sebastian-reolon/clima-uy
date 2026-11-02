@@ -300,6 +300,13 @@ def test_profile_city_label_without_percentile_names_station():
     assert "sin percentil hoy" in texts
 
 
+def test_profile_city_without_public_gauge():
+    fb = station("fb", "Fray Bentos", 7, represents="Fray Bentos")
+    fb = Station(**{**fb.__dict__, "sources": {}})
+    texts = texts_of(profile_svg([status(s.id, 80.0) for s in CATALOG], CATALOG + [fb]))
+    assert "Fray Bentos:" in texts and "sin regla pública" in texts
+
+
 def test_profile_city_without_station_data():
     cat = CATALOG + [station("fb", "Fray Bentos", 7, represents="Fray Bentos")]
     fb = StationStatus(

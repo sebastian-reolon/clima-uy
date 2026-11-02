@@ -133,7 +133,31 @@ def test_uy_city_shows_measuring_station(site):
     for city, station in [("Bella Unión", "Monte Caseros"), ("Salto", "Concordia"), ("Paysandú", "Colón"),
                           ("Artigas", "Quaraí")]:
         assert f"{city}, medido en {station}, enfrente" in flat, city
-    assert "Fray Bentos: sin estación con datos al día" in flat
+    # No public gauge: said as on the home, with the nearest main-river gauge that has a level today.
+    assert "Fray Bentos: sin regla pública" in flat
+    block = _flat(_city_block(_read(out, "rio/index.html"), "fray_bentos"))
+    assert "más cercana: Monte Caseros (AR)" in block
+
+
+def test_nearest_gauge_for_fray_bentos_is_on_the_main_river():
+    import dataclasses
+
+    from climauy.analysis.status import StationStatus
+    from climauy.site.build import _nearest_text
+
+    cat = load_catalog()
+    blank = StationStatus(
+        station_id="", variable_used="level", latest_value=None, latest_time_utc=None, latest_source=None,
+        stale=True, stale_since=None, level_change_3d_m=None, discharge_change_3d_pct=None, trend=None,
+        trend_basis=None, percentile_today=None, percentile_3d_ago=None, alert_percentile=None, level_m=None,
+        above_alert=None, above_evac=None, history_years=0.0, history_start_year=None,
+    )
+    by = {st.id: dataclasses.replace(blank, station_id=st.id) for st in cat}
+    # Gualeguaychú (on its own river) is the closest gauge to Fray Bentos; Concepción del Uruguay is further.
+    by["ina_99"] = dataclasses.replace(by["ina_99"], level_m=2.3, trend="baja")
+    by["ina_81"] = dataclasses.replace(by["ina_81"], level_m=4.1, trend="sube")
+    fb = next(st for st in cat if st.id == "fray_bentos")
+    assert _nearest_text(fb, cat, by) == "más cercana: Concepción del Uruguay (AR) 4,10 m, sube"
 
 
 def test_no_gauge_without_any_data(site):
@@ -899,7 +923,8 @@ def test_home_city_at_alert_and_nearest_skips_stale(tmp_path):
     with Store(tmp_path / "a.sqlite") as store:
         # Concordia (Salto) at 11,20 m, over its 11,00 alert.
         store.upsert_obs(_daily("ina_79", "level", "ina", _last_days([10.6, 10.8, 11.0, 11.2])))
-        # Boca Gualeguaychú, the closest gauge to Fray Bentos, stopped on 20/10; Gualeguaychú reads today.
+        # Boca Gualeguaychú, the closest gauge to Fray Bentos, stopped on 20/10; Gualeguaychú (a tributary,
+        # never offered as the river's level) reads today. The nearest main-river gauge left is Concordia.
         store.upsert_obs(_daily("ina_84", "level", "ina", {date(2026, 10, 20): 2.5}))
         store.upsert_obs(_daily("ina_99", "level", "ina", {date(2026, 11, 1): 2.2}))
         build_site(store, load_catalog(), tmp_path / "out", NOW, base_url="")
@@ -909,7 +934,7 @@ def test_home_city_at_alert_and_nearest_skips_stale(tmp_path):
     assert "al" in salto[0].split('"')[1].split() and "up" in salto[0].split('"')[1].split()
     assert salto[2][1] == "11,20 m" and salto[2][4:] == ["11,00", "llegó"]
     assert "El río pasó la cota de alerta frente a Salto." in _flat(html)
-    assert rows["Fray Bentos"][2][1] == "más cercana: Gualeguaychú (AR) 2,20 m"
+    assert rows["Fray Bentos"][2][1] == "más cercana: Concordia (AR) 11,20 m, sube"
 
 
 def test_home_notes_group_cotas_by_source_and_date(tmp_path):

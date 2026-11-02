@@ -152,7 +152,7 @@ def _station_view(st: Station, ss: StationStatus, store: Store, today: date) -> 
     if no_data:
         if not st.sources:
             # A city with no gauge of its own nor one across the river (Fray Bentos).
-            how = ": sin estación con datos al día"
+            how = ": sin regla pública"  # the nearest main-river gauge is added by build_site
             sub = ""
         else:
             reading = "sin datos"
@@ -602,8 +602,9 @@ def _city_stations(catalog: Sequence[Station]) -> list[Station]:
 
 
 def _nearest_text(st: Station, catalog: Sequence[Station], by_status: dict[str, StationStatus]) -> str:
-    """Ruling 10: the closest station with a current level, for a city without a public gauge."""
-    near = [s for s in catalog if s.id != st.id and by_status[s.id].level_m is not None]
+    """Ruling 10: the closest main-river station with a current level, for a city without a public gauge.
+    A tributary gauge is never offered as the Uruguay River's level."""
+    near = [s for s in catalog if s.id != st.id and s.river == charts.MAIN_RIVER and by_status[s.id].level_m is not None]
     if not near:
         return "sin estación cercana con datos al día"
     s = min(near, key=lambda s: charts.great_circle_km(st, s))
@@ -902,6 +903,9 @@ def build_site(
     views = {st.id: _station_view(st, by_status[st.id], store, today) for st in catalog}
     for sid, ref in _city_refs(refs_path, catalog).items():
         views[sid].ref = ref
+    for st in catalog:
+        if st.represents and not st.sources:  # Fray Bentos: the same nearest-gauge line as on the home
+            views[st.id].reading = _nearest_text(st, catalog, by_status)
     river_text = river_summary(statuses, catalog)
     fresh = [s.latest_time_utc for s in statuses if not s.stale and s.latest_time_utc is not None]
     last_data = max(fresh) if fresh else None

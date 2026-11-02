@@ -352,4 +352,6 @@ def test_headline_stale_non_city_over_alert_ignored():
 def test_headline_unknown_country_falls_back():
     cat = RCAT + [rstation("xx", "Rara", 0, alert_m=3.0, country="PY")]
     s = sts(mc=("baja", 50, -0.1, False), pdl=("baja", False)) + [rstatus("xx", "baja", above=True)]
-    assert "del otro lado" in river_headline(s, cat)[1]
+    sub = river_headline(s, cat)[1]
+    assert "La única sobre alerta es Rara y también baja." in sub
+    assert "del lado" not in sub and "del otro lado" not in sub

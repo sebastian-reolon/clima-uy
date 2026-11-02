@@ -150,8 +150,9 @@ def river_headline(statuses: Sequence[StationStatus], catalog: Sequence[Station]
     if len(over) == 1:
         st, ss = over[0]
         side = _COUNTRY_WORD.get(st.country)
+        # Unknown country: say nothing about the side rather than guess it.
         text = f"La única sobre alerta es {st.name}, del lado {side}" if side else (
-            f"La única sobre alerta es {st.name}, del otro lado"
+            f"La única sobre alerta es {st.name}"
         )
         tail = {
             "baja": "también baja" if says_falls else "baja",
@@ -159,7 +160,7 @@ def river_headline(statuses: Sequence[StationStatus], catalog: Sequence[Station]
             "estable": "está estable",
         }.get(ss.trend)
         if tail:
-            text += f", y {tail}"
+            text += f", y {tail}" if side else f" y {tail}"
         sentences.append(text + ".")
     elif over:
         sentences.append(f"Sobre la alerta: {_join([st.name for st, _ in over])}.")

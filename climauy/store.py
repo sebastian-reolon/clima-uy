@@ -122,8 +122,11 @@ CREATE TABLE IF NOT EXISTS meta (
 
 class Store:
     def __init__(self, path: Path):
-        self._conn = sqlite3.connect(str(path))
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        # The site build and the weekly backfill can meet on the same file: wait, don't fail.
+        self._conn = sqlite3.connect(str(path), timeout=60)
         self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA synchronous=NORMAL")
         self._conn.executescript(_SCHEMA)
 
     def close(self) -> None:
@@ -250,6 +253,19 @@ class Store:
                 "detail=excluded.detail, attempts=excluded.attempts",
                 (path, sha, status, detail, attempts),
             )
+
+    def forget_forecast_source(self, archive_source: str, issuer: str) -> tuple[int, int]:
+        """Delete one issuer's forecasts and the ledger rows of its archive folder, in one transaction.
+
+        The next ingest then reads every archived file of that source again.
+        Returns (ledger rows, forecast rows) deleted.
+        """
+        prefix = archive_source + "/"
+        with self._conn:
+            files = self._conn.execute(
+                "DELETE FROM file_ledger WHERE substr(path, 1, ?) = ?", (len(prefix), prefix)).rowcount
+            rows = self._conn.execute("DELETE FROM forecast WHERE issuer=?", (issuer,)).rowcount
+        return files, rows
 
     def chunk_done(self, source: str, series: str, variable: str, chunk_start: date) -> bool:
         row = self._conn.execute(

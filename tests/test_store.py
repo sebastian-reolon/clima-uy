@@ -121,3 +121,29 @@ def test_persists_and_wal(tmp_path):
     assert mode == "wal"
     with Store(p) as s:
         assert len(s.obs("s1", "level")) == 1
+
+
+def test_store_creates_parent_dir_and_sets_pragmas(tmp_path):
+    path = tmp_path / "new" / "dir" / "t.db"
+    with Store(path) as s:
+        assert path.exists()
+        assert s._conn.execute("PRAGMA synchronous").fetchone()[0] == 1  # NORMAL
+        assert s._conn.execute("PRAGMA journal_mode").fetchone()[0] == "wal"
+        assert s._conn.execute("PRAGMA busy_timeout").fetchone()[0] == 60000
+
+
+def test_forget_forecast_source_only_touches_that_issuer(store):
+    issued = T0
+    store.upsert_forecasts([
+        Forecast("glofas", "s1", "discharge", issued, issued + timedelta(days=1), "median", 1.0),
+        Forecast("ina", "s1", "level", issued, issued + timedelta(days=1), "main", 2.0),
+    ])
+    store.ledger_set("glofas/2026-11-01/000000Z_salto.json.gz", "a", "processed")
+    store.ledger_set("ina/2026-11-01/000000Z_obs_1_series1.json.gz", "b", "processed")
+    store.ledger_set("glofasx/2026-11-01/000000Z_x.gz", "c", "ignored")
+    files, rows = store.forget_forecast_source("glofas", "glofas")
+    assert (files, rows) == (1, 1)
+    assert store.forecasts("glofas") == [] and len(store.forecasts("ina")) == 1
+    assert store.ledger_get("glofas/2026-11-01/000000Z_salto.json.gz") is None
+    assert store.ledger_get("ina/2026-11-01/000000Z_obs_1_series1.json.gz") is not None
+    assert store.ledger_get("glofasx/2026-11-01/000000Z_x.gz") is not None

@@ -58,11 +58,11 @@ def all_sources(monkeypatch):
     monkeypatch.setattr(publish, "FULL_FORECAST_ISSUERS", frozenset({"ina", "glofas"}))
 
 
-def test_default_licence_setting_is_conservative():
+def test_default_licence_setting_publishes_every_source():
     from climauy import publish
 
-    assert publish.FULL_SERIES_SOURCES == {"ana", "ana_hist"}
-    assert publish.FULL_FORECAST_ISSUERS == {"glofas"}
+    assert publish.FULL_SERIES_SOURCES == {"ana", "ana_hist", "ina", "ctm"}
+    assert publish.FULL_FORECAST_ISSUERS == {"ina", "glofas"}
 
 
 @pytest.fixture
@@ -220,10 +220,14 @@ def test_snapshot_links_stay_inside_snapshot(built):
     pages = list(snap.rglob("*.html"))
     assert len(pages) == 3
     for page in pages:
+        assert 'Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>' in page.read_text(
+            encoding="utf-8"), page
         for rel in _targets(page, out):
             # The Datos menu entry goes to the list of snapshots: the Datos page itself is live.
             assert rel.startswith(day) or rel.startswith("static/") or rel == "snapshots/", f"{page}: {rel}"
             assert _resolves(out, rel), f"{page}: {rel}"
+    index = (out / "snapshots/index.html").read_text(encoding="utf-8")
+    assert 'Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>' in index
     for rel in _targets(out / "snapshots/index.html", out):
         assert _resolves(out, rel), rel
 
@@ -484,9 +488,9 @@ DERIVED_SENTENCE = "no se ofrecen para descargar, porque"
 def test_licence_switch_drops_series_files_and_says_so(seeded, monkeypatch, restricted):
     from climauy import publish
 
-    if not restricted:
-        monkeypatch.setattr(publish, "FULL_SERIES_SOURCES", frozenset({"ana", "ana_hist", "ina", "ctm"}))
-        monkeypatch.setattr(publish, "FULL_FORECAST_ISSUERS", frozenset({"ina", "glofas"}))
+    if restricted:  # what withdrawing INA and CTM on request looks like
+        monkeypatch.setattr(publish, "FULL_SERIES_SOURCES", frozenset({"ana", "ana_hist"}))
+        monkeypatch.setattr(publish, "FULL_FORECAST_ISSUERS", frozenset({"glofas"}))
     store, out = seeded
     build_site(store, load_catalog(), out, NOW, base_url=BASE)
     export_data(store, load_catalog(), out, NOW, full=True)

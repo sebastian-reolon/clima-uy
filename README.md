@@ -2,6 +2,8 @@
 
 Sitio de referencia público sobre El Niño y el río Uruguay. Este repo tiene el catálogo de estaciones, los parsers, los análisis y el generador del sitio estático.
 
+Hecho por [Sebastián Reolon](https://github.com/sebastian-reolon).
+
 ## Desarrollo
 
 ```

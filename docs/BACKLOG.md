@@ -10,8 +10,8 @@ Lo que quedó para después, con el motivo.
 
 ## Licencias
 
-- **Pedirle permiso al INA** para republicar sus series y pronósticos con atribución. Con la respuesta por escrito se agrega `"ina"` a `FULL_SERIES_SOURCES` y a `FULL_FORECAST_ISSUERS` en `climauy/publish.py`. Los meses ya cerrados no se completan hacia atrás.
-- **Pedirle permiso a la CTM Salto Grande** para republicar las lecturas del parte diario.
+- **INA, Prefectura y CTM** no publican condiciones de reutilización. Sus datos se republican con la cita por decisión del proyecto (1 de noviembre de 2026). Si alguna pide retirarlos, sacar su clave de `FULL_SERIES_SOURCES` / `FULL_FORECAST_ISSUERS` en `climauy/publish.py` y borrar a mano los meses cerrados que la incluyen. Conviene igual escribirles para avisar y, si responden, anotar su respuesta en `docs/licencias.md`.
+- **Archivo mensual en GitHub Releases** que preveía el plan: no está hecho; las lecturas por mes ya están en `data/rio/raw/`.
 
 ## Cotas uruguayas
 

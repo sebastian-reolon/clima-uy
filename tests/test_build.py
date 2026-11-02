@@ -3,6 +3,8 @@ import math
 import re
 from datetime import date, datetime, timedelta, timezone
 
+from pathlib import Path
+
 import pytest
 
 from climauy.catalog import load_catalog
@@ -334,7 +336,11 @@ def test_datos_explains_each_source(site):
                  "INUMET"):
         assert name in section, name
     assert "se están verificando" not in section
-    assert "Sus series completas no se ofrecen para descargar" in section and "gráficos" in section
+    assert section.count("criterio de este proyecto, no un permiso") == 2  # INA y Prefectura, CTM
+    assert section.count("Si piden retirarlos, se retiran") == 2
+    assert section.count("los issues del repositorio") == 2
+    assert 'href="https://github.com/sebastian-reolon/clima-uy/issues"' in _read(out, "datos/index.html")
+    assert "no se ofrecen para descargar" not in section
     assert "dominio público" in section
 
 
@@ -384,3 +390,13 @@ def test_city_cotas_never_change_any_chart(site, tmp_path):
     svgs = lambda h: re.findall(r"<svg.*?</svg>", h, flags=re.S)
     assert svgs(with_refs) == svgs(without)
     assert "city-ref" in with_refs and "city-ref" not in without
+
+
+def test_author_credit_on_every_page(site):
+    out, _ = site
+    for page in PAGES:
+        html = _read(out, page)
+        footer = re.search(r'<footer class="site-footer">.*?</footer>', html, flags=re.S).group(0)
+        assert 'Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>.' in footer, page
+    readme = (Path(__file__).resolve().parents[1] / "README.md").read_text(encoding="utf-8")
+    assert "Hecho por [Sebastián Reolon](https://github.com/sebastian-reolon)." in readme

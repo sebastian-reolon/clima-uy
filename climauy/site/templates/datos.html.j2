@@ -14,7 +14,7 @@
     <li><a href="{{ base }}/data/enso/indices.csv">Índices RONI, ONI y Niño 3.4 semanal (CSV)</a></li>
   </ul>
   <h3>Lecturas crudas y pronósticos, por mes</h3>
-  <p class="prose">Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo. Solo de las fuentes que permiten republicar sus datos: ver <a href="#licencias">licencias</a>. Cada mes se actualiza hasta el primer día del mes siguiente y después queda fijo.</p>
+  <p class="prose">Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo. La columna <code>source</code> dice de qué fuente es cada valor; citala junto con este sitio (ver <a href="#licencias">licencias</a>). Cada mes se actualiza hasta el primer día del mes siguiente y después queda fijo.</p>
   <ul class="downloads">
   {% for m in downloads.months %}
     <li><a href="{{ base }}/data/rio/raw/{{ m.key }}.csv">Lecturas de {{ m.label }} (CSV)</a></li>
@@ -22,7 +22,7 @@
   {% endfor %}
   </ul>
   <h3>Medias diarias por estación</h3>
-  <p class="prose">Una fila por día, con la media del día y cuántas lecturas la forman. Solo de las fuentes que permiten republicar sus datos.</p>
+  <p class="prose">Una fila por día, con la media del día y cuántas lecturas la forman. Cada serie sale de una sola fuente, la de su estación en el catálogo.</p>
   {% if downloads.series %}
   <ul class="downloads columns">
   {% for s in downloads.series %}
@@ -56,7 +56,7 @@
   <p class="prose">Qué se puede descargar de cada fuente depende de lo que esa fuente permite. Si usás estos datos, citá siempre también la fuente original. El detalle, con los links a las condiciones de cada una, está en <a href="{{ licences_url }}">el documento de licencias del repositorio</a>.</p>
   <ul class="source-terms">
   {% for t in source_terms %}
-    <li><a href="{{ t.url }}">{{ t.name }}</a>. {{ t.text }}{% if t.glofas %} «{{ copernicus }}». Datos: <a href="{{ open_meteo_url }}">{{ open_meteo_text }}</a>.{% endif %}</li>
+    <li><a href="{{ t.url }}">{{ t.name }}</a>. {{ t.text }}{% if t.glofas %} «{{ copernicus }}». Datos: <a href="{{ open_meteo_url }}">{{ open_meteo_text }}</a>.{% endif %}{% if t.withdraw %} El pedido se puede hacer en <a href="{{ repo_url }}/issues">los issues del repositorio</a>.{% endif %}</li>
   {% endfor %}
   </ul>
 </section>

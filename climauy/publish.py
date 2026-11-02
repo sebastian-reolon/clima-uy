@@ -30,13 +30,13 @@ ARCHIVE_START = date(2026, 11, 1)
 FULL_EXPORT_AFTER = time(0, 30)
 _FULL_KEY = "last_full_export_day"
 # Sources whose readings, and issuers whose forecasts, are republished in full
-# (daily, raw and forecast files), per docs/licencias.md: ANA allows
-# reproduction with attribution and GloFAS is CC BY 4.0 plus the CEMS notice.
-# INA, Prefectura and CTM publish no reuse terms, so they feed only the
-# derived states in latest.json and the pages. CPC indices (US public domain)
-# are always exported in full.
-FULL_SERIES_SOURCES = frozenset({"ana", "ana_hist"})
-FULL_FORECAST_ISSUERS = frozenset({"glofas"})
+# (daily, raw and forecast files), always with attribution; see
+# docs/licencias.md. ANA, GloFAS and NOAA allow it in writing. INA,
+# Prefectura and CTM publish no reuse terms: republishing their public data
+# is the project's criterion (owner's decision), withdrawn on request by
+# removing the source here. CPC indices are always exported.
+FULL_SERIES_SOURCES = frozenset({"ana", "ana_hist", "ina", "ctm"})
+FULL_FORECAST_ISSUERS = frozenset({"ina", "glofas"})
 _FINAL_KEY = "month_final:"  # + "raw:YYYY-MM" / "forecasts:YYYY-MM"
 INDEX_NAMES = ("RONI", "ONI", "NINO34_WEEKLY")
 VARIABLES = ("level", "discharge")

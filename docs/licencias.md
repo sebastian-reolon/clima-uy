@@ -2,23 +2,23 @@
 
 Qué permite cada fuente, dónde lo dice y qué publica el sitio de cada una. Todo se consultó el 1 de noviembre de 2026.
 
-El criterio es conservador y es del proyecto, no una interpretación legal. Si una fuente dice por escrito que se puede republicar citándola, sus series completas se ofrecen para descargar, con la cita. Si no dice nada o no queda claro, sus series completas no se ofrecen para descargar hasta tener una confirmación por escrito.
+El sitio ofrece para descargar los datos de todas sus fuentes, siempre con la cita y el link a la fuente. Las páginas también los muestran en estados, tablas y gráficos hechos con las series diarias.
 
-Las páginas, en cambio, muestran datos de todas las fuentes, siempre con la fuente y el link. Eso incluye gráficos hechos con las series diarias, no solo valores sueltos: por ejemplo, del INA se grafican las temporadas de crecida desde 1990, la línea de lo observado en los pronósticos, el recorrido de los últimos 30 días de cada estación y los picos de las crecidas pasadas. Que mostrar esos gráficos con atribución alcance para fuentes sin términos publicados es el criterio del proyecto; ninguna de esas fuentes lo autorizó por escrito. Lo que cambia según la licencia es solo qué se ofrece para descargar: las medias diarias, las lecturas crudas por mes y los pronósticos por mes.
+ANA, GloFAS (vía Open-Meteo y Copernicus) y NOAA dicen por escrito que se pueden republicar. El INA, Prefectura Naval Argentina y la CTM Salto Grande no publican condiciones de reutilización: no lo permiten ni lo prohíben por escrito. Para esas tres, republicar sus datos públicos citándolas es un criterio del proyecto, no un permiso legal. Si alguna de esas fuentes pide que se retiren sus datos, se retiran: el pedido se puede hacer en los issues del repositorio (<https://github.com/sebastian-reolon/clima-uy/issues>).
 
 ## Resumen
 
 | Fuente | Qué dice | Qué publica el sitio |
 |---|---|---|
 | ANA (Brasil) | Permite reproducir los datos citando la fuente | Series completas, con la cita |
-| INA y Prefectura Naval Argentina | El sistema de datos no publica términos | Gráficos y estados en las páginas, con el link; sin descarga de series |
-| CTM Salto Grande | No publica términos de reutilización | Datos del día de la represa en las páginas, con el link; sin descarga |
+| INA y Prefectura Naval Argentina | El sistema de datos no publica términos | Series completas y pronósticos, con la cita, por criterio del proyecto; se retiran si lo piden |
+| CTM Salto Grande | No publica términos de reutilización | Lecturas completas, con la cita, por criterio del proyecto; se retiran si lo piden |
 | GloFAS vía Open-Meteo | CC BY 4.0 (Open-Meteo) y licencia CEMS-FLOODS (Copernicus), con aviso obligatorio | Series completas, con los dos avisos |
 | NOAA CPC | Dominio público | Series completas, con la cita |
 
-En el código son dos listas en `climauy/publish.py`: `FULL_SERIES_SOURCES = {"ana", "ana_hist"}` (fuentes de lecturas) y `FULL_FORECAST_ISSUERS = {"glofas"}` (fuentes de pronósticos). Los índices del CPC se publican siempre completos. La página de datos lista solo las series que se descargan y explica, fuente por fuente, qué se publica y por qué. Si el INA o la CTM confirman por escrito que se pueden republicar sus series, se agrega `"ina"` o `"ctm"` a la lista que corresponda.
+En el código son dos listas en `climauy/publish.py`: `FULL_SERIES_SOURCES = {"ana", "ana_hist", "ina", "ctm"}` (fuentes de lecturas) y `FULL_FORECAST_ISSUERS = {"ina", "glofas"}` (fuentes de pronósticos). Los índices del CPC se publican siempre completos. Para retirar una fuente se la saca de la lista que corresponda: deja de tener archivos de descarga y la página de datos lo dice. La página de datos explica, fuente por fuente, qué se publica y con qué criterio.
 
-Como no todas las fuentes permiten republicar, no se arma el archivo mensual comprimido en GitHub Releases que preveía el plan. Las lecturas por mes de las fuentes permitidas ya quedan en `data/rio/raw/`.
+Todavía no se arma el archivo mensual comprimido en GitHub Releases que preveía el plan. Las lecturas por mes ya quedan en `data/rio/raw/`.
 
 Los meses cerrados no se completan hacia atrás. Un archivo mensual de lecturas o pronósticos se actualiza mientras su mes está en curso, se escribe una última vez en la primera corrida después de que el mes termina y desde ahí queda fijo. Si más adelante se agrega una fuente a las listas, los meses ya cerrados no la incluyen; si se saca una, los meses cerrados que la incluían hay que borrarlos a mano. Las medias diarias, en cambio, se rehacen enteras en cada exportación completa, y los archivos de series que ya no se exportan se borran.
 
@@ -50,11 +50,9 @@ Qué dice:
 - La página institucional del INA en argentina.gob.ar (<https://www.argentina.gob.ar/ina>) dice que «los contenidos de Argentina.gob.ar están licenciados bajo Creative Commons Atribución 4.0 Internacional». Eso cubre los contenidos de ese sitio, no el sistema de datos de `alerta.ina.gob.ar`.
 - En el portal nacional de datos abiertos (<https://datos.gob.ar/>) no aparece ningún conjunto de datos hidrométricos del INA ni de Prefectura: se buscó por «Instituto Nacional del Agua», «hidrométrica», «alturas ríos» y «prefectura», y ninguna de las 45 organizaciones que publican en el portal es el INA ni Prefectura.
 
-No queda claro. Es probable que el INA no tenga problema en que se republiquen sus series citándolo, porque las ofrece en una API pública, pero no lo dice por escrito.
+No queda claro: el INA ofrece estos datos en una API pública, pero no dice por escrito si se pueden republicar.
 
-Qué publica el sitio: sus series completas no se ofrecen para descargar. Las páginas sí muestran sus datos con el link al sistema del INA: el estado y el último valor de cada estación, el percentil, la tendencia, el recorrido de los últimos 30 días, las temporadas de crecida desde 1990, los picos de las crecidas pasadas, la línea de lo observado y la banda de los pronósticos del INA. Queda pendiente pedirle al INA por escrito permiso para republicar las series con atribución; con esa respuesta se agrega `"ina"` a `FULL_SERIES_SOURCES` y a `FULL_FORECAST_ISSUERS`.
-
-Qué implica: no se ofrecen para descargar las medias diarias de las estaciones del INA, las lecturas crudas del INA ni los pronósticos del INA.
+Qué publica el sitio: las series completas (medias diarias y lecturas crudas por mes) y los pronósticos del INA, con la cita «Fuente: INA, Sistema de Información Hidrológica de la Cuenca del Plata» y el link. Las páginas además los muestran en estados, tablas y gráficos: el recorrido de los últimos 30 días, las temporadas de crecida desde 1990, los picos de las crecidas pasadas, la línea de lo observado y la banda de los pronósticos. Es un criterio del proyecto, no un permiso del INA ni de Prefectura. Si el INA o Prefectura piden retirarlos, se saca `"ina"` de `FULL_SERIES_SOURCES` y de `FULL_FORECAST_ISSUERS`, y los meses cerrados que los incluyen se borran a mano. Pedido: <https://github.com/sebastian-reolon/clima-uy/issues>.
 
 ## CTM Salto Grande (Comisión Técnica Mixta de Salto Grande)
 
@@ -64,7 +62,7 @@ Qué dice: el sitio (<https://www.saltogrande.org/>) solo muestra «© 2013 Comi
 
 No queda claro.
 
-Qué publica el sitio: sus lecturas no se ofrecen para descargar; las páginas muestran los datos del día de la represa con el link al parte, y sus lecturas completan días sin dato del INA en los gráficos. Qué implica: las lecturas de la CTM no van en los archivos de lecturas crudas, y los días que la CTM completaba en las series del INA no van en las medias diarias. La página del río sigue mostrando los datos de la represa del día, con el link al parte.
+Qué publica el sitio: sus lecturas de niveles en los archivos de lecturas crudas y en las medias diarias, donde completan días sin dato del INA, con la cita «Fuente: CTM Salto Grande, parte diario de caudales y niveles» y el link. La página del río muestra los datos del día de la represa. Es un criterio del proyecto, no un permiso de la CTM. Si la CTM pide retirarlos, se saca `"ctm"` de `FULL_SERIES_SOURCES` y los meses cerrados que los incluyen se borran a mano. Pedido: <https://github.com/sebastian-reolon/clima-uy/issues>.
 
 ## GloFAS vía Open-Meteo
 

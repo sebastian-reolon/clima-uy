@@ -29,6 +29,7 @@
     <p>Fuentes:
     {% for name, url in sources %}<a href="{{ url }}">{{ name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}.
     Código y datos en <a href="{{ repo_url }}">el repositorio público</a>.</p>
+    <p class="credit">Hecho por <a href="{{ author_url }}">Sebastián Reolon</a>.</p>
   </div>
 </footer>
 {% block scripts %}{% endblock %}

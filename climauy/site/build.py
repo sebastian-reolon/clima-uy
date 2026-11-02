@@ -51,6 +51,7 @@ def copernicus_notice(year: int) -> str:
 FOOTER_TEXT = "Esto no es una alerta oficial. Para alertas y evacuaciones: SINAE y el CECOED de tu departamento."
 SINAE_URL = "https://www.gub.uy/sistema-nacional-emergencias/"
 REPO_URL = "https://github.com/sebastian-reolon/clima-uy"
+AUTHOR_URL = "https://github.com/sebastian-reolon"
 SITE_ORIGIN = "https://sebastian-reolon.github.io"
 COTA_SOURCE_LINE = "Cotas de alerta y evacuación: INA y Prefectura Naval Argentina."
 DISCLAIMER_SHORT = "Esto no es una alerta oficial. Alertas y evacuaciones:"
@@ -438,6 +439,8 @@ def _downloads(store: Store, catalog: Sequence[Station], now_utc: datetime) -> d
 
 
 _NO_DOWNLOAD = "Sus series completas no se ofrecen para descargar"
+_NO_TERMS = ("{who} condiciones de reutilización: republicar sus datos públicos citando la fuente es un "
+             "criterio de este proyecto, no un permiso. Si piden retirarlos, se retiran.")
 _SHOWN = ("Las páginas muestran sus datos con la fuente y el link, también en gráficos hechos con sus series "
           "diarias (temporadas de crecida, últimos 30 días, lo observado en los pronósticos).")
 
@@ -448,12 +451,13 @@ def _source_terms() -> list[dict]:
     ana = ("Se pueden descargar sus series completas: la ANA permite reproducir sus datos citando la fuente."
            if "ana" in full else _NO_DOWNLOAD + ". " + _SHOWN)
     if "ina" in full:
-        ina = "Se pueden descargar sus series completas, citando la fuente."
+        ina = ("Se pueden descargar sus series completas. " + _NO_TERMS.format(who="El INA y Prefectura no publican"))
     else:
         ina = (_NO_DOWNLOAD + ", porque el sistema de datos del INA no dice si se pueden republicar. " + _SHOWN)
     ina += (" Los pronósticos del INA también se pueden descargar." if "ina" in issuers else
             " Los pronósticos del INA se ven en la página del río pero no se ofrecen para descargar.")
-    ctm = ("Se pueden descargar sus lecturas, citando la fuente." if "ctm" in full else
+    ctm = ("Se pueden descargar sus lecturas. " + _NO_TERMS.format(who="La CTM no publica")
+           if "ctm" in full else
            "Sus lecturas no se ofrecen para descargar, porque su sitio no publica condiciones de reutilización. "
            "Los datos del día de la represa se ven en la página del río, con el link al parte.")
     glofas = ("Se pueden descargar los pronósticos completos. Open-Meteo los publica con licencia CC BY 4.0 y la "
@@ -468,7 +472,9 @@ def _source_terms() -> list[dict]:
         ("INUMET", SOURCES[5][1],
          "Se citan en la portada sus probabilidades para los próximos meses, con su link; no hay descarga."),
     ]
-    return [{"name": n, "url": u, "text": t, "glofas": n.startswith("GloFAS")} for n, u, t in rows]
+    withdraw = {"INA y Prefectura Naval Argentina": "ina" in full, "CTM Salto Grande": "ctm" in full}
+    return [{"name": n, "url": u, "text": t, "glofas": n.startswith("GloFAS"), "withdraw": withdraw.get(n, False)}
+            for n, u, t in rows]
 
 
 def _catalog_rows(catalog: Sequence[Station]) -> list[dict]:
@@ -516,6 +522,7 @@ def _common(base: str) -> dict:
         "sinae_url": SINAE_URL,
         "sources": SOURCES,
         "repo_url": REPO_URL,
+        "author_url": AUTHOR_URL,
     }
 
 

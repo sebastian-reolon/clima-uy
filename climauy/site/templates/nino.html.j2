@@ -43,7 +43,7 @@
 </section>
 {% endblock %}
 {% block notes %}
-<li>Perspectiva de lluvias: <a href="{{ outlook.source_url }}">{{ outlook.source }}</a> ({{ outlook.issued }}).{% if outlook.north_only %} Para {{ outlook.north_only }} el boletín publicado solo da el dato del norte.{% endif %}</li>
+<li>Perspectiva de lluvias: <a href="{{ outlook.source_url }}">{{ outlook.source }}</a> ({{ outlook.issued }}).{% if outlook.north_only %} Para {{ outlook.north_only }} la nota agrupa las regiones de otra forma (60% y 50% para el norte y parte del centro, 40% para el resto), así que en la tabla se muestra solo el norte.{% endif %}</li>
 <li>Según la {{ outlook.persists.by }}, citada por INUMET, El Niño seguiría al menos hasta {{ outlook.persists.until }}, con {{ outlook.persists.probability }} de probabilidad.</li>
 <li>El índice oficial de la NOAA es el RONI; el ONI se muestra al lado para comparar. Los dos son del <a href="{{ noaa_url }}">NOAA CPC</a> y se descargan en <a href="{{ base }}/datos/">Datos</a>.</li>
 {% endblock %}

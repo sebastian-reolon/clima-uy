@@ -371,7 +371,7 @@ def test_outlook_missing_cells(site):
     for label in ("octubre a diciembre", "noviembre a enero", "diciembre a febrero"):
         assert table.count(f'data-l="{label}"') == 5
     flat = _flat(html)
-    assert "Para noviembre a enero y diciembre a febrero el boletín publicado solo da el dato del norte." in flat
+    assert ("Para noviembre a enero y diciembre a febrero la nota agrupa las regiones de otra forma (60% y 50% para el norte y parte del centro, 40% para el resto), así que en la tabla se muestra solo el norte.") in flat
     assert "elobservador.com.uy" in html
 
 

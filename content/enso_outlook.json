@@ -15,7 +15,7 @@
     "normal",
     "por debajo de lo normal"
   ],
-  "note": "Valores cargados a mano desde la nota de El Observador. Para noviembre-enero y diciembre-febrero el boletín publicado solo da el dato del norte; el resto queda null y se muestra como sin dato.",
+  "note": "Valores cargados a mano desde la nota de El Observador. Para noviembre a enero y diciembre a febrero la nota agrupa distinto (norte y parte del centro 60 y 50, resto 40); solo se carga el norte y el resto queda null.",
   "seasons": [
     {
       "code": "OND",

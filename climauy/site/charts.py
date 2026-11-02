@@ -490,7 +490,7 @@ def _plan_margins(variant: str) -> tuple[int, int, int, int]:
     return (64, 24, 36, 150) if variant == "wide" else (34, 8, 36, 240)
 
 
-def _great_circle_km(a: Station, b: Station) -> float:
+def great_circle_km(a: Station, b: Station) -> float:
     p1, p2 = math.radians(a.lat), math.radians(b.lat)
     dp, dl = p2 - p1, math.radians(b.lon - a.lon)
     h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
@@ -511,7 +511,7 @@ def river_km(catalog: Sequence[Station]) -> dict[str, float]:
         if st.river != MAIN_RIVER:
             continue
         if prev is not None:
-            step = _great_circle_km(prev, st)
+            step = great_circle_km(prev, st)
             if step < 1e-6:
                 continue
             acc += step

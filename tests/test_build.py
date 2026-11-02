@@ -108,7 +108,8 @@ def test_no_banned_typography(site):
     out, _ = site
     for page in PAGES:
         html = _read(out, page)
-        for bad in ("—", " · ", "→", "&mdash;", "&rarr;", " -- "):
+        # The middle dot is allowed: Ruling 12 («INA · ANA · CTM») and the profile callouts use it.
+        for bad in ("—", "–", "→", "&mdash;", "&ndash;", "&rarr;", " -- "):
             assert bad not in html, (page, bad)
         caps = set(re.findall(r"\b[A-ZÁÉÍÓÚÑÜ]{4,}\b", _text(html)))
         assert caps <= ALLOWED_ACRONYMS, (page, caps - ALLOWED_ACRONYMS)
@@ -124,8 +125,7 @@ def test_works_without_js(site):
     rows = re.findall(r"<tr\b", table.group(0))
     stations = [s for s in load_catalog()]
     assert len(rows) == len(stations) + 1  # header + one row per station
-    home = _read(out, "index.html")
-    assert "El Niño sigue activo" in _flat(home)
+    # Task 5: the El Niño sentence ("El Niño sigue activo") moves from the old home to /nino/.
 
 
 def test_uy_city_shows_measuring_station(site):
@@ -218,6 +218,7 @@ def test_relative_links_under_base_url(site):
             assert target.is_file(), (page, url)
 
 
+@pytest.mark.skip(reason="Task 5: the old El Niño home (index.html.j2) becomes /nino/; retarget there")
 def test_home_enso_tables(site):
     out, _ = site
     flat = _flat(_read(out, "index.html"))
@@ -257,7 +258,8 @@ DISCLAIMER = "Esto no es una alerta oficial. Alertas y evacuaciones: SINAE y el 
 
 def test_disclaimer_near_the_top(site):
     out, _ = site
-    for page, before in [("rio/index.html", 'class="chart chart-wide chart-profile'), ("index.html", 'class="go"')]:
+    # Task 5: the old home's entry ("index.html", 'class="go"') returns when /nino/ is built.
+    for page, before in [("rio/index.html", 'class="chart chart-wide chart-profile')]:
         html = _read(out, page)
         i = html.index('class="top-warning"')
         assert i < html.index(before), page
@@ -312,6 +314,7 @@ def test_season_captions(site):
     assert "no tiene cota oficial de alerta" in caption("ana_77500000")
 
 
+@pytest.mark.skip(reason="Task 5: the INUMET table moves from the old home to /nino/; retarget there")
 def test_outlook_missing_cells(site):
     out, _ = site
     html = _read(out, "index.html")
@@ -560,3 +563,217 @@ def test_nav_marks_the_current_sheet(site):
     assert _nav(_read(out, "rio/index.html")) == {"Río": True, "El Niño": False, "Datos": False}
     assert _nav(_read(out, "rio/metodologia/index.html")) == {"Río": True, "El Niño": False, "Datos": False}
     assert _nav(_read(out, "datos/index.html")) == {"Río": False, "El Niño": False, "Datos": True}
+
+
+# ---------------------------------------------------------------- home: river summary (sheet 1)
+
+def _daily(sid: str, variable: str, source: str, values: dict[date, float]) -> list[Obs]:
+    return [Obs(sid, variable, datetime(d.year, d.month, d.day, 15, tzinfo=timezone.utc), v, source)
+            for d, v in values.items()]
+
+
+def _last_days(values: list[float], end: date = date(2026, 11, 1)) -> dict[date, float]:
+    """Daily values ending on `end`, oldest first."""
+    return {end - timedelta(days=len(values) - 1 - i): v for i, v in enumerate(values)}
+
+
+def _seed_home(store: Store) -> None:
+    """_seed plus the stations the home tables read: Artigas (discharge), Salto, upstream, near Fray Bentos."""
+    _seed(store)
+    start = date(2014, 11, 1)
+    n = (NOW.date() - start).days + 1
+    # Quaraí (Artigas): a decade of daily ANA discharge, so the station is ranked in m³/s.
+    store.upsert_obs(_daily("ana_77500000", "discharge", "ana", {
+        start + timedelta(days=i): 20.0 + 15.0 * math.sin(i / 23.0) for i in range(n)}))
+    # Concordia (Salto): a decade of levels, rising 0,30 m in the last 3 days to 9,30 m.
+    hist = {start + timedelta(days=i): 7.0 + 1.5 * math.sin(i / 41.0) for i in range(n - 4)}
+    hist.update(_last_days([9.0, 9.1, 9.2, 9.3]))
+    store.upsert_obs(_daily("ina_79", "level", "ina", hist))
+    # Upstream main-river stations, short series (no percentile). Uruguaiana has none.
+    store.upsert_obs(_daily("ina_69", "level", "ina", _last_days([8.4, 8.3, 8.2, 8.1, 8.0])))
+    store.upsert_obs(_daily("ina_70", "level", "ina", _last_days([8.5, 8.4, 8.3, 8.2, 8.12])))
+    store.upsert_obs(_daily("ina_71", "level", "ina", _last_days([8.3, 8.2, 8.1, 8.05, 7.98])))
+    store.upsert_obs(_daily("ina_72", "level", "ina", _last_days([8.2, 8.1, 8.11, 7.9, 7.66])))  # above 7,50
+    # Boca Gualeguaychú, the closest gauge to Fray Bentos: falling.
+    store.upsert_obs(_daily("ina_84", "level", "ina", _last_days([2.4, 2.35, 2.3, 2.2, 2.1])))
+
+
+@pytest.fixture(scope="module")
+def home(tmp_path_factory):
+    root = tmp_path_factory.mktemp("home")
+    with Store(root / "h.sqlite") as store:
+        _seed_home(store)
+        build_site(store, load_catalog(), root / "out", NOW, base_url="/clima-uy")
+        from climauy.analysis.status import compute_status
+        statuses = compute_status(store, load_catalog(), NOW)
+    return _read(root / "out", "index.html"), statuses
+
+
+def _table(html: str, cls: str | None = None, after: str | None = None) -> str:
+    if after:
+        html = html[html.index(after):]
+    pattern = rf'<table class="{cls}">.*?</table>' if cls else r"<table>.*?</table>"
+    return re.search(pattern, html, flags=re.S).group(0)
+
+
+def _rows(table: str) -> list[tuple[str, str, list[str]]]:
+    """(tr attributes, row header text, cell texts) of each body row."""
+    body = re.search(r"<tbody>(.*?)</tbody>", table, flags=re.S).group(1)
+    out = []
+    for attrs, inner in re.findall(r"<tr([^>]*)>(.*?)</tr>", body, flags=re.S):
+        th = _text(re.search(r"<th[^>]*>(.*?)</th>", inner, flags=re.S).group(1))
+        cells = [_flat(c).strip() for c in re.findall(r"<td[^>]*>(.*?)</td>", inner, flags=re.S)]
+        out.append((attrs, th, cells))
+    return out
+
+
+def test_home_is_the_river_summary(home):
+    from climauy.narrative import river_headline
+
+    html, statuses = home
+    h1, sub = river_headline(statuses, load_catalog())
+    assert re.search(r'<section class="resp"><h1>(.*?)</h1>', html, flags=re.S).group(1) == htmllib.escape(h1, quote=False)
+    assert sub and sub in _flat(html)
+    titles = [_text(t) for t in re.findall(r"<h2[^>]*>(.*?)</h2>", html, flags=re.S)]
+    assert titles == ["Ciudades uruguayas", "Perfil del río hoy", "Aguas arriba", "El Niño",
+                      "Todas las estaciones", "Notas"]
+    assert "El Niño 2026-27 en Uruguay" not in html  # the old home is not rendered (Task 5 moves it)
+
+
+def test_home_cajetin(home):
+    html, _ = home
+    caj = re.search(r'<dl class="cajetin">(.*?)</dl>', html, flags=re.S).group(1)
+    pairs = dict(zip([_flat(x) for x in re.findall(r"<dt>(.*?)</dt>", caj)],
+                     [_flat(x) for x in re.findall(r"<dd>(.*?)</dd>", caj)]))
+    assert pairs == {
+        "Estado al": "2026-11-01 12:00 (UY)",
+        "Actualización": "cada 3 horas",
+        # Fresh: Monte Caseros, Quaraí, Concordia, Alvear, La Cruz, Yapeyú, Paso de los Libres, Boca
+        # Gualeguaychú. Colón is stale; Fray Bentos has no gauge and is not counted.
+        "Estaciones": "8 con dato, 29 sin",
+        "Fuentes": "INA · ANA · CTM",
+        "Historia": "desde 2014",
+        "Carácter": "informativo, no oficial",
+    }
+
+
+def test_home_city_rows(home):
+    from climauy.fmt import num, pct
+
+    html, statuses = home
+    by = {s.station_id: s for s in statuses}
+    rows = _rows(_table(html, "ciu"))
+    assert [r[1] for r in rows] == ["Bella Unión", "Artigas", "Salto", "Paysandú", "Fray Bentos"]
+    bu, artigas, salto, paysandu, fray = rows
+    # Bella Unión: Monte Caseros level, cota 7,50.
+    mc = by["ina_74"]
+    assert bu[2][:2] == ["Monte Caseros (AR)", f"{num(mc.level_m)} m"]
+    assert bu[2][3].startswith(pct(mc.percentile_today))
+    assert bu[2][4:] == ["7,50", num(7.5 - mc.level_m)]
+    # Artigas: discharge, no cota, nothing missing to the alert.
+    q = by["ana_77500000"]
+    assert artigas[2][:2] == ["Quaraí (BR)", f"{num(q.latest_value, 0)} m³/s"]
+    assert artigas[2][2] == ""  # its 3-day change is in %, not metres
+    assert artigas[2][3].startswith(pct(q.percentile_today))
+    assert artigas[2][4:] == ["", ""]
+    assert "up" not in artigas[0]
+    # Salto: rising, marked as such.
+    assert salto[2] == ["Concordia (AR)", "9,30 m", "+0,30", salto[2][3], "11,00", "1,70"]
+    assert 'class="up"' in salto[0]
+    # Paysandú: Colón stopped on 25/10; the reading carries its date and nothing is said as current.
+    assert paysandu[2][:3] == ["Colón (AR)", "5,25 m (al 25/10)", ""]
+    assert paysandu[2][3:] == ["", "7,10", ""]
+    assert "up" not in paysandu[0]
+    # Fray Bentos: no public gauge, the nearest station with data instead.
+    assert 'class="sin"' in fray[0]
+    assert fray[2] == ["sin regla pública", "más cercana: Boca Gualeguaychú (AR) 2,10 m, baja"]
+
+
+def test_home_city_table_labels_cells_for_phones(home):
+    html, _ = home
+    table = _table(html, "ciu")
+    for label in ("Regla", "Nivel", "Δ 3 días", "Percentil", "Alerta", "Falta"):
+        assert f'data-l="{label}"' in table
+    assert '<span class="bar"><span style="width:' in table
+
+
+def test_home_upstream_rows(home):
+    html, _ = home
+    rows = _rows(_table(html, after="<h2>Aguas arriba</h2>"))
+    # Ruling 9: the four main-river stations with data right above Bella Unión's, downstream order.
+    # Uruguaiana (no data) and the tributaries in between are skipped.
+    assert [r[1] for r in rows] == ["Alvear", "La Cruz", "Yapeyú", "Paso de los Libres"]
+    assert rows[3][2] == ["7,66 m", "-0,44", ""]
+    assert 'href="/clima-uy/rio/"' in html[html.index("<h2>Aguas arriba</h2>"):html.index("<h2>El Niño</h2>")]
+
+
+def test_home_enso_block(home):
+    html, _ = home
+    block = html[html.index("<h2>El Niño</h2>"):html.index("<h2>Todas las estaciones</h2>")]
+    assert "Anomalía del Pacífico central, julio a septiembre de 2026, y perspectiva de INUMET." in _flat(block)
+    kv = re.search(r'<dl class="kv">(.*?)</dl>', block, flags=re.S).group(1)
+    pairs = list(zip([_flat(x) for x in re.findall(r"<dt>(.*?)</dt>", kv)],
+                     [_flat(x) for x in re.findall(r"<dd>(.*?)</dd>", kv)]))
+    assert pairs == [
+        ("RONI (oficial NOAA)", "+1,69 °C"),
+        ("ONI", "+2,16 °C"),
+        ("Pico esperado", "noviembre y diciembre de 2026"),
+        ("Lluvia norte, noviembre a enero", "60% sobre lo normal"),
+        ("Segunda ventana", "marzo a mayo de 2027"),
+    ]
+    assert 'href="/clima-uy/nino/"' in block
+
+
+def test_home_all_stations(home):
+    html, _ = home
+    block = html[html.index("<h2>Todas las estaciones</h2>"):]
+    assert "<summary>Ver las 8 reglas en orden aguas abajo</summary>" in block
+    rows = _rows(_table(block))
+    assert [r[1] for r in rows] == [
+        "Alvear AR", "La Cruz AR", "Yapeyú AR", "Paso de los Libres AR", "Quaraí BR · frente a Artigas",
+        "Monte Caseros AR · frente a Bella Unión", "Concordia AR · frente a Salto", "Boca Gualeguaychú AR",
+    ]
+    libres = rows[3]
+    assert 'class="al"' in libres[0]
+    assert libres[2] == ["7,66 m", "-0,44", "", "7,50"]
+    assert sum('class="al"' in r[0] for r in rows) == 1
+
+
+def test_home_notes(home):
+    html, _ = home
+    notes = re.search(r'<ol class="notas">(.*?)</ol>', html, flags=re.S).group(1)
+    items = [_flat(li).strip() for li in re.findall(r"<li>(.*?)</li>", notes, flags=re.S)]
+    assert items == [
+        FOOTER_TEXT,
+        "Las cotas oficiales uruguayas se miden en la regla de cada ciudad: Bella Unión 6,30 m, Salto 11,40 m, "
+        "Paysandú 6,00 m, Fray Bentos 3,90 m (DINAGUA, 3/8/2026). No se comparan con las reglas de enfrente.",
+        "Artigas se mide en Quaraí, sobre el río Cuareim, en caudal. Esa estación no tiene cota de alerta.",
+        "Los datos crudos de todas las fuentes se descargan en Datos.",
+    ]
+    assert f'href="{DINAGUA_URL}"' in notes
+    assert '<a href="/clima-uy/datos/">Datos</a>' in notes
+
+
+def test_home_embeds_both_profiles(home):
+    html, _ = home
+    assert html.count('class="perfil"') == 1
+    assert html.count('class="perfil movil"') == 1
+    sec = html[html.index("<h2>Perfil del río hoy</h2>"):html.index("<h2>Aguas arriba</h2>")]
+    assert sec.index('class="perfil"') < sec.index('class="perfil movil"') < sec.index('class="ley"')
+
+
+def test_home_with_empty_store(tmp_path):
+    with Store(tmp_path / "e.sqlite") as store:
+        build_site(store, load_catalog(), tmp_path / "out", NOW, base_url="")
+    html = _read(tmp_path / "out", "index.html")
+    flat = _flat(html)
+    assert "No hay datos al día del río frente a las ciudades uruguayas." in flat
+    caj = _flat(re.search(r'<dl class="cajetin">(.*?)</dl>', html, flags=re.S).group(1))
+    assert "sin datos al día" in caj and "0 con dato, 37 sin" in caj
+    rows = _rows(_table(html, "ciu"))
+    assert [r[1] for r in rows] == ["Bella Unión", "Artigas", "Salto", "Paysandú", "Fray Bentos"]
+    assert rows[0][2][1] == "sin datos"
+    assert rows[4][2] == ["sin regla pública", "sin estación cercana con datos al día"]
+    assert "No hay estaciones con datos al día." in flat
+    assert "Lluvia norte" in flat  # the outlook is hand-loaded, not from the store
+    assert "Todavía no hay índices de la NOAA cargados." in flat

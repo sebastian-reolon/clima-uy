@@ -132,3 +132,5 @@ tr.al th{color:var(--alert)}
 .skip:focus{left:var(--s4)}
 .sec p.mas{margin-top:var(--s3)}
 .pie .credit a{font-weight:700}
+/* Phone city blocks: an empty cell (no cota, no change in metres) would leave a bare label. */
+@media (max-width:40em){table.ciu td[data-l]:empty{display:none}}

@@ -1,4 +1,4 @@
-"""Static site build: the El Niño home page, the Uruguay River module, methodology and data pages.
+"""Static site build: the river summary home, the Uruguay River module, methodology and data pages.
 
 Every page works without JavaScript: sentences, tables and charts are in the
 HTML. Links are absolute under `base_url`, so a copied page (the daily
@@ -7,6 +7,7 @@ snapshot) still finds the stylesheet and the rest of the site.
 from __future__ import annotations
 
 import json
+import math
 import shutil
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
@@ -23,14 +24,14 @@ from ..analysis.status import MIN_HISTORY_YEARS, StationStatus, compute_status
 from ..analysis.verify import VERIFICATION_TARGETS, daily_glofas_runs, verify_production
 from ..catalog import Station
 from ..fmt import (
-    MONTHS, day_long, day_numeric, day_short, days, hour_local, is_record, is_season, meters, num, pct,
-    record_text, season_key, season_label, signed, since_year,
+    BASELINE_YEAR, MONTHS, SEASONS as CPC_SEASONS, day_long, day_numeric, day_short, days, hour_local, is_record, is_season,
+    meters, num, pct, record_text, season_key, season_label, signed, since_year,
 )
-from ..narrative import enso_summary, river_summary
+from ..narrative import river_headline, river_summary
 from .. import publish
 from ..publish import series_exported
 from ..store import Store
-from ..timeutil import local_day
+from ..timeutil import MONTEVIDEO, local_day
 from . import charts
 from .markdown import render as render_md
 
@@ -512,6 +513,237 @@ def _catalog_rows(catalog: Sequence[Station]) -> list[dict]:
     return rows
 
 
+
+# ---------------------------------------------------------------- home (sheet 1)
+
+HOME_SOURCES = "INA · ANA · CTM"  # Ruling 12
+HOME_UPDATES = "cada 3 horas"
+HOME_UPSTREAM = 4  # Ruling 9
+COTA_NOTE_SOURCE = "DINAGUA"  # the Uruguayan cotas the notes list, measured on each city's own gauge
+# How the Uruguayan bank calls a river the catalogue names from the Brazilian side.
+HOME_RIVER_NAMES = {"Quaraí": "Cuareim"}
+
+
+def _has_data(ss: StationStatus) -> bool:
+    """«Con dato» on the home: a reading that is not stale. A stale station counts as «sin»."""
+    return not ss.stale and ss.latest_value is not None
+
+
+def _value(v: float, variable: str) -> str:
+    return f"{num(v)} m" if variable == "level" else f"{num(v, 0)} m³/s"
+
+
+def _delta(ss: StationStatus) -> str:
+    """3-day level change in metres with its sign («0,00» when flat); empty without one."""
+    d = ss.level_change_3d_m
+    if d is None:
+        return ""
+    return "0,00" if abs(d) < 0.005 else signed(d)
+
+
+def _pct_cell(ss: StationStatus) -> tuple[str, int | None]:
+    """Percentile text (never rounded up) and the bar width in %; empty without a percentile."""
+    p = ss.percentile_today
+    if p is None:
+        return "", None
+    return pct(p), min(100, math.floor(p + 1e-9))
+
+
+def _gauge_reading(st: Station, ss: StationStatus, store: Store) -> tuple[str, bool]:
+    """(reading, current) on the series a home table reads.
+
+    An INA gauge is read in metres, the datum its cota is on; any other station
+    in the variable its status uses (Quaraí: m³/s). A reading that is not
+    current carries its local date, «6,05 m (al 31/10)», so it is never read as today's.
+    """
+    variable = "level" if "ina_level" in st.sources else ss.variable_used
+    if variable == "level" and ss.level_m is not None:
+        return _value(ss.level_m, "level"), True
+    if variable == ss.variable_used and _has_data(ss):
+        return _value(ss.latest_value, variable), True
+    readings = station_readings(store, st, variable)
+    if not readings:
+        return "sin datos", False
+    last = readings[-1]
+    return f"{_value(last.value, variable)} (al {day_short(local_day(last.time_utc))})", False
+
+
+def _city_stations(catalog: Sequence[Station]) -> list[Station]:
+    """Stations that stand for a Uruguayan city, downstream; a tributary's city right after the
+    main-river station where its river joins (Artigas after Bella Unión)."""
+    by_id = {s.id: s for s in catalog}
+
+    def key(st: Station) -> tuple[int, int]:
+        parent = by_id.get(st.tributary_of or "")
+        return (parent.order, 1) if parent else (st.order, 0)
+
+    return sorted((st for st in catalog if st.represents), key=key)
+
+
+def _nearest_text(st: Station, catalog: Sequence[Station], by_status: dict[str, StationStatus]) -> str:
+    """Ruling 10: the closest station with a current level, for a city without a public gauge."""
+    near = [s for s in catalog if s.id != st.id and by_status[s.id].level_m is not None]
+    if not near:
+        return "sin estación cercana con datos al día"
+    s = min(near, key=lambda s: charts.great_circle_km(st, s))
+    ss = by_status[s.id]
+    text = f"más cercana: {s.name} ({s.country}) {_value(ss.level_m, 'level')}"
+    return text + (f", {ss.trend}" if ss.trend else "")
+
+
+def _city_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station], store: Store) -> list[dict]:
+    """Rows of «Ciudades uruguayas»: the gauge each city is read on, against the cota of that gauge."""
+    by_status = {s.station_id: s for s in statuses}
+    rows = []
+    for st in _city_stations(catalog):
+        ss = by_status[st.id]
+        if not st.sources:
+            rows.append({"city": st.represents, "gauge": None, "near": _nearest_text(st, catalog, by_status)})
+            continue
+        reading, current = _gauge_reading(st, ss, store)
+        has_cota = "ina_level" in st.sources and st.alert_m is not None
+        falta = ""
+        if has_cota and current and ss.level_m is not None:
+            gap = st.alert_m - ss.level_m
+            falta = "llegó" if gap <= 0 else num(gap)
+        p, bar = _pct_cell(ss) if current else ("", None)
+        classes = []
+        if not current:
+            classes.append("sin")  # muted: the reading is not today's
+        elif ss.trend == "sube":
+            classes.append("up")
+        if current and ss.above_alert:
+            classes.append("al")
+        rows.append({
+            "city": st.represents, "gauge": f"{st.name} ({st.country})", "reading": reading,
+            "d3": _delta(ss) if current else "", "pct": p, "bar": bar,
+            "alert": num(st.alert_m) if has_cota else "", "falta": falta, "cls": " ".join(classes),
+        })
+    return rows
+
+
+def _upstream_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station], store: Store) -> list[dict]:
+    """Ruling 9: the main-river stations with data right above Bella Unión's station, downstream order."""
+    by_status = {s.station_id: s for s in statuses}
+    ordered = sorted(catalog, key=lambda s: s.order)
+    city = next((s for s in ordered if s.represents == charts.PLAN_UY_CITY and s.river == charts.MAIN_RIVER), None)
+    if city is None:
+        return []
+    above = [s for s in ordered if s.river == charts.MAIN_RIVER and s.order < city.order
+             and _has_data(by_status[s.id])][-HOME_UPSTREAM:]
+    rows = []
+    for st in above:
+        ss = by_status[st.id]
+        rows.append({"name": st.name, "reading": _gauge_reading(st, ss, store)[0], "d3": _delta(ss),
+                     "pct": _pct_cell(ss)[0]})
+    return rows
+
+
+def _season_span(period: str) -> str:
+    """«julio a septiembre de 2026»: the CPC season in words, without a dash."""
+    return season_label(period).replace("-", " a ")
+
+
+def _first_month(code: str) -> int:
+    return (CPC_SEASONS[code][1] - 2) % 12 + 1
+
+
+def _north_rain(data: dict, today: date) -> tuple[str, int] | None:
+    """Ruling 11: north's above-normal probability for the season starting this month, or the next one given."""
+    north = next((r for r in data["regions"] if r["name"] == "Norte"), None)
+    if north is None:
+        return None
+    issued = date.fromisoformat(data["issued"])
+    year, prev, now = issued.year, None, today.year * 12 + today.month
+    for season in data["seasons"]:
+        m = _first_month(season["code"])
+        if (prev is None and m < issued.month) or (prev is not None and m < prev):
+            year += 1
+        prev = m
+        v = north.get(season["code"])
+        if year * 12 + m >= now and v and v[0] is not None:
+            return season["label"], v[0]
+    return None
+
+
+def _enso_kv(store: Store, outlook_path: Path, today: date) -> dict:
+    """The home's El Niño block: latest RONI and ONI, expected peak, north's rain, second window."""
+    data = json.loads(outlook_path.read_text(encoding="utf-8"))
+    ronis = [i for i in store.indices("RONI") if is_season(i.period)]
+    latest = max(ronis, key=lambda i: season_key(i.period)) if ronis else None
+    rows = []
+    if latest is not None:
+        rows.append(("RONI (oficial NOAA)", f"{signed(latest.value)} °C"))
+        oni = next((i for i in store.indices("ONI") if i.period == latest.period), None)
+        if oni is not None:
+            rows.append(("ONI", f"{signed(oni.value)} °C"))
+    rows.append(("Pico esperado", data["peak"]))
+    rain = _north_rain(data, today)
+    if rain:
+        rows.append((f"Lluvia norte, {rain[0]}", f"{rain[1]}% sobre lo normal"))
+    rows.append(("Segunda ventana", data["second_window"]))
+    return {"period": _season_span(latest.period) if latest else None, "rows": rows}
+
+
+def _cajetin(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> list[tuple[str, str]]:
+    """Ruling 12. Stations without any source (Fray Bentos) are not counted."""
+    by_status = {s.station_id: s for s in statuses}
+    gauged = [by_status[st.id] for st in catalog if st.sources]
+    fresh = [ss for ss in gauged if _has_data(ss)]
+    last = max((ss.latest_time_utc for ss in fresh), default=None)
+    when = last.astimezone(MONTEVIDEO).strftime("%Y-%m-%d %H:%M") + " (UY)" if last else "sin datos al día"
+    first = min((ss.history_start_year for ss in statuses if ss.history_start_year), default=None)
+    return [
+        ("Estado al", when),
+        ("Actualización", HOME_UPDATES),
+        ("Estaciones", f"{len(fresh)} con dato, {len(gauged) - len(fresh)} sin"),
+        ("Fuentes", HOME_SOURCES),
+        ("Historia", f"desde {first}" if first else "sin historia cargada"),
+        ("Carácter", "informativo, no oficial"),
+    ]
+
+
+def _all_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> list[dict]:
+    """Every station with data, downstream, each in the variable its status uses."""
+    by_status = {s.station_id: s for s in statuses}
+    rows = []
+    for st in sorted(catalog, key=lambda s: s.order):
+        ss = by_status[st.id]
+        if not _has_data(ss):
+            continue
+        where = f" · frente a {st.represents}" if st.represents and st.represents != st.name else ""
+        rows.append({
+            "name": st.name, "where": f"{st.country}{where}", "today": _value(ss.latest_value, ss.variable_used),
+            "d3": _delta(ss), "pct": _pct_cell(ss)[0], "al": bool(ss.above_alert),
+            "alert": num(st.alert_m) if "ina_level" in st.sources and st.alert_m is not None else "",
+        })
+    return rows
+
+
+def _notes(refs_path: Path, catalog: Sequence[Station], statuses: Sequence[StationStatus]) -> dict:
+    """Notes 2 and 3 of the home (note 1, the disclaimer, comes from the sheet base)."""
+    cities = json.loads(refs_path.read_text(encoding="utf-8"))["cities"]
+    by_status = {s.station_id: s for s in statuses}
+    order = [st.represents for st in _city_stations(catalog)]
+    official = [(c, cities[c]) for c in order if c in cities and cities[c]["source"] == COTA_NOTE_SOURCE]
+    cotas = None
+    if official:
+        ref = official[0][1]
+        cotas = {
+            "list": ", ".join(f"{c} {_cota_m(r['value_m'])}" for c, r in official),
+            "source": ref["source"], "url": ref["url"], "date": day_numeric(date.fromisoformat(ref["date"])),
+        }
+    others = []
+    for st in _city_stations(catalog):
+        if not st.sources or "ina_level" in st.sources:
+            continue
+        river = HOME_RIVER_NAMES.get(st.river, st.river)
+        how = ", en caudal" if by_status[st.id].variable_used == "discharge" else ""
+        others.append(f"{st.represents} se mide en {st.name}, sobre el río {river}{how}. "
+                      "Esa estación no tiene cota de alerta.")
+    return {"cotas": cotas, "others": others}
+
+
 # ---------------------------------------------------------------- build
 
 def _env() -> Environment:
@@ -578,7 +810,7 @@ def build_site(
     river_text = river_summary(statuses, catalog)
     fresh = [s.latest_time_utc for s in statuses if not s.stale and s.latest_time_utc is not None]
     last_data = max(fresh) if fresh else None
-    indices = store.indices("RONI") + store.indices("ONI")
+    all_rows = _all_rows(statuses, catalog)
     fc_views, ver_views = _forecast_views(store, by_id, verify_production(store, catalog))
     lag_results = run_production_lags(store, catalog)
 
@@ -591,13 +823,22 @@ def build_site(
         "copernicus": copernicus_notice(today.year),
     }
     pages = {
-        "index.html": ("index.html.j2", {
-            "nav": "home",
+        # The old El Niño home (index.html.j2) is not rendered: Task 5 turns it into /nino/.
+        "index.html": ("home.html.j2", {
+            "nav": "rio",
             "sheet": 1,
-            "enso": enso_summary(indices),
-            "enso_rows": _enso_rows(store),
-            "outlook": _outlook(outlook_path),
-            "river_text": river_text,
+            "headline": river_headline(statuses, catalog),
+            "cajetin": _cajetin(statuses, catalog),
+            "city_rows": _city_rows(statuses, catalog, store),
+            "profile_wide": Markup(charts.profile_plan_svg(statuses, catalog)),
+            "profile_phone": Markup(charts.profile_plan_svg(
+                statuses, catalog, width=340, height=560,
+                start_km=charts.phone_start_km(statuses, catalog), variant="movil")),
+            "upstream_rows": _upstream_rows(statuses, catalog, store),
+            "enso_kv": _enso_kv(store, outlook_path, today),
+            "all_rows": all_rows,
+            "notes": _notes(refs_path, catalog, statuses),
+            "baseline_year": BASELINE_YEAR,
         }),
         "rio/index.html": ("rio.html.j2", {
             "nav": "rio",

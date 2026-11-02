@@ -76,7 +76,11 @@ def _all(base_url: str) -> int:
     except Exception:
         log.exception("build or export failed")
         return 1
-    hits = publish.scan_tree(cfg.out_dir)
+    try:
+        hits = publish.scan_tree(cfg.out_dir)
+    except Exception:
+        log.exception("refusing to publish: the infrastructure scan of the pages output failed")
+        return 1
     if hits:
         for h in hits:
             log.error("infrastructure string in the pages output: %s", h)

@@ -316,8 +316,10 @@ class PublishError(RuntimeError):
     pass
 
 
-# Inherited variables that could point git at another repository.
-_GIT_ENV_DROP = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE")
+# Inherited variables that could point git at another repository, or override
+# the commit identity given with -c user.name / user.email.
+_GIT_ENV_DROP = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE",
+                 "GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL")
 
 
 def _git(pages_dir: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -330,7 +332,8 @@ def commit_and_push(pages_dir: Path, message: str) -> bool:
 
     Refuses unless pages_dir is the top of its own repository with gh-pages
     checked out, and unless CLIMAUY_GIT_NAME and CLIMAUY_GIT_EMAIL are set
-    (the commit identity comes only from them). Returns False, committing
+    (the commit author and committer come only from them: inherited
+    GIT_AUTHOR_* / GIT_COMMITTER_* names and emails are dropped). Returns False, committing
     nothing, when there are no changes. Git errors raise.
     """
     name, email = os.environ.get("CLIMAUY_GIT_NAME", ""), os.environ.get("CLIMAUY_GIT_EMAIL", "")

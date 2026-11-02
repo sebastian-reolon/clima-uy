@@ -250,7 +250,8 @@ def git_env(monkeypatch):
     monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
     monkeypatch.setenv("CLIMAUY_GIT_NAME", "clima-uy bot")
     monkeypatch.setenv("CLIMAUY_GIT_EMAIL", "bot@example.invalid")
-    for k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
+    for k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL",
+              "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL"):
         monkeypatch.delenv(k, raising=False)
 
 
@@ -316,6 +317,37 @@ def test_commit_ignores_inherited_git_dir(tmp_path, git_env, monkeypatch):
     assert _git(origin, "log", "-1", "--format=%s", "gh-pages").strip() == "Build"
     assert subprocess.run(["git", "rev-parse", "--verify", "-q", "HEAD"], cwd=other,
                           env={k: v for k, v in os.environ.items() if not k.startswith("GIT_")}).returncode != 0
+
+
+def test_commit_identity_ignores_inherited_author_and_committer(tmp_path, git_env, monkeypatch):
+    pages, origin = _pages_repo(tmp_path)
+    (pages / "index.html").write_text("x", encoding="utf-8")
+    for role in ("AUTHOR", "COMMITTER"):
+        monkeypatch.setenv(f"GIT_{role}_NAME", "intruder")
+        monkeypatch.setenv(f"GIT_{role}_EMAIL", "intruder@example.invalid")
+    assert commit_and_push(pages, "Build") is True
+    who = _git(origin, "log", "-1", "--format=%an <%ae>|%cn <%ce>", "gh-pages").strip()
+    assert who == "clima-uy bot <bot@example.invalid>|clima-uy bot <bot@example.invalid>"
+
+
+def test_cli_all_refuses_when_scan_fails(tmp_path, monkeypatch):
+    from climauy import cli, publish
+
+    (tmp_path / "archive").mkdir()
+    monkeypatch.setenv("CLIMAUY_ARCHIVE_DIR", str(tmp_path / "archive"))
+    monkeypatch.setenv("CLIMAUY_DB", str(tmp_path / "t.sqlite"))
+    monkeypatch.setenv("CLIMAUY_OUT", str(tmp_path / "pages"))
+    monkeypatch.setenv("CLIMAUY_PAGES_PUSH", "1")
+    monkeypatch.setattr(cli, "_now", lambda: NOW)
+
+    def unreadable(root):
+        raise PermissionError("unreadable file")
+
+    pushed = []
+    monkeypatch.setattr(publish, "scan_tree", unreadable)
+    monkeypatch.setattr(publish, "commit_and_push", lambda *a: pushed.append(a) or True)
+    assert cli.main(["all"]) == 1
+    assert pushed == []
 
 
 @pytest.mark.parametrize("missing", ["CLIMAUY_GIT_NAME", "CLIMAUY_GIT_EMAIL"])

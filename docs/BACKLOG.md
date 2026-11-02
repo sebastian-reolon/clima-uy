@@ -6,6 +6,7 @@ Lo que quedó para después, con el motivo.
 
 - **Crecimiento de las fotos diarias.** Cada foto (`snapshots/<día>/`) pesa unos 380 KB, así que la rama `gh-pages` suma unos 140 MB por año solo de fotos, más su historia en git. Antes de que pese, decidir entre podar las fotos viejas (por ejemplo, dejar una por semana pasado un año) o moverlas a archivos mensuales en GitHub Releases y dejar en el sitio solo el índice con los links.
 - **Historia de las medias diarias.** Cada exportación completa reescribe las medias diarias (unos 5 MB). Git guarda solo las líneas que cambian, pero la historia de `gh-pages` crece todos los días. Revisar el tamaño del repositorio a los tres meses.
+- **Costo del control de datos de infraestructura.** Antes de cada commit se revisa todo el árbol publicado, fotos incluidas, así que el tiempo crece con las fotos. Si se vuelve lento, revisar solo los archivos que cambiaron en la corrida (los que `git add -A` deja listos) más un control completo una vez por semana.
 
 ## Licencias
 

@@ -1,6 +1,7 @@
 {
- "generated_utc": "2026-11-02T12:24:17Z",
- "summary": "El río está más alto en Bella Unión (medido en Monte Caseros): más que el 94% de los días desde 1990. Sube en Bella Unión (medido en Monte Caseros), Mocoretá, Salto Grande Arriba, Salto Grande Abajo y 1 más; baja en Pepirí Miní, El Soberbio, Alba Posse, Panambí y 11 más. 1 estación supera su cota de alerta: Paso de los Libres.",
+ "generated_utc": "2026-11-02T13:38:55Z",
+ "last_data_utc": "2026-11-02T12:00:00Z",
+ "summary": "El río está más alto en Bella Unión (medido en Monte Caseros): más que el 94% de los días desde 1990. Sube en Bella Unión (medido en Monte Caseros), Mocoretá, Salto Grande Arriba, Salto Grande Abajo y 1 más; baja en Pepirí Miní, El Soberbio, Alba Posse, Panambí y 11 más. 1 estación alcanzó o superó su cota de alerta: Paso de los Libres.",
  "stations": [
   {
    "name": "Machadinho jusante",
@@ -8,6 +9,7 @@
    "variable_used": "discharge",
    "latest_value": 947.69,
    "latest_time_utc": "2026-11-02T10:00:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -20,7 +22,8 @@
    "level_m": 3.41,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 16.550308008213552
+   "history_years": 16.550308008213552,
+   "history_start_year": 2003
   },
   {
    "name": "Itá barramento",
@@ -28,6 +31,7 @@
    "variable_used": "discharge",
    "latest_value": 1417.0,
    "latest_time_utc": "2026-11-02T10:00:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -40,7 +44,8 @@
    "level_m": 367.88,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 23.006160164271048
+   "history_years": 23.006160164271048,
+   "history_start_year": 1995
   },
   {
    "name": "Foz do Chapecó jusante",
@@ -48,6 +53,7 @@
    "variable_used": "level",
    "latest_value": 2.94,
    "latest_time_utc": "2026-11-02T12:00:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -60,7 +66,8 @@
    "level_m": 2.94,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 0.008213552361396304
+   "history_years": 0.008213552361396304,
+   "history_start_year": 2026
   },
   {
    "name": "Iraí",
@@ -68,6 +75,7 @@
    "variable_used": "discharge",
    "latest_value": 1630.45,
    "latest_time_utc": "2026-11-02T12:00:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -80,7 +88,8 @@
    "level_m": 2.5500000000000003,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 36.421629021218344
+   "history_years": 36.421629021218344,
+   "history_start_year": 1990
   },
   {
    "name": "Itapiranga",
@@ -88,6 +97,7 @@
    "variable_used": "discharge",
    "latest_value": 2639.02,
    "latest_time_utc": "2026-11-02T11:15:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -100,7 +110,8 @@
    "level_m": 2.5300000000000002,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 11.222450376454484
+   "history_years": 11.222450376454484,
+   "history_start_year": 2015
   },
   {
    "name": "Pepirí Miní",
@@ -108,6 +119,7 @@
    "variable_used": "level",
    "latest_value": 3.75,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -1.5,
@@ -120,7 +132,8 @@
    "level_m": 3.75,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 18.579055441478438
+   "history_years": 18.579055441478438,
+   "history_start_year": 1990
   },
   {
    "name": "Alto Uruguai",
@@ -128,6 +141,7 @@
    "variable_used": "discharge",
    "latest_value": 1975.17,
    "latest_time_utc": "2026-11-02T11:30:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -140,7 +154,8 @@
    "level_m": 2.6380000000000003,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 13.42094455852156
+   "history_years": 13.42094455852156,
+   "history_start_year": 2013
   },
   {
    "name": "El Soberbio",
@@ -148,6 +163,7 @@
    "variable_used": "discharge",
    "latest_value": 3031.0,
    "latest_time_utc": "2026-11-01T10:00:00Z",
+   "latest_source": "ctm",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -0.7999999999999998,
@@ -160,7 +176,8 @@
    "level_m": 3.2,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 36.26557152635181
+   "history_years": 36.26557152635181,
+   "history_start_year": 1990
   },
   {
    "name": "Alba Posse",
@@ -168,6 +185,7 @@
    "variable_used": "level",
    "latest_value": 4.45,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -0.7999999999999998,
@@ -180,7 +198,8 @@
    "level_m": 4.45,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 17.590691307323752
+   "history_years": 17.590691307323752,
+   "history_start_year": 1990
   },
   {
    "name": "Porto Mauá",
@@ -188,6 +207,7 @@
    "variable_used": "level",
    "latest_value": 3.84,
    "latest_time_utc": "2026-11-02T11:30:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -200,7 +220,8 @@
    "level_m": 3.84,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 7.446954140999315
+   "history_years": 7.446954140999315,
+   "history_start_year": 2018
   },
   {
    "name": "Panambí",
@@ -208,6 +229,7 @@
    "variable_used": "level",
    "latest_value": 3.7,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -1.0999999999999996,
@@ -220,7 +242,8 @@
    "level_m": 3.7,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 14.72142368240931
+   "history_years": 14.72142368240931,
+   "history_start_year": 1990
   },
   {
    "name": "Porto Lucena",
@@ -228,6 +251,7 @@
    "variable_used": "discharge",
    "latest_value": 3332.75,
    "latest_time_utc": "2026-11-02T11:30:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -240,7 +264,8 @@
    "level_m": 2.13,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 36.25462012320329
+   "history_years": 36.25462012320329,
+   "history_start_year": 1990
   },
   {
    "name": "San Javier",
@@ -248,6 +273,7 @@
    "variable_used": "discharge",
    "latest_value": 3604.0,
    "latest_time_utc": "2026-11-01T10:00:00Z",
+   "latest_source": "ctm",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -1.17,
@@ -260,7 +286,8 @@
    "level_m": 3.33,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 36.602327173169066
+   "history_years": 36.602327173169066,
+   "history_start_year": 1990
   },
   {
    "name": "Puerto Concepción",
@@ -268,6 +295,7 @@
    "variable_used": "level",
    "latest_value": 3.6,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -3.1999999999999997,
@@ -280,7 +308,8 @@
    "level_m": 3.6,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 20.528405201916495
+   "history_years": 20.528405201916495,
+   "history_start_year": 2006
   },
   {
    "name": "Garruchos",
@@ -288,6 +317,7 @@
    "variable_used": "discharge",
    "latest_value": 4474.0,
    "latest_time_utc": "2026-11-01T10:00:00Z",
+   "latest_source": "ctm",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -4.05,
@@ -300,7 +330,8 @@
    "level_m": 4.83,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 26.43668720054757
+   "history_years": 26.43668720054757,
+   "history_start_year": 1990
   },
   {
    "name": "Santo Tomé",
@@ -308,6 +339,7 @@
    "variable_used": "discharge",
    "latest_value": 5616.0,
    "latest_time_utc": "2026-11-01T10:00:00Z",
+   "latest_source": "ctm",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -3.51,
@@ -320,7 +352,8 @@
    "level_m": 6.64,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 36.5201916495551
+   "history_years": 36.5201916495551,
+   "history_start_year": 1990
   },
   {
    "name": "Passo São Borja",
@@ -328,6 +361,7 @@
    "variable_used": "discharge",
    "latest_value": 5121.88,
    "latest_time_utc": "2026-11-02T11:45:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -340,7 +374,8 @@
    "level_m": 5.59,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 24.421629021218344
+   "history_years": 24.421629021218344,
+   "history_start_year": 1990
   },
   {
    "name": "Alvear",
@@ -348,6 +383,7 @@
    "variable_used": "level",
    "latest_value": 8.0,
    "latest_time_utc": "2026-11-01T10:00:00Z",
+   "latest_source": "ctm",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -1.0699999999999985,
@@ -360,7 +396,8 @@
    "level_m": 8.0,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 20.20807665982204
+   "history_years": 20.20807665982204,
+   "history_start_year": 2006
   },
   {
    "name": "Itaqui",
@@ -368,6 +405,7 @@
    "variable_used": "discharge",
    "latest_value": 5853.07,
    "latest_time_utc": "2026-11-02T11:15:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -380,7 +418,8 @@
    "level_m": 5.93,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 19.422313483915126
+   "history_years": 19.422313483915126,
+   "history_start_year": 2007
   },
   {
    "name": "La Cruz",
@@ -388,6 +427,7 @@
    "variable_used": "level",
    "latest_value": 8.12,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -0.9600000000000009,
@@ -400,7 +440,8 @@
    "level_m": 8.12,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 20.04928131416838
+   "history_years": 20.04928131416838,
+   "history_start_year": 2006
   },
   {
    "name": "Yapeyú",
@@ -408,6 +449,7 @@
    "variable_used": "level",
    "latest_value": 7.98,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -0.5,
@@ -420,7 +462,8 @@
    "level_m": 7.98,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 20.59958932238193
+   "history_years": 20.59958932238193,
+   "history_start_year": 2006
   },
   {
    "name": "Ibirapuitã Alegrete",
@@ -428,6 +471,7 @@
    "variable_used": "discharge",
    "latest_value": 40.47,
    "latest_time_utc": "2026-11-02T11:15:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -440,7 +484,8 @@
    "level_m": 1.949,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 36.394250513347025
+   "history_years": 36.394250513347025,
+   "history_start_year": 1990
   },
   {
    "name": "Ibicuí Passo Mariano Pinto",
@@ -448,6 +493,7 @@
    "variable_used": "discharge",
    "latest_value": 969.63,
    "latest_time_utc": "2026-11-02T11:30:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -460,7 +506,8 @@
    "level_m": 3.47,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 36.421629021218344
+   "history_years": 36.421629021218344,
+   "history_start_year": 1990
   },
   {
    "name": "Paso de los Libres",
@@ -468,6 +515,7 @@
    "variable_used": "discharge",
    "latest_value": 12197.0,
    "latest_time_utc": "2026-11-01T10:00:00Z",
+   "latest_source": "ctm",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -0.4500000000000002,
@@ -480,7 +528,8 @@
    "level_m": 7.66,
    "above_alert": true,
    "above_evac": false,
-   "history_years": 36.32580424366872
+   "history_years": 36.32580424366872,
+   "history_start_year": 1990
   },
   {
    "name": "Uruguaiana",
@@ -488,6 +537,7 @@
    "variable_used": "discharge",
    "latest_value": 11245.98,
    "latest_time_utc": "2026-11-02T11:30:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -500,7 +550,8 @@
    "level_m": 7.624,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 35.92607802874743
+   "history_years": 35.92607802874743,
+   "history_start_year": 1990
   },
   {
    "name": "Quaraí",
@@ -508,6 +559,7 @@
    "variable_used": "discharge",
    "latest_value": 22.12,
    "latest_time_utc": "2026-11-02T12:00:00Z",
+   "latest_source": "ana",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -520,7 +572,8 @@
    "level_m": 1.18,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 32.9637234770705
+   "history_years": 32.9637234770705,
+   "history_start_year": 1993
   },
   {
    "name": "Monte Caseros",
@@ -528,6 +581,7 @@
    "variable_used": "level",
    "latest_value": 6.05,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": 0.25,
@@ -540,7 +594,8 @@
    "level_m": 6.05,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 23.802874743326488
+   "history_years": 23.802874743326488,
+   "history_start_year": 1990
   },
   {
    "name": "Mocoretá",
@@ -548,6 +603,7 @@
    "variable_used": "level",
    "latest_value": 9.18,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": 0.3699999999999992,
@@ -560,7 +616,8 @@
    "level_m": 9.18,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 20.227241615331966
+   "history_years": 20.227241615331966,
+   "history_start_year": 2006
   },
   {
    "name": "Salto Grande Arriba",
@@ -568,6 +625,7 @@
    "variable_used": "discharge",
    "latest_value": 13956.0,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": 0.37999999999999545,
@@ -580,7 +638,8 @@
    "level_m": 34.99,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 31.279945242984258
+   "history_years": 31.279945242984258,
+   "history_start_year": 1995
   },
   {
    "name": "Salto Grande Abajo",
@@ -588,6 +647,7 @@
    "variable_used": "discharge",
    "latest_value": 13159.0,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": 0.29999999999999893,
@@ -600,7 +660,8 @@
    "level_m": 12.35,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 20.657084188911703
+   "history_years": 20.657084188911703,
+   "history_start_year": 2006
   },
   {
    "name": "Concordia",
@@ -608,6 +669,7 @@
    "variable_used": "level",
    "latest_value": 9.3,
    "latest_time_utc": "2026-11-01T10:00:00Z",
+   "latest_source": "ctm",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": 0.3000000000000007,
@@ -620,7 +682,8 @@
    "level_m": 9.3,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 36.65434633812457
+   "history_years": 36.65434633812457,
+   "history_start_year": 1990
   },
   {
    "name": "Colón",
@@ -628,6 +691,7 @@
    "variable_used": "level",
    "latest_value": 5.5,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": 0.0,
@@ -640,7 +704,8 @@
    "level_m": 5.5,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 36.63244353182751
+   "history_years": 36.63244353182751,
+   "history_start_year": 1990
   },
   {
    "name": "Concepción del Uruguay",
@@ -648,6 +713,7 @@
    "variable_used": "level",
    "latest_value": 4.3,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -0.08000000000000007,
@@ -660,7 +726,8 @@
    "level_m": 4.3,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 36.610540725530456
+   "history_years": 36.610540725530456,
+   "history_start_year": 1990
   },
   {
    "name": "Campichuelo",
@@ -668,6 +735,7 @@
    "variable_used": "level",
    "latest_value": 3.32,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -0.11000000000000032,
@@ -680,7 +748,8 @@
    "level_m": 3.32,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 26.469541409993155
+   "history_years": 26.469541409993155,
+   "history_start_year": 1996
   },
   {
    "name": "Gualeguaychú",
@@ -688,6 +757,7 @@
    "variable_used": "level",
    "latest_value": 2.2,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -0.19999999999999973,
@@ -700,7 +770,8 @@
    "level_m": 2.2,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 20.700889801505816
+   "history_years": 20.700889801505816,
+   "history_start_year": 2006
   },
   {
    "name": "Boca Gualeguaychú",
@@ -708,6 +779,7 @@
    "variable_used": "level",
    "latest_value": 2.1,
    "latest_time_utc": "2026-11-01T03:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -0.19999999999999973,
@@ -720,7 +792,8 @@
    "level_m": 2.1,
    "above_alert": false,
    "above_evac": false,
-   "history_years": 35.200547570157426
+   "history_years": 35.200547570157426,
+   "history_start_year": 1990
   },
   {
    "name": "Fray Bentos",
@@ -728,6 +801,7 @@
    "variable_used": "level",
    "latest_value": null,
    "latest_time_utc": null,
+   "latest_source": null,
    "stale": true,
    "stale_since": null,
    "level_change_3d_m": null,
@@ -740,7 +814,8 @@
    "level_m": null,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 0.0
+   "history_years": 0.0,
+   "history_start_year": null
   },
   {
    "name": "Nueva Palmira",
@@ -748,6 +823,7 @@
    "variable_used": "level",
    "latest_value": 1.17,
    "latest_time_utc": "2026-11-02T11:00:00Z",
+   "latest_source": "ina",
    "stale": false,
    "stale_since": null,
    "level_change_3d_m": -0.07683823529411771,
@@ -760,7 +836,8 @@
    "level_m": 1.17,
    "above_alert": null,
    "above_evac": null,
-   "history_years": 0.2737850787132101
+   "history_years": 0.2737850787132101,
+   "history_start_year": 2026
   }
  ]
 }

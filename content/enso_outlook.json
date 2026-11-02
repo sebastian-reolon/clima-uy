@@ -3,8 +3,12 @@
   "source": "El Observador, 15/10/2026, sobre el boletín de perspectivas climáticas INUMET-UdelaR de octubre de 2026",
   "source_outlet": "El Observador",
   "source_url": "https://www.elobservador.com.uy/nacional/el-nino-ya-llego-y-sera-muy-fuerte-inumet-anticipa-mas-lluvias-y-revela-cuando-se-extendera-el-fenomeno-n6060512",
-  "peak": "noviembre y diciembre de 2026",
-  "second_window": "marzo a mayo de 2027",
+  "persists": {
+    "until": "marzo a mayo de 2027",
+    "probability": "más de 80%",
+    "by": "NOAA CPC",
+    "note": "Del artículo citado: según la NOAA CPC, citada por INUMET, El Niño se mantendría al menos hasta marzo-abril-mayo de 2027, con probabilidad superior al 80%."
+  },
   "variable": "lluvia",
   "terciles": [
     "por encima de lo normal",
@@ -56,7 +60,7 @@
       "DJF": null
     },
     {
-      "name": "Centro",
+      "name": "Parte del centro",
       "OND": [
         60,
         30,
@@ -66,7 +70,7 @@
       "DJF": null
     },
     {
-      "name": "Este",
+      "name": "Parte del este",
       "OND": [
         60,
         30,

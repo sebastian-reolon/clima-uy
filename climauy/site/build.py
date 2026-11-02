@@ -440,7 +440,7 @@ def _outlook(path: Path) -> dict:
     north_only = [s["label"] for s in data["seasons"]
                   if others and all(not r.get(s["code"]) or r[s["code"]][0] is None for r in others)]
     return {"source": _outlook_source(data), "source_url": data["source_url"],
-            "issued": day_numeric(date.fromisoformat(data["issued"])), "second_window": data["second_window"],
+            "issued": day_numeric(date.fromisoformat(data["issued"])), "persists": data["persists"],
             "north_only": " y ".join(north_only), "seasons": data["seasons"], "rows": rows}
 
 
@@ -700,7 +700,7 @@ def _outlook_source(data: dict) -> str:
 
 
 def _enso_kv(store: Store, outlook_path: Path, today: date) -> dict:
-    """The home's El Niño block: latest RONI and ONI, expected peak, north's rain, second window."""
+    """The home's El Niño block: latest RONI and ONI, north's rain, and how long El Niño lasts (as cited)."""
     data = json.loads(outlook_path.read_text(encoding="utf-8"))
     ronis = [i for i in store.indices("RONI") if is_season(i.period)]
     latest = max(ronis, key=lambda i: season_key(i.period)) if ronis else None
@@ -710,11 +710,11 @@ def _enso_kv(store: Store, outlook_path: Path, today: date) -> dict:
         oni = next((i for i in store.indices("ONI") if i.period == latest.period), None)
         if oni is not None:
             rows.append(("ONI", f"{signed(oni.value)} °C"))
-    rows.append(("Pico esperado", data["peak"]))
     rain = _north_rain(data, today)
     if rain:
-        rows.append((f"Lluvia norte, {rain[0]}", f"{rain[1]}% sobre lo normal"))
-    rows.append(("Segunda ventana", data["second_window"]))
+        rows.append((f"Lluvia norte, {rain[0]}", f"{rain[1]}% de probabilidad de lluvia sobre lo normal"))
+    lasts = data["persists"]
+    rows.append(("Sigue al menos hasta", f"{lasts['until']}, {lasts['probability']} de probabilidad ({lasts['by']})"))
     source = {"label": "Fuente", "text": _outlook_source(data), "url": data["source_url"]}
     return {"source": source, "period": _season_span(latest.period) if latest else None, "rows": rows}
 

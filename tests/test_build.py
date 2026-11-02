@@ -231,7 +231,9 @@ def test_nino_enso_tables(site):
     titles = [_text(t) for t in re.findall(r"<h2[^>]*>(.*?)</h2>", html, flags=re.S)]
     assert titles == ["Los dos índices", "Qué espera INUMET", "Notas"]
     notes = _flat(re.search(r'<ol class="notas">.*?</ol>', html, flags=re.S).group(0))
-    assert "Se espera una segunda ventana de lluvias de marzo a mayo de 2027." in notes
+    assert "segunda ventana" not in _flat(html).lower() and "Pico esperado" not in html
+    assert ("Según la NOAA CPC, citada por INUMET, El Niño seguiría al menos hasta marzo a mayo de 2027, "
+            "con más de 80% de probabilidad.") in notes
     assert "Perspectiva de lluvias: INUMET, boletín de octubre de 2026, vía El Observador (15/10/2026)." in notes
     assert "El índice oficial de la NOAA es el RONI" in notes
     assert 'href="/clima-uy/"' in html[html.index("<h2>Qué espera INUMET</h2>"):]  # back to the river summary
@@ -338,7 +340,7 @@ def test_outlook_missing_cells(site):
     html = _read(out, "nino/index.html")
     table = _table(html, "outlook")
     rows = _rows(table)
-    assert [r[1] for r in rows] == ["Norte", "Noreste", "Centro", "Este", "Resto del país"]
+    assert [r[1] for r in rows] == ["Norte", "Noreste", "Parte del centro", "Parte del este", "Resto del país"]
     assert rows[0][2] == ["60% normal 30, menos 10", "60%", "50%"]
     assert sum(c == "—" for r in rows for c in r[2]) == 8  # NDJ and DJF for the four regions besides Norte
     # Labelled cells, so the table stacks into one block per region on phones.
@@ -776,9 +778,8 @@ def test_home_enso_block(home):
     assert pairs == [
         ("RONI (oficial NOAA)", "+1,69 °C"),
         ("ONI", "+2,16 °C"),
-        ("Pico esperado", "noviembre y diciembre de 2026"),
-        ("Lluvia norte, noviembre a enero", "60% sobre lo normal"),
-        ("Segunda ventana", "marzo a mayo de 2027"),
+        ("Lluvia norte, noviembre a enero", "60% de probabilidad de lluvia sobre lo normal"),
+        ("Sigue al menos hasta", "marzo a mayo de 2027, más de 80% de probabilidad (NOAA CPC)"),
         ("Fuente", "INUMET, boletín de octubre de 2026, vía El Observador"),
     ]
     assert 'href="/clima-uy/nino/"' in block

@@ -750,7 +750,12 @@ def profile_plan_svg(statuses: Sequence[StationStatus], catalog: Sequence[Statio
         o.append(f'<text x="{_f(X(k))}" y="{_f(T + ph + 20)}" class="ax" text-anchor="middle">{_num(k, 0)}</text>')
     caption = ("km desde Machadinho, en línea recta entre estaciones (aprox.)" if big
                else "km desde Machadinho (aprox.)")
-    o.append(f'<text x="{L}" y="{_f(T + ph + 40)}" class="ax">{escape(caption)}</text>')
+    if big:
+        o.append(f'<text x="{L}" y="{_f(T + ph + 40)}" class="ax">{escape(caption)}</text>')
+    else:
+        # Phone: the callouts cascade right under the axis and their leaders would cross the caption,
+        # so it goes above the plot, across from «percentil».
+        o.append(f'<text x="{width - R}" y="{T - 14}" class="ax" text-anchor="end">{escape(caption)}</text>')
 
     uy = next((s for s in catalog if s.represents == PLAN_UY_CITY and s.id in km), None)
     if uy is not None:
@@ -813,8 +818,8 @@ def profile_plan_svg(statuses: Sequence[StationStatus], catalog: Sequence[Statio
         o.append(f'<text x="{L}" y="{_f(T + ph + 58)}" class="ax">{escape(legend)}</text>')
         base = T + ph + 76
     # A top-row box under the km caption would hide it: drop the rows below it.
-    caption_right = L + len(caption) * 6.0
-    if any(slot and slot[0] == 0 and slot[1] < caption_right and base - 14 < T + ph + 44 for slot in slots):
+    caption_right = L + len(caption) * 6.0 if big else L
+    if big and any(slot and slot[0] == 0 and slot[1] < caption_right and base - 14 < T + ph + 44 for slot in slots):
         base = T + ph + 44 + 14
     leaders, boxes, texts = [], [], []
     bottom = 0.0

@@ -867,3 +867,15 @@ def test_plan_profile_title_and_desc_are_referenced_by_id():
         assert root.get("aria-describedby") == desc.get("id")
         ids |= {title.get("id"), desc.get("id")}
     assert len(ids) == 4
+
+
+def test_plan_profile_phone_km_caption_is_clear_of_the_leaders():
+    """Phone: the km caption sits above the plot, where no leader runs (leaders go down from the points)."""
+    for sts in (today_statuses(), flood_statuses()):
+        root = parse(phone(sts))
+        cap = next(t for t in by_class(root, "text", "ax") if t.text == "km desde Machadinho (aprox.)")
+        top = min(float(l.get("y1")) for l in root.iter(SVG_NS + "line") if l.get("class", "").startswith("g"))
+        assert float(cap.get("y")) < top
+        assert cap.get("text-anchor") == "end"
+        for lead in by_class(root, "line", "lead"):
+            assert float(lead.get("y1")) > float(cap.get("y"))

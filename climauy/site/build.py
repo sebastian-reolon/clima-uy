@@ -27,6 +27,7 @@ from ..fmt import (
     season_key, season_label, signed,
 )
 from ..narrative import enso_summary, river_summary
+from ..publish import derived_only_labels, series_exported
 from ..store import Store
 from ..timeutil import local_day
 from . import charts
@@ -390,7 +391,7 @@ def _downloads(store: Store, catalog: Sequence[Station], now_utc: datetime) -> d
     series = []
     for st in catalog:
         for variable in ("level", "discharge"):
-            if store.latest_obs_time(st.id, variable) is not None:
+            if series_exported(store, st, variable):
                 series.append({"name": f"{st.name}, {VARIABLE_NAMES[variable]}",
                                "path": f"data/rio/daily/{st.id}_{variable}.csv"})
     months = []
@@ -399,7 +400,13 @@ def _downloads(store: Store, catalog: Sequence[Station], now_utc: datetime) -> d
     while m <= today:
         months.append({"key": f"{m.year}-{m.month:02d}", "label": f"{MONTHS[m.month - 1]} de {m.year}"})
         m = (m + timedelta(days=32)).replace(day=1)
-    return {"series": series, "months": months}
+    labels = derived_only_labels()
+    derived = ""
+    if labels:
+        who = labels[0] if len(labels) == 1 else ", ".join(labels[:-1]) + " y " + labels[-1]
+        derived = (f"De {who} se publica solo lo derivado (estados, percentiles y la frase del día) con el link "
+                   "a la fuente, porque sus condiciones no aclaran si se pueden republicar las series completas.")
+    return {"series": series, "months": months, "derived": derived}
 
 
 def _catalog_rows(catalog: Sequence[Station]) -> list[dict]:

@@ -319,3 +319,41 @@ def test_cli_all_fails_when_push_fails(tmp_path, monkeypatch):
 
     monkeypatch.setattr(publish, "commit_and_push", boom)
     assert cli.main(["all"]) != 0
+
+
+DERIVED_SENTENCE = "se publica solo lo derivado"
+
+
+@pytest.mark.parametrize("restricted", [False, True])
+def test_licence_switch_drops_series_files_and_says_so(seeded, monkeypatch, restricted):
+    from climauy import publish
+
+    if restricted:
+        monkeypatch.setattr(publish, "FULL_SERIES_SOURCES", frozenset({"ana", "ana_hist"}))
+        monkeypatch.setattr(publish, "FULL_FORECAST_ISSUERS", frozenset({"glofas"}))
+    store, out = seeded
+    build_site(store, load_catalog(), out, NOW, base_url=BASE)
+    export_data(store, load_catalog(), out, NOW, full=True)
+    write_snapshot(out, local_day(NOW), base_url=BASE)
+
+    datos = (out / "datos/index.html").read_text(encoding="utf-8")
+    nov_raw = _rows(out / "data/rio/raw/2026-11.csv")[1:]
+    nov_fc = _rows(out / "data/rio/forecasts/2026-11.csv")[1:]
+    assert (out / "data/rio/daily/ana_77150000_discharge.csv").is_file()
+    if restricted:
+        assert DERIVED_SENTENCE in datos and "INA y Prefectura Naval Argentina" in datos
+        assert "los pronósticos del INA" in datos
+        assert not (out / "data/rio/daily/ina_74_level.csv").exists()
+        assert "ina_74_level.csv" not in datos
+        assert nov_raw and {r[4] for r in nov_raw} == {"ana"}
+        assert nov_fc == []
+    else:
+        assert DERIVED_SENTENCE not in datos
+        assert (out / "data/rio/daily/ina_74_level.csv").is_file()
+        assert "ina" in {r[4] for r in nov_raw} and nov_fc
+    for page in ("index.html", "rio/index.html", "datos/index.html"):
+        for rel in _targets(out / page, out):
+            assert _resolves(out, rel), f"{page}: {rel}"
+    # Derived states of every station stay in latest.json.
+    latest = json.loads((out / "data/rio/latest.json").read_text(encoding="utf-8"))
+    assert "ina_74" in {s["station_id"] for s in latest["stations"]}

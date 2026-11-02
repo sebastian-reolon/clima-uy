@@ -28,10 +28,15 @@ ARCHIVE_START = date(2026, 11, 1)
 # Full exports run once per local day, on the first run at or after this local time.
 FULL_EXPORT_AFTER = time(0, 30)
 _FULL_KEY = "last_full_export_day"
-# Sources whose readings are republished in full (daily and raw files). The
-# licence review (docs/licencias.md) decides this set; removing a source here
-# keeps it in latest.json (derived states) but drops its series files.
+# Sources whose readings, and issuers whose forecasts, are republished in full
+# (daily, raw and forecast files). The licence review (docs/licencias.md)
+# decides these sets; a source left out still feeds the derived states in
+# latest.json and the pages, and the Datos page says so.
 FULL_SERIES_SOURCES = frozenset({"ana", "ana_hist", "ina", "ctm"})
+FULL_FORECAST_ISSUERS = frozenset({"ina", "glofas"})
+SOURCE_LABELS = {"ana": "ANA (Brasil)", "ana_hist": "ANA (Brasil)", "ina": "INA y Prefectura Naval Argentina",
+                 "ctm": "CTM Salto Grande"}
+ISSUER_LABELS = {"ina": "los pronósticos del INA", "glofas": "los pronósticos de GloFAS"}
 INDEX_NAMES = ("RONI", "ONI", "NINO34_WEEKLY")
 VARIABLES = ("level", "discharge")
 
@@ -99,12 +104,30 @@ def _station_rows(catalog: Sequence[Station]) -> list[list]:
     return rows
 
 
+def series_exported(store: Store, station: Station, variable: str) -> bool:
+    """True when this station and variable get a daily CSV (used by export and the Datos page)."""
+    sources = [s for s in family_for(station, variable) if s in FULL_SERIES_SOURCES]
+    return bool(sources) and store.has_obs(station.id, variable, sources)
+
+
+def derived_only_labels() -> list[str]:
+    """Names of the sources and forecast issuers published only as derived values."""
+    out = []
+    for key, label in SOURCE_LABELS.items():
+        if key not in FULL_SERIES_SOURCES and label not in out:
+            out.append(label)
+    out += [label for key, label in ISSUER_LABELS.items() if key not in FULL_FORECAST_ISSUERS]
+    return out
+
+
 def _daily_rows(store: Store, station: Station, variable: str) -> list[list]:
-    """Per local day the mean and count of the winning source (same choice as family_daily)."""
-    family = family_for(station, variable)
+    """Per local day the mean and count of the winning source (same choice as family_daily),
+    among the sources republished in full."""
+    family = [s for s in family_for(station, variable) if s in FULL_SERIES_SOURCES]
     by_day: dict[date, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     for o in station_readings(store, station, variable):
-        by_day[local_day(o.time_utc)][o.source].append(o.value)
+        if o.source in family:
+            by_day[local_day(o.time_utc)][o.source].append(o.value)
     rows = []
     for d in sorted(by_day):
         src = next(s for s in family if s in by_day[d])
@@ -159,10 +182,9 @@ def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc
     for st in catalog:
         for variable in VARIABLES:
             # Same predicate as the Datos page, so every listed link has a file.
-            if store.latest_obs_time(st.id, variable) is None:
-                continue
-            rows = _daily_rows(store, st, variable) if set(family_for(st, variable)) & FULL_SERIES_SOURCES else []
-            written.append(_write_csv(rio / "daily" / f"{st.id}_{variable}.csv", DAILY_COLUMNS, rows))
+            if series_exported(store, st, variable):
+                written.append(_write_csv(rio / "daily" / f"{st.id}_{variable}.csv", DAILY_COLUMNS,
+                                          _daily_rows(store, st, variable)))
 
     today = local_day(now_utc)
     current = date(today.year, today.month, 1)
@@ -177,7 +199,7 @@ def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc
         if m == current or not fc.exists():
             written.append(_write_csv(fc, FORECAST_COLUMNS, (
                 [f.issuer, f.station_id, f.variable, _utc(f.issued_utc), _utc(f.valid_utc), f.qualifier, f.value]
-                for f in store.forecasts_issued_between(start, end))))
+                for f in store.forecasts_issued_between(start, end) if f.issuer in FULL_FORECAST_ISSUERS)))
 
     written.append(_write_csv(out_dir / "data" / "enso" / "indices.csv", INDEX_COLUMNS, (
         [i.name, i.period, i.value] for name in INDEX_NAMES for i in store.indices(name))))

@@ -13,6 +13,9 @@
     <li><a href="{{ base }}/data/rio/stations.csv">Catálogo de estaciones (CSV)</a></li>
     <li><a href="{{ base }}/data/enso/indices.csv">Índices RONI, ONI y Niño 3.4 semanal (CSV)</a></li>
   </ul>
+  {% if downloads.derived %}
+  <p class="prose">{{ downloads.derived }}</p>
+  {% endif %}
   <h3>Lecturas crudas y pronósticos, por mes</h3>
   <p class="prose">Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo.</p>
   <ul class="downloads">

@@ -10,7 +10,7 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Iterable, Literal
+from typing import Iterable, Literal, Sequence
 
 _FMT = "%Y-%m-%dT%H:%M:%SZ"
 
@@ -312,3 +312,14 @@ class Store:
                 "INSERT INTO meta (key, value) VALUES (?,?) ON CONFLICT (key) DO UPDATE SET value=excluded.value",
                 (key, value),
             )
+
+    def has_obs(self, station_id: str, variable: str, sources: Sequence[str]) -> bool:
+        """True if any non-suspect observation of this series comes from one of the sources."""
+        if not sources:
+            return False
+        marks = ",".join("?" * len(sources))
+        row = self._conn.execute(
+            f"SELECT 1 FROM obs WHERE station_id=? AND variable=? AND quality='ok' AND source IN ({marks}) LIMIT 1",
+            (station_id, variable, *sources),
+        ).fetchone()
+        return row is not None

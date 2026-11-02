@@ -20,7 +20,7 @@ from xml.sax.saxutils import escape
 
 from ..analysis.lag import LagResult
 from ..analysis.status import StationStatus
-from ..catalog import Station
+from ..catalog import MAIN_RIVER, Station, great_circle_km, river_km  # noqa: F401 (re-exported)
 from ..fmt import day_numeric as _day, day_short as _day_short, days as _days
 from ..fmt import is_record, record_text, since_year
 from ..fmt import meters as _m, num as _num, pct as _pct
@@ -474,7 +474,6 @@ def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -
 # on a linear axis. Styled by the `.perfil` rules of static/v2/css/site.css
 # (class names below), not inline, like the approved mockup.
 
-MAIN_RIVER = "Uruguay"
 PLAN_WIDE_W = 1100
 # Ruling 6: the Uruguayan stretch starts this many wide-variant units upstream
 # of Bella Unión's station. Turned into km once, so the shading starts at the
@@ -484,42 +483,11 @@ PLAN_UY_CITY = "Bella Unión"
 # Ruling 7: the phone variant starts here, or 60 km above the first callout.
 PHONE_START_KM = 620.0
 PHONE_CALLOUT_LEAD_KM = 60.0
-_EARTH_KM = 6371.0
 
 
 def _plan_margins(variant: str) -> tuple[int, int, int, int]:
     """Left, right, top, bottom margins in viewBox units."""
     return (64, 24, 36, 150) if variant == "wide" else (34, 8, 36, 240)
-
-
-def great_circle_km(a: Station, b: Station) -> float:
-    p1, p2 = math.radians(a.lat), math.radians(b.lat)
-    dp, dl = p2 - p1, math.radians(b.lon - a.lon)
-    h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
-    return 2 * _EARTH_KM * math.asin(math.sqrt(h))
-
-
-def river_km(catalog: Sequence[Station]) -> dict[str, float]:
-    """Cumulative great-circle km of each main-river station from the first one, in catalogue order (Ruling 5).
-
-    A station at the very same point as the previous one is a twin gauge
-    (Salto Grande Arriba and Abajo, upstream and downstream of the dam): only
-    the first, Arriba, is kept.
-    """
-    km: dict[str, float] = {}
-    acc = 0.0
-    prev: Station | None = None
-    for st in sorted(catalog, key=lambda s: s.order):
-        if st.river != MAIN_RIVER:
-            continue
-        if prev is not None:
-            step = great_circle_km(prev, st)
-            if step < 1e-6:
-                continue
-            acc += step
-        km[st.id] = acc
-        prev = st
-    return km
 
 
 def _plan_points(statuses: Sequence[StationStatus], catalog: Sequence[Station],

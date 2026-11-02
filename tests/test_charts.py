@@ -437,3 +437,14 @@ def test_profile_alert_tick_only_for_level_stations():
     assert "Santo Tomé: hoy 80;" in desc
     assert "Paso de los Libres: hoy 85, alerta en 93" in desc
     assert desc.count("alerta en") == 1
+
+
+def test_glofas_chart_says_downloaded_not_issued():
+    fetched = datetime(2026, 11, 2, 12, 23, tzinfo=timezone.utc)
+    fc = [Forecast("glofas", "x", "discharge", fetched, datetime(2026, 11, 2 + k, 3, tzinfo=timezone.utc), "median", 9000.0)
+          for k in (1, 2)]
+    svg = forecast_band_svg({date(2026, 11, 1): 9500.0}, fc)
+    assert "Pronóstico GloFAS bajado el 2/11/2026" in parse(svg).find("s:desc", NS).text
+    assert "bajado el 2/11" in texts_of(svg) and not any("emitido" in t for t in texts_of(svg))
+    ina = forecast_band_svg({date(2026, 10, 31): 6.0}, forecasts())
+    assert "emitido el" in parse(ina).find("s:desc", NS).text

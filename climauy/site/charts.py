@@ -662,7 +662,9 @@ def forecast_band_svg(obs_daily: dict[date, float], forecast: list[Forecast]) ->
 
     ix = x(issue_day)
     body.append(_line(ix, F_TOP - 6, ix, F_BOTTOM, INK_2, 1, dash="3 3"))
-    body.append(_text(ix + 6, F_BOTTOM + 30, f"emitido el {_day_short(issue_day)}", fill=INK_2))
+    # GloFAS has no run time: its stamp is when it was downloaded.
+    issued_word = "bajado" if issuer == "glofas" else "emitido"
+    body.append(_text(ix + 6, F_BOTTOM + 30, f"{issued_word} el {_day_short(issue_day)}", fill=INK_2))
     body.append(_text(F_LEFT, F_BOTTOM + 30, _day_short(first), fill=INK_2))
     body.append(_text(F_RIGHT, F_BOTTOM + 30, _day_short(last_fc), anchor="end", fill=INK_2))
 
@@ -689,7 +691,7 @@ def forecast_band_svg(obs_daily: dict[date, float], forecast: list[Forecast]) ->
            if bands and d in per_q.get(bands[-1][0], {}) and d in per_q.get(bands[-1][1], {}) else "")
         for d in fc_days
     )
-    desc = f"Pronóstico {issuer_name} emitido el {_day(issue_day)}, {axis_name} en {unit}. "
+    desc = f"Pronóstico {issuer_name} {issued_word} el {_day(issue_day)}, {axis_name} en {unit}. "
     if obs_days:
         desc += f"Último observado: {_num(obs[obs_days[-1]])} el {_day(obs_days[-1])}. "
     desc += f"Pronóstico: {fc_txt}." if fc_txt else "El pronóstico no trae valores."

@@ -558,6 +558,31 @@ def _plan_unranked_alerts(statuses: Sequence[StationStatus], catalog: Sequence[S
     return out
 
 
+def _plan_dark_cities(statuses: Sequence[StationStatus], catalog: Sequence[Station],
+                      start_km: float = 0.0) -> list[tuple[float, StationStatus | None, Station]]:
+    """Main-river city gauges with nothing to plot (stale, no reading, no status or no percentile).
+
+    They keep their callout, without a dot, so a missing city is a visible gap and not a silent one.
+    """
+    by_id = {s.station_id: s for s in statuses}
+    stations = {s.id: s for s in catalog}
+    out = []
+    for sid, k in river_km(catalog).items():
+        st, ss = stations[sid], by_id.get(sid)
+        if st.represents is None or not st.sources or k < start_km:
+            continue
+        if ss is None or ss.percentile_today is None and not (ss.above_alert and not ss.stale):
+            out.append((k, ss, st))
+    return out
+
+
+def _dark_label(ss: StationStatus | None, st: Station) -> tuple[str, str, bool]:
+    if ss is None or ss.stale or ss.latest_value is None:
+        return st.represents, "sin dato al día", False
+    name, value, _ = _plan_label(ss, st)
+    return name, value.replace("sobre alerta · ", ""), False
+
+
 def _label_alerts(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> bool:
     """Whether non-city stations above alert get callouts: judged on the whole river, same for both variants."""
     marks = _plan_points(statuses, catalog) + _plan_unranked_alerts(statuses, catalog)
@@ -754,9 +779,12 @@ def profile_plan_svg(statuses: Sequence[StationStatus], catalog: Sequence[Statio
     # at the top grid line (y + 6 below is the leader's start).
     unranked = [(X(k), T - 6, ss, st) for k, ss, st in _plan_unranked_alerts(statuses, catalog, k0)]
     label_alerts = _label_alerts(statuses, catalog)
+    dark = [(X(k), T - 6, ss, st) for k, ss, st in _plan_dark_cities(statuses, catalog, k0)]
     shown = sorted(((x, y, ss, st) for x, y, ss, st in xy + unranked if _is_callout(ss, st, label_alerts)),
                    key=lambda m: m[0])
-    calls = [(x, y, *_plan_label(ss, st)) for x, y, ss, st in shown]
+    shown = sorted(shown + dark, key=lambda m: m[0])
+    dark_ids = {st.id for *_, st in dark}
+    calls = [(x, y, *(_dark_label(ss, st) if st.id in dark_ids else _plan_label(ss, st))) for x, y, ss, st in shown]
     is_city = [st.represents is not None for _, _, _, st in shown]
     # Every red mark in this variant: alert dots, cities included, and the alerts without a percentile.
     red = sum(bool(ss.above_alert) for _, _, ss, _ in xy) + len(unranked)

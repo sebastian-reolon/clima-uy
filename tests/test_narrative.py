@@ -330,17 +330,42 @@ def test_headline_city_without_alert_comparison_is_not_a_city():
     s = sts(mc=("sube", 95, 0.2, None), con=("baja", 50, -0.1, False))
     h1, sub = river_headline(s, RCAT)
     assert h1 == "El río está en valores normales y baja frente a Salto."
-    assert sub.startswith("Ninguna regla")
+    assert sub.startswith("Ninguna de las reglas con dato al día llegó a su cota de alerta. "
+                          "Frente a Bella Unión y Paysandú no hay dato al día.")
     only_none = sts(mc=("sube", 95, 0.2, None))
     assert river_headline(only_none, RCAT) == ("No hay datos al día del río frente a las ciudades uruguayas.", "")
 
 
-def test_headline_stale_city_next_to_fresh_one():
-    s = sts(mc=("sube", 99, 0.2, True), con=("baja", 50, -0.1, False))
-    s = [x if x.station_id != "mc" else rstatus("mc", "sube", pct=99, above=True, stale=True) for x in s]
+def test_headline_stale_city_next_to_fresh_ones():
+    # As compute_status leaves a stale gauge: no level, no percentile, no alert comparison.
+    s = sts(mc=("sube", 95, 0.2, False), con=("baja", 50, -0.1, False), col=("baja", 60, -0.1, False))
+    s = [x if x.station_id != "mc" else rstatus("mc", None, pct=None, above=None, stale=True) for x in s]
     h1, sub = river_headline(s, RCAT)
-    assert h1 == "El río está en valores normales y baja frente a Salto."
-    assert sub.startswith("Ninguna regla")
+    assert h1 == "El río está en valores normales y baja frente a Salto y Paysandú."
+    assert sub.startswith(
+        "Ninguna de las reglas con dato al día llegó a su cota de alerta. Frente a Bella Unión no hay dato al día. "
+    )
+    assert "Ninguna regla de las que miden enfrente" not in sub
+
+
+def test_headline_city_with_no_status_counts_as_missing():
+    s = sts(mc=("baja", 50, -0.1, False), con=("baja", 50, -0.1, False))  # Colón has no status at all
+    sub = river_headline(s, RCAT)[1]
+    assert sub.startswith("Ninguna de las reglas con dato al día llegó a su cota de alerta. "
+                          "Frente a Paysandú no hay dato al día.")
+
+
+def test_headline_missing_city_said_even_with_an_alert():
+    s = sts(mc=("sube", 95, 0.2, True), con=("baja", 50, -0.1, False))
+    h1, sub = river_headline(s, RCAT)
+    assert h1 == "El río pasó la cota de alerta frente a Bella Unión."
+    assert sub.startswith("Frente a Paysandú no hay dato al día.")
+    assert "Ninguna" not in sub
+
+
+def test_headline_every_city_stale_keeps_the_no_data_h1():
+    s = sts() + [rstatus(c, None, pct=None, above=None, stale=True) for c in ("mc", "con", "col")]
+    assert river_headline(s, RCAT) == ("No hay datos al día del río frente a las ciudades uruguayas.", "")
 
 
 def test_headline_stale_non_city_over_alert_ignored():

@@ -816,16 +816,21 @@ def test_plan_profile_without_data_says_so(render):
         texts = [t.text for t in root.iter(SVG_NS + "text")]
         assert "Sin datos al día del río." in texts
         assert not list(root.iter(SVG_NS + "circle"))
-        assert not by_class(root, "text", "cn")
+        # The city gauges keep their callouts, each saying it has no data today.
+        assert [t.text for t in by_class(root, "text", "cn")] == ["Bella Unión", "Salto", "Paysandú"]
+        assert [t.text for t in by_class(root, "text", "cv")][-3:] == ["sin dato al día"] * 3
 
 
-def test_plan_profile_stale_or_missing_city_has_no_callout():
+def test_plan_profile_stale_or_missing_city_keeps_its_callout_without_a_dot():
     stale = replace_status(today_statuses(), pstatus("ina_79", None, None, None, None))
     missing = [s for s in today_statuses() if s.station_id != "ina_79"]
     for sts in (stale, missing):
-        root = parse(profile_plan_svg(sts, REAL))
-        assert [t.text for t in by_class(root, "text", "cn")] == ["Paso de los Libres", "Bella Unión", "Paysandú"]
-        assert len(by_class(root, "circle", "pc")) == 2
+        for variant, kw in (("wide", {}), ("movil", {"width": 340, "height": 560, "start_km": 620})):
+            root = parse(profile_plan_svg(sts, REAL, variant=variant, **kw))
+            assert [t.text for t in by_class(root, "text", "cn")] == [
+                "Paso de los Libres", "Bella Unión", "Salto", "Paysandú"], variant
+            assert "sin dato al día" in [t.text for t in by_class(root, "text", "cv")]
+            assert len(by_class(root, "circle", "pc")) == 2  # no dot for Salto
 
 
 def test_plan_profile_shading_starts_14_units_before_bella_union_on_wide():

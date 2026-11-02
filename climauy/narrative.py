@@ -131,9 +131,16 @@ def river_headline(statuses: Sequence[StationStatus], catalog: Sequence[Station]
     else:
         h1 = f"{river}."
 
+    # A city gauge with a cota but no fresh level comparison (stale, no data or no status) is never
+    # covered by «Ninguna regla»: its last reading may be the one over the cota.
+    seen = {st.id for st, _ in cities}
+    missing = [st.represents for st in main if st.represents and st.alert_m is not None and st.id not in seen]
     sentences = []
     if not alerted:
-        sentences.append("Ninguna regla de las que miden enfrente llegó a su cota de alerta.")
+        sentences.append("Ninguna de las reglas con dato al día llegó a su cota de alerta." if missing
+                         else "Ninguna regla de las que miden enfrente llegó a su cota de alerta.")
+    if missing:
+        sentences.append(f"Frente a {_join(missing)} no hay dato al día.")
 
     first_city_order = min(st.order for st, _ in cities)
     city_ids = {st.id for st, _ in cities}

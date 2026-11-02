@@ -1346,10 +1346,14 @@ def hovmoller_svg(matrix: RiverMatrix, width: int = 1100, variant: str = "wide")
             o.append(f'<circle cx="{_f(X(r.km))}" cy="{_f(Y(i) + rowh / 2)}" r="{ring}" class="crestpt"/>')
 
     for i, d in enumerate(days):
-        if d.weekday() == 0:
+        today = matrix.partial_last and i == n - 1
+        # Today's row gets its own tick; a Monday tick within two rows of it would crowd it.
+        if today or (d.weekday() == 0 and not (matrix.partial_last and n - 1 - i <= 2)):
+            label = f"{d.day} {HOV_MONTHS[d.month - 1]}"
+            if today:
+                label = f"{label}, hoy" if big else "hoy"
             o.append(f'<line x1="{L - 5}" x2="{L}" y1="{_f(Y(i))}" y2="{_f(Y(i))}" class="tick"/>')
-            o.append(f'<text x="{L - 8}" y="{_f(Y(i) + 4)}" class="ax" text-anchor="end">'
-                     f'{d.day} {HOV_MONTHS[d.month - 1]}</text>')
+            o.append(f'<text x="{L - 8}" y="{_f(Y(i) + 4)}" class="ax" text-anchor="end">{label}</text>')
     bottom = T + ph
     for k in range(0, int(k_max) + 1, 200):
         o.append(f'<line x1="{_f(X(k))}" x2="{_f(X(k))}" y1="{_f(bottom)}" y2="{_f(bottom + 6)}" class="tick"/>')
@@ -1384,8 +1388,9 @@ def hovmoller_svg(matrix: RiverMatrix, width: int = 1100, variant: str = "wide")
         o.append(f'<rect x="{L}" y="{_f(Y(i))}" width="{pw}" height="{_f(rowh)}" class="hit" data-i="{i}">'
                  f"<title>{hov_day(d)}{HOV_PARTIAL if matrix.partial_last and i == n - 1 else ''}</title></rect>")
     sel_id = f"hov-{variant}-sel"
-    o.append(f'<rect id="{sel_id}" x="{L - 2}" y="{_f(Y(max(n - 1, 0)))}" width="{pw + 4}" height="{_f(rowh)}" '
-             'class="sel"/>')
+    s0, s1 = (edges[0], edges[-1]) if edges else (float(L), float(width - R))  # the drawn columns only
+    o.append(f'<rect id="{sel_id}" x="{_f(s0 - 2)}" y="{_f(Y(max(n - 1, 0)))}" width="{_f(s1 - s0 + 4)}" '
+             f'height="{_f(rowh)}" class="sel"/>')
 
     title = "La crecida bajando por el río, día por día"
     rows = matrix.rows

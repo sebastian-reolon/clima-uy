@@ -1031,6 +1031,7 @@ def test_crecida_notes(site):
     assert "Con huecos en estos días" not in notes  # the seed has no station with history and too few days
     assert "Sin 10 años de historia: Machadinho jusante, " in notes and "Colón" in notes
     assert "La última fila es hoy y se completa a medida que llegan datos." in notes
+    assert "Los últimos cinco días todavía no pueden marcar pico." in notes
     assert ("Un pico es un día más alto que los cinco días anteriores y los cinco siguientes, con percentil 90 o más."
             in notes)
 
@@ -1106,3 +1107,13 @@ def test_crecida_stretch_names_the_measured_river():
     assert _crecida_stretch(m("ina_60", "ina_84"), cat) == "de INA_60 a INA_84"
     assert _crecida_stretch(m("ina_74"), cat) == "en INA_74"
     assert _crecida_stretch(m(), cat) == "sin estaciones con datos"
+
+
+def test_crecida_script_marks_today_and_lays_out_narrow_labels(site):
+    out, _ = site
+    html = _read(out, "rio/crecida/index.html")
+    script = re.findall(r"<script>(.*?)</script>", html, flags=re.S)[-1]
+    assert '"partialText":" (hoy, parcial)"' in html
+    assert "D.partial && i === n - 1 ? D.partialText" in script
+    assert "var narrow = W < 600;" in script and "if (narrow) {" in script
+    assert "T = narrow ? 18 + ROW * cities.length" in script

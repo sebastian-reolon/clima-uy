@@ -32,7 +32,7 @@
 {% block notes %}
 <li>Entran las estaciones con {{ min_years }} años o más de historia y dato en al menos {{ min_coverage }}% de los días de la ventana.{% if skipped_history %} Sin {{ min_years }} años de historia: {{ skipped_history }}.{% endif %}{% if skipped_gaps %} Con huecos en estos días: {{ skipped_gaps }}.{% endif %}</li>
 {% if partial %}<li>La última fila es hoy y se completa a medida que llegan datos.</li>
-{% endif %}<li>Un pico es un día más alto que los {{ peak_days }} días anteriores y los {{ peak_days }} siguientes, con percentil {{ peak_pct }} o más. Cada estación usa nivel o caudal, el que tenga más datos en la ventana.</li>
+{% endif %}<li>Un pico es un día más alto que los {{ peak_days }} días anteriores y los {{ peak_days }} siguientes, con percentil {{ peak_pct }} o más. Los últimos {{ peak_days }} días todavía no pueden marcar pico. Cada estación usa nivel o caudal, el que tenga más datos en la ventana.</li>
 <li>La matriz se descarga en <a href="{{ base }}/{{ csv_path }}">CSV</a>: una fila por estación y día, con la media del día y su percentil.</li>
 {% endblock %}
 {% block scripts %}

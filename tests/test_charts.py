@@ -1067,3 +1067,31 @@ def test_hov_selection_and_pointer_are_for_js_only():
     assert ".hov .sel{display:none}" in css and ".js .hov .sel{display:inline;" in css
     assert ".js .hov .hit{cursor:pointer}" in css
     assert not re.search(r"(?<!\.js )\.hov \.hit\{[^}]*cursor", css)
+
+
+def test_hov_last_row_tick_says_today_when_partial():
+    wide, movil = (parse(s) for s in hov_both())
+    assert "2 nov, hoy" in [t.text for t in by_class(wide, "text", "ax")]
+    assert "hoy" in [t.text for t in by_class(movil, "text", "ax")]
+    plain = parse(hovmoller_svg(hov_matrix(partial_last=False)))
+    assert not any("hoy" in (t.text or "") for t in by_class(plain, "text", "ax"))
+
+
+def test_hov_today_tick_does_not_crowd_a_monday_tick():
+    # 2/11/2026 is a Monday: today's label replaces it instead of doubling it.
+    root = parse(hovmoller_svg(hov_matrix()))
+    labels = [t.text for t in by_class(root, "text", "ax")]
+    assert "2 nov" not in labels and labels.count("2 nov, hoy") == 1
+
+
+def test_hov_selection_spans_the_drawn_columns():
+    rows = [hov_row("p", 217.0), hov_row("q", 300.0), hov_row("r", 980.0), hov_row("s", 1056.0)]
+    for svg, variant in ((hovmoller_svg(hov_matrix(rows=rows)), "wide"),
+                         (hovmoller_svg(hov_matrix(rows=rows), width=360, variant="movil"), "movil")):
+        root = parse(svg)
+        cells = [r for r in root.iter(SVG_NS + "rect") if re.fullmatch(r"b\d", r.get("class") or "")]
+        left = min(float(c.get("x")) for c in cells)
+        right = max(float(c.get("x")) + float(c.get("width")) for c in cells) - 0.4
+        sel = next(e for e in root.iter() if e.get("id") == f"hov-{variant}-sel")
+        assert float(sel.get("x")) == pytest.approx(left - 2, abs=0.06)
+        assert float(sel.get("x")) + float(sel.get("width")) == pytest.approx(right + 2, abs=0.11)

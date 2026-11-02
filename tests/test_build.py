@@ -334,7 +334,7 @@ def test_datos_explains_each_source(site):
                  "INUMET"):
         assert name in section, name
     assert "se están verificando" not in section
-    assert "solo lo derivado" in section
+    assert "Sus series completas no se ofrecen para descargar" in section and "gráficos" in section
     assert "dominio público" in section
 
 
@@ -369,3 +369,18 @@ def test_uy_city_cites_official_cota(site, station_id, expected, other_source):
     value = expected.rsplit(": ", 1)[1].replace(" m", "")
     for svg in re.findall(r"<svg.*?</svg>", block, flags=re.S):
         assert value not in svg and value.rstrip("0").rstrip(",") + " m" not in _flat(svg)
+
+
+def test_city_cotas_never_change_any_chart(site, tmp_path):
+    """The official Uruguayan cotas are text only: every SVG on the river page is identical without them."""
+    out, _ = site
+    empty = tmp_path / "refs.json"
+    empty.write_text('{"cities": {}}', encoding="utf-8")
+    with Store(tmp_path / "t.sqlite") as store:
+        _seed(store)
+        build_site(store, load_catalog(), tmp_path / "out", NOW, base_url="/clima-uy", refs_path=empty)
+    with_refs = _read(out, "rio/index.html")
+    without = _read(tmp_path / "out", "rio/index.html")
+    svgs = lambda h: re.findall(r"<svg.*?</svg>", h, flags=re.S)
+    assert svgs(with_refs) == svgs(without)
+    assert "city-ref" in with_refs and "city-ref" not in without

@@ -2,23 +2,25 @@
 
 Qué permite cada fuente, dónde lo dice y qué publica el sitio de cada una. Todo se consultó el 1 de noviembre de 2026.
 
-El criterio es conservador. Si una fuente dice por escrito que se puede republicar citándola, se publican sus series completas con la cita. Si no dice nada o no queda claro, se publica solo lo derivado (estados, percentiles, tendencia y la frase del día) con el link a la fuente, hasta tener una confirmación por escrito.
+El criterio es conservador y es del proyecto, no una interpretación legal. Si una fuente dice por escrito que se puede republicar citándola, sus series completas se ofrecen para descargar, con la cita. Si no dice nada o no queda claro, sus series completas no se ofrecen para descargar hasta tener una confirmación por escrito.
 
-Mostrar en una página el último valor de una estación con su fuente y su link es citar un dato, y eso se hace con todas. Lo que cambia según la licencia es si se ofrecen para descargar las series completas: las medias diarias, las lecturas crudas por mes y los pronósticos por mes.
+Las páginas, en cambio, muestran datos de todas las fuentes, siempre con la fuente y el link. Eso incluye gráficos hechos con las series diarias, no solo valores sueltos: por ejemplo, del INA se grafican las temporadas de crecida desde 1990, la línea de lo observado en los pronósticos, el recorrido de los últimos 30 días de cada estación y los picos de las crecidas pasadas. Que mostrar esos gráficos con atribución alcance para fuentes sin términos publicados es el criterio del proyecto; ninguna de esas fuentes lo autorizó por escrito. Lo que cambia según la licencia es solo qué se ofrece para descargar: las medias diarias, las lecturas crudas por mes y los pronósticos por mes.
 
 ## Resumen
 
 | Fuente | Qué dice | Qué publica el sitio |
 |---|---|---|
 | ANA (Brasil) | Permite reproducir los datos citando la fuente | Series completas, con la cita |
-| INA y Prefectura Naval Argentina | El sistema de datos no publica términos | Solo lo derivado y el link |
-| CTM Salto Grande | No publica términos de reutilización | Solo lo derivado y el link |
+| INA y Prefectura Naval Argentina | El sistema de datos no publica términos | Gráficos y estados en las páginas, con el link; sin descarga de series |
+| CTM Salto Grande | No publica términos de reutilización | Datos del día de la represa en las páginas, con el link; sin descarga |
 | GloFAS vía Open-Meteo | CC BY 4.0 (Open-Meteo) y licencia CEMS-FLOODS (Copernicus), con aviso obligatorio | Series completas, con los dos avisos |
 | NOAA CPC | Dominio público | Series completas, con la cita |
 
 En el código son dos listas en `climauy/publish.py`: `FULL_SERIES_SOURCES = {"ana", "ana_hist"}` (fuentes de lecturas) y `FULL_FORECAST_ISSUERS = {"glofas"}` (fuentes de pronósticos). Los índices del CPC se publican siempre completos. La página de datos lista solo las series que se descargan y explica, fuente por fuente, qué se publica y por qué. Si el INA o la CTM confirman por escrito que se pueden republicar sus series, se agrega `"ina"` o `"ctm"` a la lista que corresponda.
 
 Como no todas las fuentes permiten republicar, no se arma el archivo mensual comprimido en GitHub Releases que preveía el plan. Las lecturas por mes de las fuentes permitidas ya quedan en `data/rio/raw/`.
+
+Los meses cerrados no se completan hacia atrás. Un archivo mensual de lecturas o pronósticos se actualiza mientras su mes está en curso, se escribe una última vez en la primera corrida después de que el mes termina y desde ahí queda fijo. Si más adelante se agrega una fuente a las listas, los meses ya cerrados no la incluyen; si se saca una, los meses cerrados que la incluían hay que borrarlos a mano. Las medias diarias, en cambio, se rehacen enteras en cada exportación completa, y los archivos de series que ya no se exportan se borran.
 
 ## ANA, Agência Nacional de Águas e Saneamento Básico (Brasil)
 
@@ -50,9 +52,9 @@ Qué dice:
 
 No queda claro. Es probable que el INA no tenga problema en que se republiquen sus series citándolo, porque las ofrece en una API pública, pero no lo dice por escrito.
 
-Qué publica el sitio: solo lo derivado y el link al sistema del INA. Queda pendiente pedirle al INA por escrito permiso para republicar las series con atribución; con esa respuesta se agrega `"ina"` a `FULL_SERIES_SOURCES` y a `FULL_FORECAST_ISSUERS`.
+Qué publica el sitio: sus series completas no se ofrecen para descargar. Las páginas sí muestran sus datos con el link al sistema del INA: el estado y el último valor de cada estación, el percentil, la tendencia, el recorrido de los últimos 30 días, las temporadas de crecida desde 1990, los picos de las crecidas pasadas, la línea de lo observado y la banda de los pronósticos del INA. Queda pendiente pedirle al INA por escrito permiso para republicar las series con atribución; con esa respuesta se agrega `"ina"` a `FULL_SERIES_SOURCES` y a `FULL_FORECAST_ISSUERS`.
 
-Qué implica: no se ofrecen para descargar las medias diarias de las estaciones del INA, las lecturas crudas del INA ni los pronósticos del INA. Las páginas siguen mostrando el estado de cada estación, su último valor con la fuente, el percentil y la banda del pronóstico.
+Qué implica: no se ofrecen para descargar las medias diarias de las estaciones del INA, las lecturas crudas del INA ni los pronósticos del INA.
 
 ## CTM Salto Grande (Comisión Técnica Mixta de Salto Grande)
 
@@ -62,7 +64,7 @@ Qué dice: el sitio (<https://www.saltogrande.org/>) solo muestra «© 2013 Comi
 
 No queda claro.
 
-Qué publica el sitio: solo lo derivado y el link al parte diario. Qué implica: las lecturas de la CTM no van en los archivos de lecturas crudas, y los días que la CTM completaba en las series del INA no van en las medias diarias. La página del río sigue mostrando los datos de la represa del día, con el link al parte.
+Qué publica el sitio: sus lecturas no se ofrecen para descargar; las páginas muestran los datos del día de la represa con el link al parte, y sus lecturas completan días sin dato del INA en los gráficos. Qué implica: las lecturas de la CTM no van en los archivos de lecturas crudas, y los días que la CTM completaba en las series del INA no van en las medias diarias. La página del río sigue mostrando los datos de la represa del día, con el link al parte.
 
 ## GloFAS vía Open-Meteo
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 import csv
 import dataclasses
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -126,7 +127,7 @@ def _daily_rows(store: Store, station: Station, variable: str) -> list[list]:
     return rows
 
 
-def _month_starts(today: date) -> list[date]:
+def month_starts(today: date) -> list[date]:
     m, out = date(ARCHIVE_START.year, ARCHIVE_START.month, 1), []
     while m <= today:
         out.append(m)
@@ -187,10 +188,15 @@ def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc
             if series_exported(store, st, variable):
                 written.append(_write_csv(rio / "daily" / f"{st.id}_{variable}.csv", DAILY_COLUMNS,
                                           _daily_rows(store, st, variable)))
+    # A series no longer exported (licence change, station removed) leaves no file behind.
+    daily_now = set(written)
+    for stale in (rio / "daily").glob("*.csv"):
+        if stale not in daily_now:
+            stale.unlink()
 
     today = local_day(now_utc)
     current = date(today.year, today.month, 1)
-    for m in _month_starts(today):
+    for m in month_starts(today):
         key = f"{m.year}-{m.month:02d}"
         raw, fc = rio / "raw" / f"{key}.csv", rio / "forecasts" / f"{key}.csv"
         start, end = _month_bounds(m)
@@ -272,20 +278,74 @@ def write_snapshot(out_dir: Path, day_local: date, base_url: str = "/clima-uy") 
     return dest
 
 
+# ---------------------------------------------------------------- infra scan
+
+# Strings that must never be published. Built from pieces so this file does
+# not match itself when the repository is scanned.
+_FORBIDDEN = [
+    re.compile(re.escape("/ro" + "ot/")),
+    re.compile("het" + "zner", re.I),
+    re.compile(re.escape("@gm" + "ail"), re.I),
+    re.compile("tele" + "gram", re.I),
+    re.compile(r"(?<![\d.])(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?!\d|\.\d)"),
+]
+
+
+def find_infra(paths: Iterable[Path]) -> list[str]:
+    """'path:line: match' for every forbidden string in the given files (binary files decoded leniently)."""
+    hits = []
+    for path in paths:
+        if not path.is_file():
+            continue
+        text = path.read_bytes().decode("utf-8", errors="replace")
+        for pat in _FORBIDDEN:
+            for m in pat.finditer(text):
+                line = text.count("\n", 0, m.start()) + 1
+                hits.append(f"{path}:{line}: {m.group(0)!r}")
+    return hits
+
+
+def scan_tree(root: Path) -> list[str]:
+    """find_infra over every file under root, skipping .git."""
+    return find_infra(p for p in sorted(root.rglob("*")) if ".git" not in p.relative_to(root).parts)
+
+
 # ---------------------------------------------------------------- git
 
-def _git(pages_dir: Path, *args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(["git", *args], cwd=pages_dir, check=True, capture_output=True, text=True)
+class PublishError(RuntimeError):
+    pass
+
+
+# Inherited variables that could point git at another repository.
+_GIT_ENV_DROP = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE")
+
+
+def _git(pages_dir: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess:
+    env = {k: v for k, v in os.environ.items() if k not in _GIT_ENV_DROP}
+    return subprocess.run(["git", *args], cwd=pages_dir, env=env, check=check, capture_output=True, text=True)
 
 
 def commit_and_push(pages_dir: Path, message: str) -> bool:
     """Stage everything in the gh-pages working tree; commit and push if anything changed.
 
-    Returns False (and commits nothing) when there are no changes. Git errors raise.
+    Refuses unless pages_dir is the top of its own repository with gh-pages
+    checked out, and unless CLIMAUY_GIT_NAME and CLIMAUY_GIT_EMAIL are set
+    (the commit identity comes only from them). Returns False, committing
+    nothing, when there are no changes. Git errors raise.
     """
+    name, email = os.environ.get("CLIMAUY_GIT_NAME", ""), os.environ.get("CLIMAUY_GIT_EMAIL", "")
+    if not name or not email:
+        raise PublishError("CLIMAUY_GIT_NAME and CLIMAUY_GIT_EMAIL must be set to commit the pages")
+    top = _git(pages_dir, "rev-parse", "--show-toplevel").stdout.strip()
+    if Path(top).resolve() != pages_dir.resolve():
+        raise PublishError(f"{pages_dir} is not the top of its own git repository (top is {top})")
+    branch = _git(pages_dir, "symbolic-ref", "--short", "HEAD").stdout.strip()
+    if branch != "gh-pages":
+        raise PublishError(f"{pages_dir} has {branch!r} checked out, expected 'gh-pages'")
     _git(pages_dir, "add", "-A")
-    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=pages_dir).returncode == 0:
+    if _git(pages_dir, "diff", "--cached", "--quiet", check=False).returncode == 0:
         return False
-    _git(pages_dir, "commit", "-q", "-m", message)
-    _git(pages_dir, "push", "-q", "origin", "gh-pages")
+    _git(pages_dir, "-c", f"user.name={name}", "-c", f"user.email={email}", "-c", "user.useConfigOnly=true",
+         "commit", "-q", "-m", message)
+    _git(pages_dir, "push", "-q", "origin", "HEAD:gh-pages")
     return True

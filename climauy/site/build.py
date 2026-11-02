@@ -432,36 +432,33 @@ def _downloads(store: Store, catalog: Sequence[Station], now_utc: datetime) -> d
             if series_exported(store, st, variable):
                 series.append({"name": f"{st.name}, {VARIABLE_NAMES[variable]}",
                                "path": f"data/rio/daily/{st.id}_{variable}.csv"})
-    months = []
-    m = date(VERIFY_SINCE.year, VERIFY_SINCE.month, 1)
-    today = local_day(now_utc)
-    while m <= today:
-        months.append({"key": f"{m.year}-{m.month:02d}", "label": f"{MONTHS[m.month - 1]} de {m.year}"})
-        m = (m + timedelta(days=32)).replace(day=1)
+    months = [{"key": f"{m.year}-{m.month:02d}", "label": f"{MONTHS[m.month - 1]} de {m.year}"}
+              for m in publish.month_starts(local_day(now_utc))]
     return {"series": series, "months": months}
 
 
-_DERIVED = "Se publica solo lo derivado (estados, percentiles y cambios en 3 días) con el link a la fuente"
+_NO_DOWNLOAD = "Sus series completas no se ofrecen para descargar"
+_SHOWN = ("Las páginas muestran sus datos con la fuente y el link, también en gráficos hechos con sus series "
+          "diarias (temporadas de crecida, últimos 30 días, lo observado en los pronósticos).")
 
 
 def _source_terms() -> list[dict]:
     """What the Datos page says about each source, following the licence switch in publish."""
     full, issuers = publish.FULL_SERIES_SOURCES, publish.FULL_FORECAST_ISSUERS
     ana = ("Se pueden descargar sus series completas: la ANA permite reproducir sus datos citando la fuente."
-           if "ana" in full else _DERIVED + ".")
+           if "ana" in full else _NO_DOWNLOAD + ". " + _SHOWN)
     if "ina" in full:
         ina = "Se pueden descargar sus series completas, citando la fuente."
     else:
-        ina = (_DERIVED + ", porque el sistema de datos del INA no dice si se pueden republicar las series "
-               "completas. Sus lecturas y sus medias diarias no se ofrecen para descargar.")
+        ina = (_NO_DOWNLOAD + ", porque el sistema de datos del INA no dice si se pueden republicar. " + _SHOWN)
     ina += (" Los pronósticos del INA también se pueden descargar." if "ina" in issuers else
             " Los pronósticos del INA se ven en la página del río pero no se ofrecen para descargar.")
     ctm = ("Se pueden descargar sus lecturas, citando la fuente." if "ctm" in full else
-           _DERIVED + ", porque su sitio no publica condiciones de reutilización. Los datos del día de la "
-           "represa se ven en la página del río.")
+           "Sus lecturas no se ofrecen para descargar, porque su sitio no publica condiciones de reutilización. "
+           "Los datos del día de la represa se ven en la página del río, con el link al parte.")
     glofas = ("Se pueden descargar los pronósticos completos. Open-Meteo los publica con licencia CC BY 4.0 y la "
               "licencia de Copernicus pide este aviso:" if "glofas" in issuers else
-              _DERIVED + ". Aviso de Copernicus:")
+              _NO_DOWNLOAD + ". Aviso de Copernicus:")
     rows = [
         ("ANA (Brasil)", SOURCES[0][1], ana),
         ("INA y Prefectura Naval Argentina", SOURCES[1][1], ina),

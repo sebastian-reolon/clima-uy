@@ -76,6 +76,12 @@ def _all(base_url: str) -> int:
     except Exception:
         log.exception("build or export failed")
         return 1
+    hits = publish.scan_tree(cfg.out_dir)
+    if hits:
+        for h in hits:
+            log.error("infrastructure string in the pages output: %s", h)
+        log.error("refusing to publish: %d hit(s), nothing committed", len(hits))
+        return 1
     pushed = None
     if os.environ.get("CLIMAUY_PAGES_PUSH") == "1":
         try:

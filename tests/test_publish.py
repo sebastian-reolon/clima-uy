@@ -11,7 +11,8 @@ import pytest
 
 from climauy.catalog import load_catalog
 from climauy.publish import (
-    commit_and_push, export_data, full_export_due, mark_full_export, write_snapshot,
+    PublishError, commit_and_push, export_data, find_infra, full_export_due, mark_full_export, scan_tree,
+    write_snapshot,
 )
 from climauy.site.build import build_site
 from climauy.store import Forecast, IndexValue, Obs, Store
@@ -237,25 +238,41 @@ def test_live_pages_links_resolve(built):
 
 def _git(cwd: Path, *args: str) -> str:
     env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
+    for k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
+        env.pop(k, None)
     return subprocess.run(["git", *args], cwd=cwd, env=env, check=True, capture_output=True, text=True).stdout
 
 
-def test_commit_noop_when_unchanged(tmp_path, monkeypatch):
+@pytest.fixture
+def git_env(monkeypatch):
+    """No global or system git config; commit identity only from the CLIMAUY_GIT_* variables."""
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
     monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    monkeypatch.setenv("CLIMAUY_GIT_NAME", "clima-uy bot")
+    monkeypatch.setenv("CLIMAUY_GIT_EMAIL", "bot@example.invalid")
+    for k in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
+        monkeypatch.delenv(k, raising=False)
+
+
+def _pages_repo(tmp_path: Path, branch: str = "gh-pages") -> tuple[Path, Path]:
     origin = tmp_path / "origin.git"
     _git(tmp_path, "init", "--bare", "-q", str(origin))
     pages = tmp_path / "pages"
     pages.mkdir()
-    _git(pages, "init", "-q", "-b", "gh-pages")
-    for k, v in (("user.name", "test"), ("user.email", "test@example.invalid"), ("commit.gpgsign", "false")):
-        _git(pages, "config", k, v)
+    _git(pages, "init", "-q", "-b", branch)
+    _git(pages, "config", "commit.gpgsign", "false")
     _git(pages, "remote", "add", "origin", str(origin))
+    return pages, origin
+
+
+def test_commit_noop_when_unchanged(tmp_path, git_env):
+    pages, origin = _pages_repo(tmp_path)
     (pages / "index.html").write_text("one", encoding="utf-8")
 
     assert commit_and_push(pages, "Build 1") is True
     first = _git(origin, "rev-parse", "gh-pages").strip()
     assert first == _git(pages, "rev-parse", "HEAD").strip()
+    assert _git(pages, "log", "-1", "--format=%an <%ae>").strip() == "clima-uy bot <bot@example.invalid>"
 
     assert commit_and_push(pages, "Build 2") is False
     assert _git(pages, "rev-list", "--count", "HEAD").strip() == "1"
@@ -266,14 +283,51 @@ def test_commit_noop_when_unchanged(tmp_path, monkeypatch):
     assert _git(origin, "log", "-1", "--format=%s", "gh-pages").strip() == "Build 3"
 
 
-# Built from pieces so this file does not match itself.
-_FORBIDDEN = [
-    re.compile(re.escape("/ro" + "ot/")),
-    re.compile("het" + "zner", re.I),
-    re.compile(re.escape("@gm" + "ail"), re.I),
-    re.compile("tele" + "gram", re.I),
-    re.compile(r"(?<![\d.])(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?![\d.])"),
-]
+def test_commit_refuses_dir_nested_in_another_repo(tmp_path, git_env):
+    parent = tmp_path / "parent"
+    parent.mkdir()
+    _git(parent, "init", "-q", "-b", "gh-pages")
+    pages = parent / "out"
+    pages.mkdir()
+    (pages / "index.html").write_text("x", encoding="utf-8")
+    with pytest.raises(PublishError, match="not the top"):
+        commit_and_push(pages, "Build")
+    assert _git(parent, "status", "--porcelain").strip() == "?? out/"  # nothing staged
+    assert subprocess.run(["git", "rev-parse", "--verify", "-q", "HEAD"], cwd=parent).returncode != 0  # no commit
+
+
+def test_commit_refuses_other_branch(tmp_path, git_env):
+    pages, _ = _pages_repo(tmp_path, branch="main")
+    (pages / "index.html").write_text("x", encoding="utf-8")
+    with pytest.raises(PublishError, match="gh-pages"):
+        commit_and_push(pages, "Build")
+    assert _git(pages, "status", "--porcelain").strip() == "?? index.html"
+
+
+def test_commit_ignores_inherited_git_dir(tmp_path, git_env, monkeypatch):
+    other = tmp_path / "other"
+    other.mkdir()
+    _git(other, "init", "-q", "-b", "gh-pages")
+    pages, origin = _pages_repo(tmp_path)
+    (pages / "index.html").write_text("x", encoding="utf-8")
+    monkeypatch.setenv("GIT_DIR", str(other / ".git"))
+    monkeypatch.setenv("GIT_WORK_TREE", str(other))
+    assert commit_and_push(pages, "Build") is True
+    assert _git(origin, "log", "-1", "--format=%s", "gh-pages").strip() == "Build"
+    assert subprocess.run(["git", "rev-parse", "--verify", "-q", "HEAD"], cwd=other,
+                          env={k: v for k, v in os.environ.items() if not k.startswith("GIT_")}).returncode != 0
+
+
+@pytest.mark.parametrize("missing", ["CLIMAUY_GIT_NAME", "CLIMAUY_GIT_EMAIL"])
+def test_commit_requires_identity_from_env(tmp_path, git_env, monkeypatch, missing):
+    pages, _ = _pages_repo(tmp_path)
+    _git(pages, "config", "user.name", "someone")  # a configured identity is not enough
+    _git(pages, "config", "user.email", "someone@example.invalid")
+    (pages / "index.html").write_text("x", encoding="utf-8")
+    monkeypatch.delenv(missing)
+    with pytest.raises(PublishError, match="CLIMAUY_GIT_NAME and CLIMAUY_GIT_EMAIL"):
+        commit_and_push(pages, "Build")
+    assert subprocess.run(["git", "rev-parse", "--verify", "-q", "HEAD"], cwd=pages).returncode != 0
 
 
 def _repo_files() -> list[Path]:
@@ -289,24 +343,61 @@ def _repo_files() -> list[Path]:
         return [p for p in REPO_ROOT.rglob("*") if p.is_file() and not skip & set(p.relative_to(REPO_ROOT).parts)]
 
 
-def _scan(files) -> list[str]:
-    hits = []
-    for path in files:
-        if not path.is_file():
-            continue
-        text = path.read_bytes().decode("utf-8", errors="replace")
-        for pat in _FORBIDDEN:
-            m = pat.search(text)
-            if m:
-                hits.append(f"{path}: {m.group(0)!r}")
-    return hits
-
-
 def test_public_tree_has_no_infra(built):
     out = built
     write_snapshot(out, local_day(NOW), base_url=BASE)
-    files = [p for p in out.rglob("*") if p.is_file()] + _repo_files()
-    assert _scan(files) == []
+    assert scan_tree(out) == []
+    assert find_infra(_repo_files()) == []
+
+
+def _ip(*octets: int) -> str:
+    """Addresses are assembled at run time so this file never contains one."""
+    return ".".join(str(o) for o in octets)
+
+
+@pytest.mark.parametrize("text,hit", [
+    ("server at " + _ip(10, 0, 0, 1) + ".", True),       # an address ending a sentence
+    ("see " + _ip(192, 168, 1, 20) + ", then", True),
+    ("x " + _ip(10, 0, 0, 1) + " y", True),
+    ("version 1.2.3", False),
+    ("lat -27.5206", False),
+    ("1.2.3.4.5", False),
+    ("10.0.0.256", False),
+    ("path /ro" + "ot/clima", True),
+    ("HET" + "ZNER box", True),
+    ("someone@GM" + "AIL.com", True),
+    ("TELE" + "GRAM_TOKEN", True),
+])
+def test_infra_patterns(tmp_path, text, hit):
+    f = tmp_path / "f.txt"
+    f.write_text("first line\n" + text + "\n", encoding="utf-8")
+    hits = find_infra([f])
+    assert bool(hits) == hit
+    if hit:
+        assert hits[0].startswith(f"{f}:2: ")
+
+
+def test_scan_tree_skips_git_dir(tmp_path):
+    (tmp_path / ".git").mkdir()
+    (tmp_path / ".git" / "config").write_text("url = " + _ip(10, 0, 0, 1), encoding="utf-8")
+    (tmp_path / "ok.html").write_text("nothing", encoding="utf-8")
+    assert scan_tree(tmp_path) == []
+    (tmp_path / "leak.html").write_text(_ip(10, 0, 0, 1), encoding="utf-8")
+    assert len(scan_tree(tmp_path)) == 1
+
+
+def test_stale_daily_files_are_removed(seeded, all_sources, monkeypatch):
+    from climauy import publish
+
+    store, out = seeded
+    export_data(store, load_catalog(), out, NOW, full=True)
+    ina = out / "data/rio/daily/ina_74_level.csv"
+    assert ina.is_file()
+    (out / "data/rio/daily/gone_station_level.csv").write_text("x", encoding="utf-8")
+    monkeypatch.setattr(publish, "FULL_SERIES_SOURCES", frozenset({"ana", "ana_hist"}))
+    export_data(store, load_catalog(), out, NOW, full=True)
+    left = sorted(p.name for p in (out / "data/rio/daily").glob("*.csv"))
+    assert left == ["ana_77150000_discharge.csv"]
 
 
 def test_cli_all_builds_exports_and_snapshots_without_pushing(tmp_path, monkeypatch):
@@ -354,7 +445,7 @@ def test_cli_all_fails_when_push_fails(tmp_path, monkeypatch):
     assert cli.main(["all"]) != 0
 
 
-DERIVED_SENTENCE = "Se publica solo lo derivado"
+DERIVED_SENTENCE = "no se ofrecen para descargar, porque"
 
 
 @pytest.mark.parametrize("restricted", [False, True])
@@ -390,3 +481,26 @@ def test_licence_switch_drops_series_files_and_says_so(seeded, monkeypatch, rest
     # Derived states of every station stay in latest.json.
     latest = json.loads((out / "data/rio/latest.json").read_text(encoding="utf-8"))
     assert "ina_74" in {s["station_id"] for s in latest["stations"]}
+
+
+def test_cli_all_refuses_to_publish_on_infra_hit(tmp_path, monkeypatch):
+    from climauy import cli, publish
+
+    (tmp_path / "archive").mkdir()
+    monkeypatch.setenv("CLIMAUY_ARCHIVE_DIR", str(tmp_path / "archive"))
+    monkeypatch.setenv("CLIMAUY_DB", str(tmp_path / "t.sqlite"))
+    monkeypatch.setenv("CLIMAUY_OUT", str(tmp_path / "pages"))
+    monkeypatch.setenv("CLIMAUY_PAGES_PUSH", "1")
+    monkeypatch.setattr(cli, "_now", lambda: NOW)
+    real_export = publish.export_data
+
+    def leaky_export(store, catalog, out_dir, now_utc, full):
+        written = real_export(store, catalog, out_dir, now_utc, full)
+        (out_dir / "data/leak.txt").write_text("ok\nhost " + _ip(10, 20, 30, 40) + ".\n", encoding="utf-8")
+        return written
+
+    pushed = []
+    monkeypatch.setattr(publish, "export_data", leaky_export)
+    monkeypatch.setattr(publish, "commit_and_push", lambda *a: pushed.append(a) or True)
+    assert cli.main(["all"]) == 1
+    assert pushed == []

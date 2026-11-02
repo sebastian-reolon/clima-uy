@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metodología del monitor del río | clima-uy</title>
+<meta name="description" content="De dónde salen los números del monitor del río Uruguay, qué supuestos hay detrás y qué no se puede concluir de ellos.">
+<link rel="stylesheet" href="/clima-uy/static/css/site.css">
+<link rel="preload" href="/clima-uy/static/fonts/barlow-condensed-600.woff2" as="font" type="font/woff2" crossorigin>
+</head>
+<body>
+<a class="skip" href="#contenido">Ir al contenido</a>
+<header class="site-header">
+  <div class="page site-header-inner">
+    <a class="wordmark" href="/clima-uy/snapshots/2026-11-02/">clima-uy</a>
+    <nav aria-label="Secciones">
+      <a href="/clima-uy/snapshots/2026-11-02/">El Niño</a>
+      <a href="/clima-uy/snapshots/2026-11-02/rio/" aria-current="page">Río Uruguay</a>
+      <a href="/clima-uy/snapshots/">Datos</a>
+    </nav>
+  </div>
+</header>
+<main id="contenido" class="page">
+<article class="doc prose-page">
+<p class="crumb"><a href="/clima-uy/snapshots/2026-11-02/rio/">Volver al río Uruguay</a></p>
+<h1>Cómo se arma el monitor del río</h1>
+<p>Esta página explica de dónde salen los números del módulo del río, qué supuestos hay detrás y qué no se puede concluir de ellos. Todo el código está en el repositorio público y cada dato se puede rastrear hasta el archivo que lo trajo.</p>
+<h2>De dónde salen los datos</h2>
+<ul><li><strong>ANA (Brasil).</strong> Nivel y caudal cada 15 minutos de las estaciones brasileñas del río y de los afluentes Ibicuí, Ibirapuitã y Quaraí, desde el servicio <code>DadosHidrometeorologicos</code>. La historia diaria sale del servicio <code>HidroSerieHistorica</code>, que es la serie consolidada por la agencia.</li><li><strong>INA (Argentina).</strong> Las alturas del río que mide Prefectura Naval Argentina, con las cotas de alerta y evacuación que publica el INA, y los pronósticos oficiales a 13 días con su banda. El INA también tiene la historia larga de cada estación.</li><li><strong>CTM Salto Grande.</strong> El informe diario de la represa: caudal turbinado y vertido de Salto Grande y volumen de los embalses de Machadinho e Itá.</li><li><strong>GloFAS, vía Open-Meteo.</strong> Caudal pronosticado a 30 días por un modelo global, en celdas sobre el cauce.</li><li><strong>NOAA CPC.</strong> Los índices de El Niño: RONI, ONI y la anomalía semanal de la región Niño 3.4.</li></ul>
+<p>Cada fuente se baja cada 3 horas y el archivo crudo se guarda tal como llegó. Los horarios se guardan en UTC. Los días se cortan en hora de Montevideo.</p>
+<h2>Una estación, una sola regla</h2>
+<p>Cada estación mide desde su propio cero. Por eso:</p>
+<ul><li>nunca se comparan alturas en metros entre estaciones distintas;</li><li>para una misma estación nunca se mezclan series con distinto cero. En Paso de los Libres, por ejemplo, la regla del INA y la de ANA difieren en unos 40 centímetros. Si la estación tiene serie del INA, se usa esa; si no, se usa solo ANA.</li><li>CTM republica las mismas escalas de Prefectura que publica el INA, con su mismo cero; se usa solo para completar días sin dato del INA.</li></ul>
+<h2>Cómo se comparan estaciones distintas: el percentil</h2>
+<p>Para poner todo el río en un mismo gráfico se usa el percentil de cada estación contra su propia historia diaria desde el 1 de enero de 1990. Un percentil de 90 quiere decir que el río está más alto que el 90% de los días desde 1990 en esa misma estación. No depende de dónde está el cero de la regla.</p>
+<ul><li>Se usa el caudal cuando la estación lo tiene con historia suficiente; si no, el nivel.</li><li>Una estación necesita al menos 10 años de días con dato para tener percentil. Si tiene menos, se muestra su altura pero no su percentil.</li><li>El valor de hoy y el de hace 3 días se comparan contra la misma historia, que termina 3 días antes del último dato, para que ningún valor se compare consigo mismo.</li><li>Los percentiles nunca se redondean para arriba: 99,5 se muestra como 99,5 y no como 100.</li><li>El gráfico marca, donde hay cota oficial de alerta, en qué percentil cae esa cota.</li></ul>
+<p>Para las estaciones sin historia propia se pensó usar como respaldo el reanálisis de GloFAS. No hizo falta: el servicio de series históricas de ANA funciona (verificado el 1 de noviembre de 2026). Las estaciones que aun así no llegan a 10 años no llevan percentil, en vez de tomar prestada la historia de un modelo.</p>
+<h2>Datos viejos y lecturas raras</h2>
+<ul><li>Un dato con más de 36 horas se muestra como desactualizado, con la fecha del último dato, y no entra en la frase de hoy ni en el perfil.</li><li>Las lecturas que saltan de golpe y vuelven (por ejemplo, un caudal de 421 m³/s entre lecturas de 13.800) se marcan como sospechosas y no entran en promedios ni gráficos. Esta revisión se aplica solo a series con lecturas más seguidas que cada 6 horas.</li><li>Los valores de relleno de las fuentes (<code>-999</code>, <code>99.99</code>, celdas vacías) se descartan.</li></ul>
+<h2>Cotas oficiales y ciudades uruguayas</h2>
+<p>Las cotas de alerta y evacuación que se dibujan son las del INA y Prefectura Naval Argentina, en el cero de cada estación argentina. Si una estación no tiene cota oficial, no se dibuja ninguna línea.</p>
+<p>Las ciudades uruguayas se muestran desde la estación de enfrente que tiene datos al día, y siempre se dice cuál es:</p>
+<ul><li>Bella Unión: Monte Caseros (INA), enfrente.</li><li>Artigas: Quaraí (ANA), enfrente, sobre el río Cuareim.</li><li>Salto: Concordia (INA), enfrente.</li><li>Paysandú: Colón (INA), enfrente.</li><li>Fray Bentos: no hay estación cercana con datos al día.</li></ul>
+<p>Las cotas que se usan en Uruguay (DINAGUA, SINAE, CECOED) pueden estar en otro cero. Mientras no haya una equivalencia oficial documentada, no se traducen a la escala de la ciudad.</p>
+<h2>Lo que tarda el agua en bajar</h2>
+<p>El rezago es cuántos días pasan entre el pico en Paso de los Libres y el pico aguas abajo (Salto Grande arriba, con caudal, y Concordia, con nivel).</p>
+<ol><li>Se buscan las crecidas: los picos de la estación de abajo por encima del percentil 95 de su historia, separados por al menos 30 días.</li><li>Para cada una se busca el pico de arriba en los 15 días anteriores. Si el máximo cae en el borde de esa ventana, la crecida se descarta y se cuenta como descartada.</li><li>Se dejan afuera, de a una, tres crecidas enteras (2009, 2015 y 2023). Con las demás se calcula el rezago y se ajusta una relación entre las dos estaciones; después se pronostica la crecida que quedó afuera.</li><li>El rezago cuenta como validado solo si en las tres crecidas el pico pronosticado cae a 1 día o menos del observado y el pronóstico anda mejor que suponer que el río sigue igual que hace tantos días como el rezago.</li></ol>
+<p>Si no pasa, el sitio muestra lo que tardó el agua en las crecidas pasadas, dice que no está validado como pronóstico y explica por qué.</p>
+<h2>Cómo se verifican los pronósticos</h2>
+<p>Cada corrida del INA y de GloFAS se guarda. Cuando llega el dato observado, se compara el pronóstico de cada día con la media observada de ese día, según cuántos días antes se pronosticó. Para GloFAS en Concordia se compara contra el caudal de Salto Grande abajo, porque la serie de caudal de Concordia dejó de publicarse.</p>
+<p>Hacen falta al menos 14 corridas, y 10 comparaciones a un día de anticipación, para mostrar resultados. Hasta entonces el sitio dice cuántas corridas lleva acumuladas desde el 1 de noviembre de 2026.</p>
+<p>GloFAS es un modelo global sin corregir para este río: sirve para ver la tendencia, no para leer un caudal exacto.</p>
+<h2>Las frases automáticas</h2>
+<p>Las frases que resumen la situación salen de plantillas fijas a partir de los datos. Ningún modelo de lenguaje escribe texto publicado: la misma situación da siempre la misma frase.</p>
+<h2>Límites</h2>
+<ul><li>Esto no es una alerta oficial ni reemplaza a SINAE ni a los CECOED.</li><li>Un percentil alto dice que el río está alto para esa estación, no que haya peligro en una ciudad.</li><li>La historia de cada estación tiene huecos; el percentil se calcula con los días que hay.</li><li>DINAGUA está caído desde al menos el 1 de noviembre de 2026; cuando vuelva, se suman las estaciones uruguayas.</li></ul>
+</article>
+</main>
+<footer class="site-footer">
+  <div class="page">
+    <p class="footer-warning">Esto no es una alerta oficial. Para alertas y evacuaciones: <a href="https://www.gub.uy/sistema-nacional-emergencias/">SINAE</a> y el CECOED de tu departamento.</p>
+    <p>Fuentes:
+<a href="https://telemetriaws1.ana.gov.br/ServiceANA.asmx">ANA (Brasil)</a>, <a href="https://alerta.ina.gob.ar/a5">INA y Prefectura Naval Argentina</a>, <a href="https://www.saltogrande.org/docs/hidrologia/CaudalesNiveles.pdf">CTM Salto Grande</a>, <a href="https://open-meteo.com/en/docs/flood-api">GloFAS vía Open-Meteo</a>, <a href="https://www.cpc.ncep.noaa.gov/data/indices/">NOAA CPC</a>, <a href="https://www.inumet.gub.uy/">INUMET</a>.
+    Código y datos en <a href="https://github.com/sebastian-reolon/clima-uy">el repositorio público</a>.</p>
+    <p class="credit">Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>.</p>
+  </div>
+</footer>
+</body>
+</html>

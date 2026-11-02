@@ -13,6 +13,10 @@ from climauy.store import Forecast, IndexValue, Obs, Store
 
 NOW = datetime(2026, 11, 1, 21, 5, tzinfo=timezone.utc)  # 18:05 in Montevideo
 PAGES = ["index.html", "rio/index.html", "rio/metodologia/index.html", "datos/index.html"]
+# Linked from the nav before the page exists (the El Niño page comes in a later
+# step of the redesign). Remove the entry once the page is built.
+PENDING_PAGES = {"nino/"}
+SHEETS = {"index.html": 1, "rio/index.html": 2, "datos/index.html": 4, "rio/metodologia/index.html": 5}
 ALLOWED_ACRONYMS = {
     "INA", "ANA", "CTM", "SINAE", "CECOED", "INUMET", "NOAA", "RONI", "ONI", "CPC", "CARU", "DINAGUA",
     "UTC", "CSV", "JSON",
@@ -188,7 +192,7 @@ def test_rio_sections_in_order(site):
     titles = re.findall(r"<h2[^>]*>(.*?)</h2>", html, flags=re.S)
     assert [_text(t) for t in titles] == [
         "El río hoy", "Estación por estación", "Lo que viene", "Esta crecida contra las anteriores",
-        "Lo que surge de unir los datos", "Datos",
+        "Lo que surge de unir los datos", "Datos", "Notas",  # Notas comes from the sheet base
     ]
     assert ("Página generada el 1 de noviembre de 2026 a las 18:05, hora de Montevideo. "
             "Último dato del río: 1 de noviembre de 2026 a las 12:00.") in _flat(html)
@@ -206,6 +210,8 @@ def test_relative_links_under_base_url(site):
             rel = url[len("/clima-uy/"):].split("#")[0]
             if rel.startswith(("snapshots/", "data/")):
                 continue  # written by the publish step
+            if rel in PENDING_PAGES:
+                continue
             target = out / rel
             if url.endswith("/") or rel == "":
                 target = target / "index.html"
@@ -240,10 +246,10 @@ def test_cli_build(tmp_path, monkeypatch):
     monkeypatch.setenv("CLIMAUY_OUT", str(tmp_path / "site"))
     assert main(["build"]) == 0
     html = (tmp_path / "site" / "rio" / "index.html").read_text(encoding="utf-8")
-    assert 'href="/clima-uy/static/css/site.css"' in html
+    assert 'href="/clima-uy/static/v2/css/site.css"' in html
     assert (tmp_path / "site" / "static" / "css" / "site.css").is_file()
     assert main(["build", "--base-url", ""]) == 0
-    assert 'href="/static/css/site.css"' in (tmp_path / "site" / "index.html").read_text(encoding="utf-8")
+    assert 'href="/static/v2/css/site.css"' in (tmp_path / "site" / "index.html").read_text(encoding="utf-8")
 
 
 DISCLAIMER = "Esto no es una alerta oficial. Alertas y evacuaciones: SINAE y el CECOED de tu departamento."
@@ -428,8 +434,8 @@ def test_author_credit_on_every_page(site):
     out, _ = site
     for page in PAGES:
         html = _read(out, page)
-        footer = re.search(r'<footer class="site-footer">.*?</footer>', html, flags=re.S).group(0)
-        assert 'Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>.' in footer, page
+        footer = re.search(r'<footer class="pie">.*?</footer>', html, flags=re.S).group(0)
+        assert 'Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>' in footer, page
     readme = (Path(__file__).resolve().parents[1] / "README.md").read_text(encoding="utf-8")
     assert "Hecho por [Sebastián Reolon](https://github.com/sebastian-reolon)." in readme
 
@@ -439,3 +445,79 @@ def test_datos_explains_partial_day_and_latest_fields(site):
     flat = _flat(_read(out, "datos/index.html"))
     assert "El día en curso no está: se agrega cuando termina." in flat
     assert "last_data_utc" in flat and "latest_source" in flat
+
+
+# ---------------------------------------------------------------- drawing-sheet base
+
+SITE_STATIC = Path(__file__).resolve().parents[1] / "climauy" / "site" / "static"
+
+
+def test_every_page_links_the_sheet_stylesheet(site, tmp_path):
+    from climauy.site.build import render_snapshot_index
+
+    out, _ = site
+    index = render_snapshot_index(tmp_path, [date(2026, 11, 1)], base_url="/clima-uy")
+    for html in [_read(out, p) for p in PAGES] + [index.read_text(encoding="utf-8")]:
+        assert '<link rel="stylesheet" href="/clima-uy/static/v2/css/site.css">' in html
+        assert 'href="/clima-uy/static/css/site.css"' not in html
+        assert 'href="/clima-uy/static/v2/fonts/barlow-400-latin.woff2"' in html  # preload
+        assert '<div class="hoja"><div class="marco">' in html
+
+
+def test_sheet_assets_copied_and_old_ones_untouched(site):
+    out, _ = site
+    css = (out / "static/v2/css/site.css").read_text(encoding="utf-8")
+    assert css.startswith("/* Hallmark · macrostructure: drawing sheet · tone: technical · design-system: design.md */")
+    for font in re.findall(r'url\("\.\./fonts/([^"]+)"\)', css):
+        assert (out / "static/v2/fonts" / font).is_file(), font
+    assert css.count("@font-face") == css.count("font-display:swap") > 0
+    assert (out / "static/v2/fonts/OFL-barlow.txt").is_file()
+    # A Spanish page only downloads the latin subsets (latin-ext loads on demand).
+    latin = list((out / "static/v2/fonts").glob("*-latin.woff2"))
+    assert latin and sum(f.stat().st_size for f in latin) < 160_000
+    # Frozen snapshots link the old stylesheet and fonts: they are still published as they were.
+    for rel in ["css/site.css", *(f"fonts/{f.name}" for f in (SITE_STATIC / "fonts").iterdir())]:
+        assert (out / "static" / rel).read_bytes() == (SITE_STATIC / rel).read_bytes(), rel
+
+
+def test_credit_and_disclaimer_on_every_sheet(site, tmp_path):
+    from climauy.site.build import render_snapshot_index
+
+    out, _ = site
+    index = render_snapshot_index(tmp_path, [date(2026, 11, 1)], base_url="/clima-uy")
+    for html in [_read(out, p) for p in PAGES] + [index.read_text(encoding="utf-8")]:
+        notes = re.search(r'<ol class="notas">.*?</ol>', html, flags=re.S).group(0)
+        assert FOOTER_TEXT in _flat(notes)
+        assert '<a href="https://www.gub.uy/sistema-nacional-emergencias/">SINAE</a>' in notes
+        footer = re.search(r'<footer class="pie">.*?</footer>', html, flags=re.S).group(0)
+        assert 'Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>' in footer
+        assert 'href="https://github.com/sebastian-reolon/clima-uy"' in footer
+        assert "Fuentes:" in _flat(footer) and "NOAA CPC" in _flat(footer)
+
+
+def test_sheet_number_in_footer(site, tmp_path):
+    from climauy.site.build import render_snapshot_index
+
+    out, _ = site
+    assert "Hoja 2 de 5" in _flat(_read(out, "rio/index.html"))
+    for page, n in SHEETS.items():
+        footer = re.search(r'<footer class="pie">.*?</footer>', _read(out, page), flags=re.S).group(0)
+        assert f"Hoja {n} de 5" in _flat(footer), page
+    index = render_snapshot_index(tmp_path, [date(2026, 11, 1)], base_url="/clima-uy")
+    assert "Hoja" not in _flat(index.read_text(encoding="utf-8"))
+
+
+def _nav(html: str) -> dict[str, bool]:
+    nav = re.search(r"<nav\b.*?</nav>", html, flags=re.S).group(0)
+    return {htmllib.unescape(label): bool(cur)
+            for href, cur, label in re.findall(r'<a href="([^"]+)"( aria-current="page")?>([^<]+)</a>', nav)}
+
+
+def test_nav_marks_the_current_sheet(site):
+    out, _ = site
+    nav = re.search(r"<nav\b.*?</nav>", _read(out, "rio/index.html"), flags=re.S).group(0)
+    assert re.findall(r'href="([^"]+)"', nav) == ["/clima-uy/", "/clima-uy/nino/", "/clima-uy/datos/"]
+    assert _nav(_read(out, "index.html")) == {"Río": True, "El Niño": False, "Datos": False}
+    assert _nav(_read(out, "rio/index.html")) == {"Río": True, "El Niño": False, "Datos": False}
+    assert _nav(_read(out, "rio/metodologia/index.html")) == {"Río": True, "El Niño": False, "Datos": False}
+    assert _nav(_read(out, "datos/index.html")) == {"Río": False, "El Niño": False, "Datos": True}

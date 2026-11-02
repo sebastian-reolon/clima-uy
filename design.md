@@ -48,22 +48,24 @@ red = alert. Everything else is ink.
 
 ## Typography
 
-- Text: Overpass (400 to 800). Headings 700 to 750, roman, never italic.
-- Numbers and title-block values: Overpass Mono, tabular.
-- h1: clamp(1.9rem, 3.6vw, 2.9rem), line-height 1.08, max 24ch.
+- One family, no monospace: Barlow (400 to 800) for text, tables and numbers,
+  with `font-variant-numeric: tabular-nums` on body so figures align.
+- h1: Barlow Semi Condensed 600/700, clamp(1.9rem, 3.6vw, 2.9rem),
+  line-height 1.08, max 24ch. Roman, never italic.
 - Section h2: 1.05rem, 750.
-- Self-hosted woff2 (latin + latin-ext), OFL licence files next to them.
+- Self-hosted woff2 (latin + latin-ext), OFL licence next to them.
+- Chosen by the owner on 2026-11-02 over Overpass (read as too "coder"),
+  Public Sans and Archivo.
 
 ## Components
 
 - Sheet frame: 2 px ink border, max-width 76rem, on the gridded body.
 - Top bar: wordmark left, nav right (Río, El Niño, Datos), 1 px rule under it.
-- Cajetín: definition list in a ruled grid, label left in ink-2, value right
-  in mono.
+- Cajetín: definition list in a ruled grid, label left in ink-2, value right.
 - Section: padding 1.5rem, 1 px rule under it, h2 plus one muted line that
   says what the block shows.
 - Tables: headers small ink-2 with a 1.5 px ink rule under them, rows with
-  grid-2 rules, numbers right-aligned in mono. On phones the city table turns
+  grid-2 rules, numbers right-aligned, tabular. On phones the city table turns
   into one block per row with labels.
 - Profile drawing: x = km, y = percentile, Uruguayan stretch shaded with
   `--water-2`, city callouts under the axis with leader lines and a paper box

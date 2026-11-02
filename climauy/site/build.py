@@ -534,6 +534,7 @@ def _common(base: str) -> dict:
         "sources": SOURCES,
         "repo_url": REPO_URL,
         "author_url": AUTHOR_URL,
+        "sheet": None,  # «Hoja n de 5» in the footer; pages outside the numbered set leave it unset
     }
 
 
@@ -592,6 +593,7 @@ def build_site(
     pages = {
         "index.html": ("index.html.j2", {
             "nav": "home",
+            "sheet": 1,
             "enso": enso_summary(indices),
             "enso_rows": _enso_rows(store),
             "outlook": _outlook(outlook_path),
@@ -599,6 +601,7 @@ def build_site(
         }),
         "rio/index.html": ("rio.html.j2", {
             "nav": "rio",
+            "sheet": 2,
             "river_text": river_text,
             "profile": Markup(charts.profile_svg(statuses, catalog)),
             "snapshot_url": f"{base}/snapshots/{today.isoformat()}/",
@@ -617,10 +620,12 @@ def build_site(
         }),
         "rio/metodologia/index.html": ("metodologia.html.j2", {
             "nav": "rio",
+            "sheet": 5,
             "body": Markup(render_md(method_path.read_text(encoding="utf-8"))),
         }),
         "datos/index.html": ("datos.html.j2", {
             "nav": "datos",
+            "sheet": 4,
             "downloads": _downloads(store, catalog, now_utc),
             "source_terms": _source_terms(),
             "licences_url": f"{REPO_URL}/blob/main/{LICENCES_DOC}",
@@ -635,6 +640,6 @@ def build_site(
     for rel, (template, ctx) in pages.items():
         path = out_dir / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(env.get_template(template).render(**common, **ctx), encoding="utf-8")
+        path.write_text(env.get_template(template).render(**{**common, **ctx}), encoding="utf-8")
         written.append(path)
     return written

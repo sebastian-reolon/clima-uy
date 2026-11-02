@@ -376,6 +376,9 @@ th[scope="row"] {
   font-size: var(--step--1);
   white-space: nowrap;
 }
+.stations-table caption {
+  white-space: normal;
+}
 .stations-table .is-stale td,
 .stations-table .is-stale th {
   color: var(--ink-2);

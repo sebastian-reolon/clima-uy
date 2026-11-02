@@ -5,42 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Datos para descargar | clima-uy</title>
 <meta name="description" content="Descargas del monitor del río Uruguay en CSV y JSON, catálogo de estaciones, licencias y cómo citar.">
-<link rel="stylesheet" href="/clima-uy/static/css/site.css">
-<link rel="preload" href="/clima-uy/static/fonts/barlow-condensed-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/clima-uy/static/v2/css/site.css">
+<link rel="preload" href="/clima-uy/static/v2/fonts/barlow-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 </head>
 <body>
 <a class="skip" href="#contenido">Ir al contenido</a>
-<header class="site-header">
-  <div class="page site-header-inner">
-    <a class="wordmark" href="/clima-uy/">clima-uy</a>
-    <nav aria-label="Secciones">
-      <a href="/clima-uy/">El Niño</a>
-      <a href="/clima-uy/rio/">Río Uruguay</a>
-      <a href="/clima-uy/datos/" aria-current="page">Datos</a>
-    </nav>
-  </div>
-</header>
-<main id="contenido" class="page">
-<article class="doc">
-<h1>Datos</h1>
-<p class="lede">Todo lo que muestra el sitio se puede descargar, con la fuente de cada valor. Las horas están en UTC y los días en hora de Montevideo.</p>
+<div class="hoja"><div class="marco">
+<header class="top"><a class="marca" href="/clima-uy/">clima-uy</a><nav aria-label="Secciones"><a href="/clima-uy/">Río</a><a href="/clima-uy/nino/">El Niño</a><a href="/clima-uy/datos/" aria-current="page">Datos</a></nav></header>
+<main id="contenido">
+<div class="cab uno">
+<section class="resp"><h1>Datos</h1>
+<p>Todo lo que muestra el sitio se puede descargar, con la fuente de cada valor. Las horas están en UTC y los días en hora de Montevideo.</p>
+</section>
+</div>
 
-<section aria-labelledby="descargas">
+<section class="sec" aria-labelledby="descargas">
   <h2 id="descargas">Descargas</h2>
+  <p class="que">Lo de hoy, las lecturas y pronósticos de cada mes y la serie diaria de cada estación.</p>
   <ul class="downloads">
     <li><a href="/clima-uy/data/rio/latest.json">Estado de hoy de todas las estaciones y la frase del día (JSON)</a></li>
     <li><a href="/clima-uy/data/rio/stations.csv">Catálogo de estaciones (CSV)</a></li>
     <li><a href="/clima-uy/data/enso/indices.csv">Índices RONI, ONI y Niño 3.4 semanal (CSV)</a></li>
   </ul>
-  <p class="prose">En el estado de hoy, <code>last_data_utc</code> es la hora del dato más nuevo entre las estaciones al día (vacío si no hay ninguna), y cada estación dice la hora de su último dato (<code>latest_time_utc</code>) y de qué fuente es (<code>latest_source</code>).</p>
+  <p>En el estado de hoy, <code>last_data_utc</code> es la hora del dato más nuevo entre las estaciones al día (vacío si no hay ninguna), y cada estación dice la hora de su último dato (<code>latest_time_utc</code>) y de qué fuente es (<code>latest_source</code>).</p>
   <h3>Lecturas crudas y pronósticos, por mes</h3>
-  <p class="prose">Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo. La columna <code>source</code> dice de qué fuente es cada valor; citala junto con este sitio (ver <a href="#licencias">licencias</a>). Cada mes se actualiza hasta el primer día del mes siguiente y después queda fijo.</p>
+  <p>Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo. La columna <code>source</code> dice de qué fuente es cada valor; citala junto con este sitio (ver <a href="#licencias">licencias</a>). Cada mes se actualiza hasta el primer día del mes siguiente y después queda fijo.</p>
   <ul class="downloads">
     <li><a href="/clima-uy/data/rio/raw/2026-11.csv">Lecturas de noviembre de 2026 (CSV)</a></li>
     <li><a href="/clima-uy/data/rio/forecasts/2026-11.csv">Pronósticos de noviembre de 2026 (CSV)</a></li>
   </ul>
   <h3>Medias diarias por estación</h3>
-  <p class="prose">Una fila por día, con la media del día y cuántas lecturas la forman. Cada serie sale de una sola fuente, la de su estación en el catálogo. El día en curso no está: se agrega cuando termina.</p>
+  <p>Una fila por día, con la media del día y cuántas lecturas la forman. Cada serie sale de una sola fuente, la de su estación en el catálogo. El día en curso no está: se agrega cuando termina.</p>
   <ul class="downloads columns">
     <li><a href="/clima-uy/data/rio/daily/ana_72700000_level.csv">Machadinho jusante, nivel</a></li>
     <li><a href="/clima-uy/data/rio/daily/ana_72700000_discharge.csv">Machadinho jusante, caudal</a></li>
@@ -106,48 +101,49 @@
   </ul>
 </section>
 
-<section aria-labelledby="catalogo">
+<section class="sec" aria-labelledby="catalogo">
   <h2 id="catalogo">Catálogo de estaciones</h2>
-  <div class="table-wrap">
+  <p class="que">De dónde sale la serie de cada estación y cuáles tienen cota oficial.</p>
+  <p class="leyenda">Fuente de las cotas de alerta y evacuación: INA / Prefectura Naval Argentina. Las estaciones de ANA no tienen cotas publicadas.</p>
+  <div class="tw">
   <table class="catalog-table">
-    <caption>Fuente de las cotas de alerta y evacuación: INA / Prefectura Naval Argentina. Las estaciones de ANA no tienen cotas publicadas.</caption>
     <thead><tr><th scope="col">Estación</th><th scope="col">País</th><th scope="col">Río</th><th scope="col">Series</th><th scope="col">Alerta y evacuación</th><th scope="col">Ciudad que representa</th></tr></thead>
     <tbody>
       <tr><th scope="row">Machadinho jusante</th><td>Brasil</td><td>Uruguay</td><td>ANA 72700000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Itá barramento</th><td>Brasil</td><td>Uruguay</td><td>ANA 73200080</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Foz do Chapecó jusante</th><td>Brasil</td><td>Uruguay</td><td>ANA 74050000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Iraí</th><td>Brasil</td><td>Uruguay</td><td>ANA 74100000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Itapiranga</th><td>Brasil</td><td>Uruguay</td><td>ANA 74329000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Pepirí Miní</th><td>Argentina</td><td>Uruguay</td><td>INA 60, INA 909 (caudal)</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Alto Uruguai</th><td>Brasil</td><td>Uruguay</td><td>ANA 74500000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">El Soberbio</th><td>Argentina</td><td>Uruguay</td><td>INA 61, INA 910 (caudal)</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Alba Posse</th><td>Argentina</td><td>Uruguay</td><td>INA 63, INA 912 (caudal)</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Porto Mauá</th><td>Brasil</td><td>Uruguay</td><td>ANA 74720000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Panambí</th><td>Argentina</td><td>Uruguay</td><td>INA 64, INA 913 (caudal)</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Porto Lucena</th><td>Brasil</td><td>Uruguay</td><td>ANA 74800000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">San Javier</th><td>Argentina</td><td>Uruguay</td><td>INA 65, INA 914 (caudal)</td>
       <td>8 m y 10 m</td>
@@ -162,13 +158,13 @@
       <td>11,5 m y 12,5 m</td>
       <td></td></tr>
       <tr><th scope="row">Passo São Borja</th><td>Brasil</td><td>Uruguay</td><td>ANA 75780000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Alvear</th><td>Argentina</td><td>Uruguay</td><td>INA 69, INA 918 (caudal)</td>
       <td>9,5 m y 11 m</td>
       <td></td></tr>
       <tr><th scope="row">Itaqui</th><td>Brasil</td><td>Uruguay</td><td>ANA 75900000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">La Cruz</th><td>Argentina</td><td>Uruguay</td><td>INA 70, INA 919 (caudal)</td>
       <td>9,5 m y 11,5 m</td>
@@ -177,19 +173,19 @@
       <td>9,5 m y 10,5 m</td>
       <td></td></tr>
       <tr><th scope="row">Ibirapuitã Alegrete</th><td>Brasil</td><td>Ibirapuitã</td><td>ANA 76750000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Ibicuí Passo Mariano Pinto</th><td>Brasil</td><td>Ibicuí</td><td>ANA 76800000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Paso de los Libres</th><td>Argentina</td><td>Uruguay</td><td>ANA 77140000, INA 72, INA 921 (caudal)</td>
       <td>7,5 m y 8,5 m</td>
       <td></td></tr>
       <tr><th scope="row">Uruguaiana</th><td>Brasil</td><td>Uruguay</td><td>ANA 77150000, GloFAS</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
       <tr><th scope="row">Quaraí</th><td>Brasil</td><td>Quaraí o Cuareim</td><td>ANA 77500000</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td>Artigas</td></tr>
       <tr><th scope="row">Monte Caseros</th><td>Argentina</td><td>Uruguay</td><td>INA 74, INA 923 (caudal)</td>
       <td>7,5 m y 8,5 m</td>
@@ -222,56 +218,53 @@
       <td>2,9 m y 3,1 m</td>
       <td></td></tr>
       <tr><th scope="row">Fray Bentos</th><td>Uruguay</td><td>Uruguay</td><td>sin fuente con datos</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td>Fray Bentos</td></tr>
       <tr><th scope="row">Nueva Palmira</th><td>Argentina</td><td>Uruguay</td><td>INA 3280</td>
-      <td><span class="muted">sin cota oficial</span></td>
+      <td><span class="pais">sin cota oficial</span></td>
       <td></td></tr>
     </tbody>
   </table>
   </div>
 </section>
 
-<section aria-labelledby="licencias">
+<section class="sec" aria-labelledby="licencias">
   <h2 id="licencias">Licencias y atribución</h2>
-  <p class="prose">Qué se puede descargar de cada fuente depende de lo que esa fuente permite. Si usás estos datos, citá siempre también la fuente original. El detalle, con los links a las condiciones de cada una, está en <a href="https://github.com/sebastian-reolon/clima-uy/blob/main/docs/licencias.md">el documento de licencias del repositorio</a>.</p>
+  <p class="que">Qué se puede descargar de cada fuente depende de lo que esa fuente permite. Si usás estos datos, citá siempre también la fuente original. El detalle, con los links a las condiciones de cada una, está en <a href="https://github.com/sebastian-reolon/clima-uy/blob/main/docs/licencias.md">el documento de licencias del repositorio</a>.</p>
   <ul class="source-terms">
     <li><a href="https://telemetriaws1.ana.gov.br/ServiceANA.asmx">ANA (Brasil)</a>. Se pueden descargar sus series completas: la ANA permite reproducir sus datos citando la fuente.</li>
     <li><a href="https://alerta.ina.gob.ar/a5">INA y Prefectura Naval Argentina</a>. Se pueden descargar sus series completas. El INA y Prefectura no publican condiciones de reutilización: republicar sus datos públicos citando la fuente es un criterio de este proyecto, no un permiso. Si piden retirarlos, se retiran. Los pronósticos del INA también se pueden descargar. El pedido se puede hacer en <a href="https://github.com/sebastian-reolon/clima-uy/issues">los issues del repositorio</a>.</li>
     <li><a href="https://www.saltogrande.org/docs/hidrologia/CaudalesNiveles.pdf">CTM Salto Grande</a>. Se pueden descargar sus lecturas. La CTM no publica condiciones de reutilización: republicar sus datos públicos citando la fuente es un criterio de este proyecto, no un permiso. Si piden retirarlos, se retiran. El pedido se puede hacer en <a href="https://github.com/sebastian-reolon/clima-uy/issues">los issues del repositorio</a>.</li>
     <li><a href="https://open-meteo.com/en/docs/flood-api">GloFAS vía Open-Meteo</a>. Se pueden descargar los pronósticos completos. Open-Meteo los publica con licencia CC BY 4.0 y la licencia de Copernicus pide este aviso: «Contains modified Copernicus Emergency Management Service information 2026». Datos: <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a>.</li>
     <li><a href="https://www.cpc.ncep.noaa.gov/data/indices/">NOAA CPC</a>. Se pueden descargar los índices completos: son de dominio público en Estados Unidos.</li>
-    <li><a href="https://www.inumet.gub.uy/">INUMET</a>. Se citan en la portada sus probabilidades para los próximos meses, con su link; no hay descarga.</li>
+    <li><a href="https://www.inumet.gub.uy/">INUMET</a>. Se citan en la página de El Niño sus probabilidades para los próximos meses, con su link; no hay descarga.</li>
   </ul>
 </section>
 
-<section aria-labelledby="citar">
+<section class="sec" aria-labelledby="citar">
   <h2 id="citar">Cómo citar</h2>
-  <p class="prose">Cada día queda una foto fija con link propio. Para citar el estado del río de un día, usá esa foto:</p>
+  <p class="que">Cada día queda una foto fija con link propio. Para citar el estado del río de un día, usá esa foto:</p>
   <p class="cite">clima-uy, monitor del río Uruguay, foto del 2 de noviembre de 2026. https://sebastian-reolon.github.io/clima-uy/snapshots/2026-11-02/</p>
 </section>
 
-<section aria-labelledby="codigo">
+<section class="sec" aria-labelledby="codigo">
   <h2 id="codigo">Código</h2>
-  <p class="prose">El procesamiento, los gráficos y esta página están en <a href="https://github.com/sebastian-reolon/clima-uy">el repositorio público</a>. La metodología está en <a href="/clima-uy/rio/metodologia/">su propia página</a>.</p>
+  <p class="que">El procesamiento, los gráficos y esta página están en <a href="https://github.com/sebastian-reolon/clima-uy">el repositorio público</a>. La metodología está en <a href="/clima-uy/rio/metodologia/">su propia página</a>.</p>
 </section>
 
-<section aria-labelledby="cambios">
+<section class="sec" aria-labelledby="cambios">
   <h2 id="cambios">Registro de cambios</h2>
+  <p class="que">Lo que cambió en el sitio, por fecha.</p>
   <ul class="changelog">
-    <li><span class="num">1 de noviembre de 2026.</span> Primera versión: la portada de El Niño y el módulo del río Uruguay.</li>
+    <li><strong>1 de noviembre de 2026.</strong> Primera versión: la portada de El Niño y el módulo del río Uruguay.</li>
   </ul>
 </section>
-</article>
+<section class="sec"><h2>Notas</h2>
+<ol class="notas">
+<li>Esto no es una alerta oficial. Para alertas y evacuaciones: <a href="https://www.gub.uy/sistema-nacional-emergencias/">SINAE</a> y el CECOED de tu departamento.</li>
+</ol></section>
 </main>
-<footer class="site-footer">
-  <div class="page">
-    <p class="footer-warning">Esto no es una alerta oficial. Para alertas y evacuaciones: <a href="https://www.gub.uy/sistema-nacional-emergencias/">SINAE</a> y el CECOED de tu departamento.</p>
-    <p>Fuentes:
-<a href="https://telemetriaws1.ana.gov.br/ServiceANA.asmx">ANA (Brasil)</a>, <a href="https://alerta.ina.gob.ar/a5">INA y Prefectura Naval Argentina</a>, <a href="https://www.saltogrande.org/docs/hidrologia/CaudalesNiveles.pdf">CTM Salto Grande</a>, <a href="https://open-meteo.com/en/docs/flood-api">GloFAS vía Open-Meteo</a>, <a href="https://www.cpc.ncep.noaa.gov/data/indices/">NOAA CPC</a>, <a href="https://www.inumet.gub.uy/">INUMET</a>.
-    Código y datos en <a href="https://github.com/sebastian-reolon/clima-uy">el repositorio público</a>.</p>
-    <p class="credit">Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>.</p>
-  </div>
-</footer>
+<footer class="pie"><span class="credit">Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a></span><span>Código y datos en <a href="https://github.com/sebastian-reolon/clima-uy">el repositorio público</a></span><span>Fuentes: <a href="https://telemetriaws1.ana.gov.br/ServiceANA.asmx">ANA (Brasil)</a>, <a href="https://alerta.ina.gob.ar/a5">INA y Prefectura Naval Argentina</a>, <a href="https://www.saltogrande.org/docs/hidrologia/CaudalesNiveles.pdf">CTM Salto Grande</a>, <a href="https://open-meteo.com/en/docs/flood-api">GloFAS vía Open-Meteo</a>, <a href="https://www.cpc.ncep.noaa.gov/data/indices/">NOAA CPC</a>, <a href="https://www.inumet.gub.uy/">INUMET</a></span><span>Hoja 4 de 5</span></footer>
+</div></div>
 </body>
 </html>

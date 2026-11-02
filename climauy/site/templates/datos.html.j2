@@ -13,6 +13,7 @@
     <li><a href="{{ base }}/data/rio/stations.csv">Catálogo de estaciones (CSV)</a></li>
     <li><a href="{{ base }}/data/enso/indices.csv">Índices RONI, ONI y Niño 3.4 semanal (CSV)</a></li>
   </ul>
+  <p class="prose">En el estado de hoy, <code>last_data_utc</code> es la hora del dato más nuevo entre las estaciones al día (vacío si no hay ninguna), y cada estación dice la hora de su último dato (<code>latest_time_utc</code>) y de qué fuente es (<code>latest_source</code>).</p>
   <h3>Lecturas crudas y pronósticos, por mes</h3>
   <p class="prose">Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo. La columna <code>source</code> dice de qué fuente es cada valor; citala junto con este sitio (ver <a href="#licencias">licencias</a>). Cada mes se actualiza hasta el primer día del mes siguiente y después queda fijo.</p>
   <ul class="downloads">
@@ -22,7 +23,7 @@
   {% endfor %}
   </ul>
   <h3>Medias diarias por estación</h3>
-  <p class="prose">Una fila por día, con la media del día y cuántas lecturas la forman. Cada serie sale de una sola fuente, la de su estación en el catálogo.</p>
+  <p class="prose">Una fila por día, con la media del día y cuántas lecturas la forman. Cada serie sale de una sola fuente, la de su estación en el catálogo. El día en curso no está: se agrega cuando termina.</p>
   {% if downloads.series %}
   <ul class="downloads columns">
   {% for s in downloads.series %}

@@ -16,13 +16,33 @@ from climauy.ingest import ingest_archive
 from climauy.store import Store
 
 
+log = logging.getLogger("climauy")
+
+# Archive folders that can be ingested again from scratch -> forecast issuer they feed.
+REINGEST_SOURCES = {"glofas": "glofas"}
+_LOGGED_ERRORS = 5
+
+
 def _ingest() -> int:
     cfg = Config.from_env()
     with Store(cfg.db_path) as store:
         report = ingest_archive(cfg.archive_dir, store, load_catalog())
     print(json.dumps(dataclasses.asdict(report)))
     # Fail only when every file seen for the first time in this run failed.
-    return 1 if report.files_failed_new and report.files_new == 0 else 0
+    rc = 1 if report.files_failed_new and report.files_new == 0 else 0
+    if rc:
+        shown = "; ".join(report.errors[:_LOGGED_ERRORS])
+        log.warning("ingest: %d new file(s) failed: %s", report.files_failed_new, shown)
+    return rc
+
+
+def _reingest(source: str) -> int:
+    """Forget one source's forecasts and ledger rows, then ingest: its files are read again."""
+    cfg = Config.from_env()
+    with Store(cfg.db_path) as store:
+        files, rows = store.forget_forecast_source(source, REINGEST_SOURCES[source])
+    print(json.dumps({"source": source, "ledger_rows_deleted": files, "forecast_rows_deleted": rows}))
+    return _ingest()
 
 
 def _backfill(station: str | None) -> int:
@@ -60,18 +80,16 @@ def _all(base_url: str) -> int:
     from climauy.site.build import build_site
     from climauy.timeutil import local_day
 
-    log = logging.getLogger("climauy.all")
     ingest_rc = _ingest()
     cfg = Config.from_env()
     now = _now()  # one instant for build, export and snapshot, so they agree on the day
     catalog = load_catalog()
+    marks: list[str] = []  # closed months made final, recorded only once published
     try:
         with Store(cfg.db_path) as store:
             build_site(store, catalog, cfg.out_dir, now, base_url=base_url)
             full = publish.full_export_due(store, now)
-            files = publish.export_data(store, catalog, cfg.out_dir, now, full=full)
-            if full:
-                publish.mark_full_export(store, now)
+            files = publish.export_data(store, catalog, cfg.out_dir, now, full=full, marks=marks)
         snapshot = publish.write_snapshot(cfg.out_dir, local_day(now), base_url=base_url)
     except Exception:
         log.exception("build or export failed")
@@ -91,17 +109,27 @@ def _all(base_url: str) -> int:
         try:
             pushed = publish.commit_and_push(cfg.out_dir, f"Build {now.strftime('%Y-%m-%dT%H:%MZ')}")
         except Exception:
+            # Nothing is marked: the next run redoes the full export and the closed months.
             log.exception("commit or push failed")
             return 1
+    # Published (or nothing changed, or pushing is off): now the marks can stick.
+    with Store(cfg.db_path) as store:
+        publish.apply_marks(store, marks)
+        if full:
+            publish.mark_full_export(store, now)
     print(json.dumps({"built_utc": now.isoformat(), "full_export": full, "files": len(files),
                       "snapshot": str(snapshot.relative_to(cfg.out_dir)), "pushed": pushed}))
-    return ingest_rc
+    if ingest_rc:
+        log.warning("published anyway: only ingest files failed (see the ingest report above)")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="climauy")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("ingest", help="ingest the raw archive into the store")
+    ri = sub.add_parser("reingest", help="forget one source's forecasts and ledger, then ingest its files again")
+    ri.add_argument("--source", required=True, choices=sorted(REINGEST_SOURCES))
     bf = sub.add_parser("backfill", help="download daily history since 1990")
     bf.add_argument("--station", help="only this station id")
     b = sub.add_parser("build", help="build the static site into CLIMAUY_OUT")
@@ -112,6 +140,8 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, stream=sys.stderr)
     if args.command == "ingest":
         return _ingest()
+    if args.command == "reingest":
+        return _reingest(args.source)
     if args.command == "backfill":
         return _backfill(args.station)
     if args.command == "build":

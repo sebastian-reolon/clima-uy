@@ -250,3 +250,42 @@ def test_cli_ingest_prints_report_and_exit_codes(tmp_path, monkeypatch, capsys):
     capsys.readouterr()
     assert main(["ingest"]) == 0
     assert len(json.loads(capsys.readouterr().out.strip().splitlines()[-1])["errors"]) == 1
+
+
+def test_cli_reingest_glofas_replaces_only_glofas(tmp_path, monkeypatch, capsys):
+    from climauy.store import Forecast
+
+    root = tmp_path / "data"
+    _put(root, "glofas", "salto.json", gzip.decompress(_fix("glofas/salto.json.gz")), day="2026-11-01", hms="212640")
+    _put(root, "ina", "obs_72_series72.json", _fix("ina/obs_72_series72.json"))
+    db = tmp_path / "c.sqlite"
+    monkeypatch.setenv("CLIMAUY_ARCHIVE_DIR", str(root))
+    monkeypatch.setenv("CLIMAUY_DB", str(db))
+    monkeypatch.setenv("CLIMAUY_OUT", str(tmp_path / "out"))
+    assert main(["ingest"]) == 0
+    utc = timezone.utc
+    old = datetime(2026, 11, 1, tzinfo=utc)
+    with Store(db) as store:
+        # What the old parser left: runs and days stamped at 00:00Z.
+        store.upsert_forecasts([Forecast("glofas", "ina_79", "discharge", old, datetime(2026, 11, 2, tzinfo=utc), "median", 1.0)])
+        store.upsert_forecasts([Forecast("ina", "ina_72", "level", old, datetime(2026, 11, 2, tzinfo=utc), "main", 7.0)])
+        ina_obs = len(store.obs("ina_72", "level"))
+    capsys.readouterr()
+    assert main(["reingest", "--source", "glofas"]) == 0
+    lines = capsys.readouterr().out.strip().splitlines()
+    assert json.loads(lines[0])["ledger_rows_deleted"] == 1
+    with Store(db) as store:
+        fc = store.forecasts("glofas")
+        assert fc and all(f.valid_utc.hour == 3 for f in fc)
+        assert {f.issued_utc for f in fc} == {datetime(2026, 11, 1, 21, 26, 40, tzinfo=utc)}
+        assert len(store.forecasts("ina")) == 1
+        assert len(store.obs("ina_72", "level")) == ina_obs
+        assert store.ledger_get("glofas/2026-11-01/212640Z_salto.json.gz")[0] == "processed"
+
+
+def test_cli_reingest_rejects_unknown_source(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLIMAUY_ARCHIVE_DIR", str(tmp_path))
+    monkeypatch.setenv("CLIMAUY_DB", str(tmp_path / "c.sqlite"))
+    monkeypatch.setenv("CLIMAUY_OUT", str(tmp_path / "out"))
+    with pytest.raises(SystemExit):
+        main(["reingest", "--source", "ina"])

@@ -95,9 +95,15 @@ def test_export_csv_headers(seeded, all_sources):
     assert isinstance(latest["summary"], str)
     by_id = {s["station_id"]: s for s in latest["stations"]}
     assert by_id["ina_74"]["name"] == "Monte Caseros"
-    assert by_id["ina_74"]["latest_time_utc"].endswith("Z")
+    assert by_id["ina_74"]["latest_time_utc"] == "2026-12-02T15:00:00Z"
+    assert by_id["ina_74"]["latest_source"] == "ina"
+    # Newest reading among the stations that are up to date.
+    assert latest["last_data_utc"] == "2026-12-02T15:00:00Z"  # Uruguaiana (30/11) is stale
+    assert not (data / "rio/latest.json.tmp").exists()
 
     daily = {r[0]: r for r in _rows(data / "rio/daily/ina_74_level.csv")[1:]}
+    # The local day in progress (2/12) is not exported until it ends.
+    assert "2026-12-01" in daily and "2026-12-02" not in daily
     assert daily["2026-11-20"][2] == "2"  # two readings that day
     assert float(daily["2026-11-21"][1]) < 10  # the suspect 30 m is not in the mean
     assert daily["2026-11-21"][2] == "1"
@@ -540,3 +546,83 @@ def test_cli_all_refuses_to_publish_on_infra_hit(tmp_path, monkeypatch):
     monkeypatch.setattr(publish, "commit_and_push", lambda *a: pushed.append(a) or True)
     assert cli.main(["all"]) == 1
     assert pushed == []
+
+
+def test_last_data_utc_null_when_every_station_is_stale(tmp_path):
+    with Store(tmp_path / "t.sqlite") as store:
+        store.upsert_obs([Obs("ina_74", "level", datetime(2026, 11, 1, 15, tzinfo=UTC), 4.0, "ina")])
+        export_data(store, load_catalog(), tmp_path / "out", NOW, full=False)
+    latest = json.loads((tmp_path / "out/data/rio/latest.json").read_text(encoding="utf-8"))
+    assert latest["last_data_utc"] is None
+
+
+def _cli_env(tmp_path, monkeypatch):
+    archive = tmp_path / "archive"
+    archive.mkdir(exist_ok=True)
+    monkeypatch.setenv("CLIMAUY_ARCHIVE_DIR", str(archive))
+    monkeypatch.setenv("CLIMAUY_DB", str(tmp_path / "t.sqlite"))
+    monkeypatch.setenv("CLIMAUY_OUT", str(tmp_path / "pages"))
+    monkeypatch.setenv("CLIMAUY_PAGES_PUSH", "1")
+    return archive
+
+
+def test_failed_push_on_month_close_rewrites_the_month_next_run(tmp_path, monkeypatch):
+    from climauy import cli, publish
+
+    _cli_env(tmp_path, monkeypatch)
+    with Store(tmp_path / "t.sqlite") as store:
+        _seed(store)
+    out = tmp_path / "pages"
+    nov = out / "data/rio/raw/2026-11.csv"
+    late = Obs("ina_74", "level", datetime(2026, 11, 30, 23, tzinfo=UTC), 6.4, "ina")
+
+    def fail(*a):
+        raise subprocess.CalledProcessError(1, ["git", "push"])
+
+    # 1/12 00:40 in Montevideo: November closes and gets its final write, but the push fails.
+    dec_1 = datetime(2026, 12, 1, 3, 40, tzinfo=UTC)
+    monkeypatch.setattr(cli, "_now", lambda: dec_1)
+    monkeypatch.setattr(publish, "commit_and_push", fail)
+    assert cli.main(["all"]) == 1
+    with Store(tmp_path / "t.sqlite") as store:
+        assert store.meta_get("month_final:raw:2026-11") is None
+        assert full_export_due(store, dec_1 + timedelta(hours=3))  # the full export is not marked either
+        store.upsert_obs([late])  # arrives before the next run
+
+    # Next run pushes: November is written again (with the late reading) and only now frozen.
+    pushed = []
+    monkeypatch.setattr(cli, "_now", lambda: dec_1 + timedelta(hours=3))
+    monkeypatch.setattr(publish, "commit_and_push", lambda *a: pushed.append(a) or True)
+    assert cli.main(["all"]) == 0 and pushed
+    assert any(r[2] == "2026-11-30T23:00:00Z" for r in _rows(nov))
+    with Store(tmp_path / "t.sqlite") as store:
+        assert store.meta_get("month_final:raw:2026-11") == "1"
+        assert store.meta_get("month_final:forecasts:2026-11") == "1"
+        assert not full_export_due(store, dec_1 + timedelta(hours=4))
+
+
+def test_marks_are_kept_when_push_is_disabled(tmp_path, monkeypatch):
+    from climauy import cli
+
+    _cli_env(tmp_path, monkeypatch)
+    monkeypatch.delenv("CLIMAUY_PAGES_PUSH")
+    monkeypatch.setattr(cli, "_now", lambda: NOW)
+    assert cli.main(["all"]) == 0
+    with Store(tmp_path / "t.sqlite") as store:
+        assert store.meta_get("month_final:raw:2026-11") == "1"
+        assert not full_export_due(store, NOW + timedelta(hours=1))
+
+
+def test_cli_all_exits_0_when_only_an_ingest_file_failed(tmp_path, monkeypatch, caplog):
+    from climauy import cli, publish
+
+    archive = _cli_env(tmp_path, monkeypatch)
+    bad = archive / "ctm" / "2026-12-02"
+    bad.mkdir(parents=True)
+    import gzip as _gz
+    (bad / "090000Z_caudales_niveles.pdf.gz").write_bytes(_gz.compress(b"junk"))
+    monkeypatch.setattr(cli, "_now", lambda: NOW)
+    monkeypatch.setattr(publish, "commit_and_push", lambda *a: True)
+    with caplog.at_level("WARNING"):
+        assert cli.main(["all"]) == 0
+    assert "ingest" in caplog.text and "caudales_niveles" in caplog.text

@@ -111,13 +111,14 @@ def series_exported(store: Store, station: Station, variable: str) -> bool:
     return bool(sources) and store.has_obs(station.id, variable, sources)
 
 
-def _daily_rows(store: Store, station: Station, variable: str) -> list[list]:
+def _daily_rows(store: Store, station: Station, variable: str, today: date) -> list[list]:
     """Per local day the mean and count of the winning source (same choice as family_daily),
-    among the sources republished in full."""
+    among the sources republished in full. The local day in progress is left out: its
+    mean would change on every run."""
     family = [s for s in family_for(station, variable) if s in FULL_SERIES_SOURCES]
     by_day: dict[date, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     for o in station_readings(store, station, variable):
-        if o.source in family:
+        if o.source in family and local_day(o.time_utc) < today:
             by_day[local_day(o.time_utc)][o.source].append(o.value)
     rows = []
     for d in sorted(by_day):
@@ -140,9 +141,9 @@ def _month_due(store: Store, key: str, path: Path, is_current: bool) -> bool:
     return is_current or not path.exists() or store.meta_get(_FINAL_KEY + key) is None
 
 
-def _month_written(store: Store, key: str, is_current: bool) -> None:
-    """After a successful write, a closed month is final."""
-    if not is_current:
+def apply_marks(store: Store, marks: Iterable[str]) -> None:
+    """Record closed months as final; call only once their files are published."""
+    for key in marks:
         store.meta_set(_FINAL_KEY + key, "1")
 
 
@@ -157,27 +158,44 @@ def _month_bounds(m: date) -> tuple[datetime, datetime]:
 
 
 def _latest(store: Store, catalog: Sequence[Station], now_utc: datetime) -> dict:
+    """latest.json: run time, today's sentence, each station's status.
+
+    last_data_utc is the newest reading among the stations that are up to date
+    (the page's "Último dato del río"), or null when none is; the freshness
+    alert reads it. Each station carries latest_time_utc and latest_source.
+    """
     statuses = compute_status(store, catalog, now_utc)
     by_id = {s.id: s for s in catalog}
     stations = [{"name": by_id[s.station_id].name, **dataclasses.asdict(s)} for s in statuses]
-    return {"generated_utc": _utc(now_utc), "summary": river_summary(statuses, catalog), "stations": stations}
+    fresh = [s.latest_time_utc for s in statuses if not s.stale and s.latest_time_utc is not None]
+    return {"generated_utc": _utc(now_utc), "last_data_utc": _utc(max(fresh)) if fresh else None,
+            "summary": river_summary(statuses, catalog), "stations": stations}
 
 
-def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc: datetime, full: bool) -> list[Path]:
+def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc: datetime, full: bool,
+                marks: list[str] | None = None) -> list[Path]:
     """Write the data files under out_dir/data; returns the files written this run.
 
     Always: data/rio/stations.csv and data/rio/latest.json. With full also the
-    daily series, the monthly raw and forecast files and the ENSO indices.
-    Monthly files are rewritten while their month is the current local month
-    and one final time on the first full run after it closes (so the last day
-    is complete); after that they are frozen. A missing file is always written.
+    daily series (without the local day in progress), the monthly raw and
+    forecast files and the ENSO indices. Monthly files are rewritten while
+    their month is the current local month and one final time on the first
+    full run after it closes (so the last day is complete); after that they
+    are frozen. A missing file is always written.
+
+    The "closed month is final" marks are appended to `marks` for the caller
+    to apply with apply_marks once the files are published; with marks=None
+    they are applied right away.
     """
+    pending: list[str] = []
     rio = out_dir / "data" / "rio"
     written = [_write_csv(rio / "stations.csv", STATION_COLUMNS, _station_rows(catalog))]
     latest = rio / "latest.json"
     latest.parent.mkdir(parents=True, exist_ok=True)
-    latest.write_text(json.dumps(_latest(store, catalog, now_utc), ensure_ascii=False, indent=1,
-                                 default=_json_default) + "\n", encoding="utf-8")
+    tmp = latest.with_suffix(".json.tmp")  # atomic: the freshness check may read it at any time
+    tmp.write_text(json.dumps(_latest(store, catalog, now_utc), ensure_ascii=False, indent=1,
+                              default=_json_default) + "\n", encoding="utf-8")
+    tmp.replace(latest)
     written.append(latest)
     if not full:
         return written
@@ -187,7 +205,7 @@ def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc
             # Same predicate as the Datos page, so every listed link has a file.
             if series_exported(store, st, variable):
                 written.append(_write_csv(rio / "daily" / f"{st.id}_{variable}.csv", DAILY_COLUMNS,
-                                          _daily_rows(store, st, variable)))
+                                          _daily_rows(store, st, variable, local_day(now_utc))))
     # A series no longer exported (licence change, station removed) leaves no file behind.
     daily_now = set(written)
     for stale in (rio / "daily").glob("*.csv"):
@@ -204,15 +222,21 @@ def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc
             obs = [o for o in store.obs_between(start, end) if o.source in FULL_SERIES_SOURCES]
             written.append(_write_csv(raw, RAW_COLUMNS, (
                 [o.station_id, o.variable, _utc(o.time_utc), o.value, o.source, o.quality] for o in obs)))
-            _month_written(store, f"raw:{key}", m == current)
+            if m != current:
+                pending.append(f"raw:{key}")
         if _month_due(store, f"forecasts:{key}", fc, m == current):
             written.append(_write_csv(fc, FORECAST_COLUMNS, (
                 [f.issuer, f.station_id, f.variable, _utc(f.issued_utc), _utc(f.valid_utc), f.qualifier, f.value]
                 for f in store.forecasts_issued_between(start, end) if f.issuer in FULL_FORECAST_ISSUERS)))
-            _month_written(store, f"forecasts:{key}", m == current)
+            if m != current:
+                pending.append(f"forecasts:{key}")
 
     written.append(_write_csv(out_dir / "data" / "enso" / "indices.csv", INDEX_COLUMNS, (
         [i.name, i.period, i.value] for name in INDEX_NAMES for i in store.indices(name))))
+    if marks is None:
+        apply_marks(store, pending)
+    else:
+        marks.extend(pending)
     return written
 
 

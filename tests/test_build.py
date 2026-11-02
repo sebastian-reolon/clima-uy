@@ -430,3 +430,10 @@ def test_author_credit_on_every_page(site):
         assert 'Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>.' in footer, page
     readme = (Path(__file__).resolve().parents[1] / "README.md").read_text(encoding="utf-8")
     assert "Hecho por [Sebastián Reolon](https://github.com/sebastian-reolon)." in readme
+
+
+def test_datos_explains_partial_day_and_latest_fields(site):
+    out, _ = site
+    flat = _flat(_read(out, "datos/index.html"))
+    assert "El día en curso no está: se agrega cuando termina." in flat
+    assert "last_data_utc" in flat and "latest_source" in flat

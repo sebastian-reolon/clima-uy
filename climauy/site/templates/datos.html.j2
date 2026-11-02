@@ -17,8 +17,8 @@
   <p class="prose">Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo.</p>
   <ul class="downloads">
   {% for m in downloads.months %}
-    <li><a href="{{ base }}/data/rio/raw/{{ m }}.csv">Lecturas de {{ m }} (CSV)</a></li>
-    <li><a href="{{ base }}/data/rio/forecasts/{{ m }}.csv">Pronósticos de {{ m }} (CSV)</a></li>
+    <li><a href="{{ base }}/data/rio/raw/{{ m.key }}.csv">Lecturas de {{ m.label }} (CSV)</a></li>
+    <li><a href="{{ base }}/data/rio/forecasts/{{ m.key }}.csv">Pronósticos de {{ m.label }} (CSV)</a></li>
   {% endfor %}
   </ul>
   <h3>Medias diarias por estación</h3>
@@ -59,7 +59,7 @@
 <section aria-labelledby="citar">
   <h2 id="citar">Cómo citar</h2>
   <p class="prose">Cada día queda una foto fija con link propio. Para citar el estado del río de un día, usá esa foto:</p>
-  <p class="cite">clima-uy, monitor del río Uruguay, foto del {{ today_long }}. {{ site_url }}/snapshots/{{ today_iso }}/</p>
+  <p class="cite">clima-uy, monitor del río Uruguay, foto del {{ today_long }}. {{ cite_url }}</p>
 </section>
 
 <section aria-labelledby="codigo">

@@ -154,9 +154,12 @@ def _ticks(lo: float, hi: float, target: int = 4) -> tuple[float, float, list[fl
 
 
 def _tick_label(v: float, step: float) -> str:
-    if abs(v) >= 1000 or step >= 1:
+    """Axis number with the decimals the step needs: a 2.5 step reads 2,5 / 5,0 / 7,5, never 2 / 8."""
+    if abs(v) < 1e-9:
+        return "0"
+    if abs(step - round(step)) < 1e-9:
         return _num(v, 0)
-    return _num(v, 1 if step * 10 == int(step * 10) else 2)
+    return _num(v, 1 if abs(step * 10 - round(step * 10)) < 1e-9 else 2)
 
 
 def _text_width(s: str, size: float) -> float:
@@ -330,7 +333,7 @@ def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -
         ],
         y=26,
     )
-    body.append(_text(0, 66, "más alto que el X% de los días desde 1990", fill=INK_2))
+    body.append(_text(0, 66, "% de los días desde 1990 con el río más bajo", fill=INK_2))
 
     # Grid and y axis.
     for p, label in P_GRID:
@@ -465,6 +468,9 @@ def gauge_svg(status: StationStatus, station: Station) -> str:
     hi = max(marks) if marks else 10.0
     top = math.ceil(hi + 0.5)
     bottom = 0 if top <= 14 else top - 12
+    if level is not None:
+        # The reading is always on the plate, even far below high cotas.
+        bottom = min(bottom, max(0, math.floor(level) - 1))
     left, right = 8, GAUGE_W - 8
     plate_y, plate_h = 30, 28
 

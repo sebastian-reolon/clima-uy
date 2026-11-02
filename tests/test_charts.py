@@ -386,3 +386,27 @@ def test_season_current_label_stays_clear_of_year_column():
     early = season_compare_svg({"2009-10": full, "2026-27": full[:30]}, None)
     label = [t for t in parse(early).iter("{http://www.w3.org/2000/svg}text") if t.get("class") == "current-label"][0]
     assert label.get("text-anchor") is None
+
+
+def test_gauge_scale_always_contains_level():
+    # Puerto Concepción: low water far below its high cotas.
+    st = station("pc", "Puerto Concepción", 1, alert_m=15.5, evac_m=16.5)
+    svg = gauge_svg(status("pc", level=3.6), st)
+    desc = parse(svg).find("s:desc", NS).text
+    lo, hi = (int(v) for v in re.search(r"Escala de (\d+) a (\d+) m", desc).groups())
+    assert lo <= 3.6 <= hi
+    assert lo == 2
+    assert "3,6 m" in texts_of(svg)
+
+
+def test_tick_labels_keep_decimals_for_fractional_steps():
+    from climauy.site.charts import _tick_label
+    assert [_tick_label(v, 2.5) for v in (0, 2.5, 5, 7.5, 10)] == ["0", "2,5", "5,0", "7,5", "10,0"]
+    assert [_tick_label(v, 2) for v in (0, 2, 4)] == ["0", "2", "4"]
+    assert _tick_label(12500, 2500) == "12.500"
+    assert _tick_label(0.25, 0.25) == "0,25"
+
+
+def test_profile_axis_caption_has_no_placeholder():
+    svg = profile_svg([status("a", 80.0)], CATALOG)
+    assert "X%" not in svg

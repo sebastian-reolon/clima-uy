@@ -17,7 +17,8 @@ Cada fuente se baja cada 3 horas y el archivo crudo se guarda tal como llegó. L
 Cada estación mide desde su propio cero. Por eso:
 
 - nunca se comparan alturas en metros entre estaciones distintas;
-- para una misma estación nunca se mezclan series de dos organismos. En Paso de los Libres, por ejemplo, la regla del INA y la de ANA difieren en unos 40 centímetros. Si la estación tiene serie del INA, se usa solo esa (con el informe de CTM para completar días sin dato); si no, se usa solo ANA.
+- para una misma estación nunca se mezclan series con distinto cero. En Paso de los Libres, por ejemplo, la regla del INA y la de ANA difieren en unos 40 centímetros. Si la estación tiene serie del INA, se usa esa; si no, se usa solo ANA.
+- CTM republica las mismas escalas de Prefectura que publica el INA, con su mismo cero; se usa solo para completar días sin dato del INA.
 
 ## Cómo se comparan estaciones distintas: el percentil
 
@@ -29,7 +30,7 @@ Para poner todo el río en un mismo gráfico se usa el percentil de cada estaci�
 - Los percentiles nunca se redondean para arriba: 99,5 se muestra como 99,5 y no como 100.
 - El gráfico marca, donde hay cota oficial de alerta, en qué percentil cae esa cota.
 
-La spec original preveía usar el reanálisis de GloFAS como historia de respaldo para las estaciones sin historia propia. No hizo falta: el servicio de series históricas de ANA funciona (verificado el 1 de noviembre de 2026). Las estaciones que aun así no llegan a 10 años no llevan percentil.
+Para las estaciones sin historia propia se pensó usar como respaldo el reanálisis de GloFAS. No hizo falta: el servicio de series históricas de ANA funciona (verificado el 1 de noviembre de 2026). Las estaciones que aun así no llegan a 10 años no llevan percentil, en vez de tomar prestada la historia de un modelo.
 
 ## Datos viejos y lecturas raras
 

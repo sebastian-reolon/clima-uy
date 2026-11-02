@@ -16,14 +16,14 @@ from typing import Sequence
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 
-from ..analysis.daily import station_daily
+from ..analysis.daily import family_daily, family_for, station_daily, station_readings
 from ..analysis.events import SEASONS, compare_floods, season_series
 from ..analysis.lag import LagResult, run_production_lags
 from ..analysis.status import MIN_HISTORY_YEARS, StationStatus, compute_status
 from ..analysis.verify import VERIFICATION_TARGETS, verify_production
 from ..catalog import Station
 from ..fmt import (
-    day_long, day_numeric, day_short, days, hour_local, is_season, meters, num, pct, season_key, season_label, signed,
+    MONTHS, day_long, day_numeric, day_short, days, hour_local, is_season, meters, num, pct, season_key, season_label, signed,
 )
 from ..narrative import enso_summary, river_summary
 from ..store import Store
@@ -39,7 +39,10 @@ METHOD_PATH = REPO_ROOT / "docs" / "metodologia.md"
 FOOTER_TEXT = "Esto no es una alerta oficial. Para alertas y evacuaciones: SINAE y el CECOED de tu departamento."
 SINAE_URL = "https://www.gub.uy/sistema-nacional-emergencias/"
 REPO_URL = "https://github.com/sebastian-reolon/clima-uy"
-SITE_URL = "https://sebastian-reolon.github.io/clima-uy"
+SITE_ORIGIN = "https://sebastian-reolon.github.io"
+COTA_SOURCE_LINE = "Cotas de alerta y evacuación: INA y Prefectura Naval Argentina."
+DISCLAIMER_SHORT = "Esto no es una alerta oficial. Alertas y evacuaciones:"
+SOURCE_NAMES = {"ina": "del INA", "ctm": "de CTM Salto Grande", "ana": "de ANA (Brasil)", "ana_hist": "de ANA (Brasil)"}
 SOURCES = [
     ("ANA (Brasil)", "https://telemetriaws1.ana.gov.br/ServiceANA.asmx"),
     ("INA y Prefectura Naval Argentina", "https://alerta.ina.gob.ar/a5"),
@@ -93,14 +96,16 @@ def _years(y: float) -> str:
     return "menos de 1 año" if n < 1 else ("1 año" if n == 1 else f"{n} años")
 
 
-def _when(ss: StationStatus, today: date) -> str:
+def _when(ss: StationStatus, source: str | None, today: date) -> str:
+    """'dato del INA de las 12:00' or 'dato de ANA (Brasil) del 31/10 a las 21:00'."""
     t = ss.latest_time_utc
     if t is None:
         return ""
+    who = f"dato {SOURCE_NAMES.get(source, 'de ' + source)}" if source else "dato"
     d = local_day(t)
     if d == today:
-        return f"dato de las {hour_local(t)}"
-    return f"dato del {day_short(d)} a las {hour_local(t)}"
+        return f"{who} de las {hour_local(t)}"
+    return f"{who} del {day_short(d)} a las {hour_local(t)}"
 
 
 def _change(ss: StationStatus) -> str:
@@ -154,12 +159,14 @@ def _station_view(st: Station, ss: StationStatus, store: Store, today: date) -> 
         elif ss.history_years < MIN_HISTORY_YEARS:
             percentile = f"sin percentil (tiene {_years(ss.history_years)} de historia, hacen falta 10)"
     gauge = None if no_data else Markup(charts.gauge_svg(ss, st))
-    daily = {} if no_data else station_daily(store, st, ss.variable_used)
+    readings = [] if no_data else station_readings(store, st, ss.variable_used)
+    daily = family_daily(readings, family_for(st, ss.variable_used)) if readings else {}
+    source = readings[-1].source if readings else None
     start = max(daily) - timedelta(days=SPARK_DAYS) if daily else None
     recent = sum(1 for d in daily if d > start) if daily else 0
     spark = Markup(charts.sparkline_svg(daily, days=SPARK_DAYS)) if recent >= SPARK_MIN_DAYS else None
-    when = _when(ss, today)
-    meta = ", ".join(p for p in (percentile, "" if ss.stale else when) if p)
+    when = _when(ss, source, today)
+    meta = ", ".join(p for p in (percentile, ("último " + when) if ss.stale and when else when) if p)
     change_long = f"{change} en 3 días" if change else ""
     return StationView(st, ss, title, how, sub, gauge, spark, reading, change_long, change, percentile, when, meta)
 
@@ -191,12 +198,13 @@ def _column(views: dict[str, StationView], catalog: Sequence[Station]) -> list[S
 
 
 def _dam_view(store: Store, today: date) -> dict | None:
-    days = store.dam_days()
-    if not days:
+    rows = store.dam_days()
+    if not rows:
         return None
-    d = days[-1]
+    d = rows[-1]
     return {
         "date": day_long(d.date_local),
+        "date_numeric": day_numeric(d.date_local),
         "stale": (today - d.date_local).days > DAM_STALE_DAYS,
         "machadinho": None if d.vol_machadinho_pct is None else f"{num(d.vol_machadinho_pct, 0)}%",
         "ita": None if d.vol_ita_pct is None else f"{num(d.vol_ita_pct, 0)}%",
@@ -277,8 +285,7 @@ def _season_views(store: Store, catalog: Sequence[Station], by_id: dict[str, Sta
         has_cota = variable == "level" and "ina_level" in st.sources and st.alert_m is not None
         alert = st.alert_m if has_cota else None
         if has_cota:
-            source = st.cota_source.replace(" a5", "") if st.cota_source else "INA"
-            cota = f"Cota de alerta: {source}."
+            cota = f"Cota de alerta: {st.cota_source or 'INA'}."
         else:
             cota = "Esta estación no tiene cota oficial de alerta, así que no se dibuja ninguna."
         rows = []
@@ -326,11 +333,10 @@ def _lag_views(results: Sequence[LagResult], by_id: dict[str, Station]) -> list[
             return f"{num(v)} {unit}" if unit == "m" else f"{num(v, 0)} {unit}"
 
         rows = [{
-            "year": name, "lag": days(h.lag_days),
+            "year": name,
             "predicted": day_numeric(h.predicted_peak), "observed": day_numeric(h.observed_peak),
             "error": days(h.peak_error_days),
             "mae_model": val(h.mae_model), "mae_persistence": val(h.mae_persistence),
-            "better": h.mae_model < h.mae_persistence,
         } for name, h in r.holdout.items()]
         out.append({
             "title": f"De {up} a {down}, {VARIABLE_NAMES.get(variable, variable)}",
@@ -357,7 +363,6 @@ def _enso_rows(store: Store) -> list[dict]:
 
 def _outlook(path: Path) -> dict:
     data = json.loads(path.read_text(encoding="utf-8"))
-    issued = date.fromisoformat(data["issued"])
     rows = []
     for region in data["regions"]:
         cells = []
@@ -369,7 +374,7 @@ def _outlook(path: Path) -> dict:
             rest = "" if v[1] is None or v[2] is None else f"normal {v[1]}, menos {v[2]}"
             cells.append({"main": f"{v[0]}%", "rest": rest})
         rows.append({"region": region["name"], "cells": cells})
-    return {"issued": day_long(issued), "source": data["source"], "source_url": data["source_url"],
+    return {"source": data["source"], "source_url": data["source_url"],
             "seasons": data["seasons"], "rows": rows}
 
 
@@ -384,7 +389,7 @@ def _downloads(store: Store, catalog: Sequence[Station], now_utc: datetime) -> d
     m = date(VERIFY_SINCE.year, VERIFY_SINCE.month, 1)
     today = local_day(now_utc)
     while m <= today:
-        months.append(f"{m.year}-{m.month:02d}")
+        months.append({"key": f"{m.year}-{m.month:02d}", "label": f"{MONTHS[m.month - 1]} de {m.year}"})
         m = (m + timedelta(days=32)).replace(day=1)
     return {"series": series, "months": months}
 
@@ -450,6 +455,8 @@ def build_site(
     today = local_day(now_utc)
     views = {st.id: _station_view(st, by_status[st.id], store, today) for st in catalog}
     river_text = river_summary(statuses, catalog)
+    fresh = [s.latest_time_utc for s in statuses if not s.stale and s.latest_time_utc is not None]
+    last_data = max(fresh) if fresh else None
     indices = store.indices("RONI") + store.indices("ONI")
     fc_views, ver_views = _forecast_views(store, by_id, verify_production(store, catalog))
     lag_results = run_production_lags(store, catalog)
@@ -460,7 +467,8 @@ def build_site(
         "sinae_url": SINAE_URL,
         "sources": SOURCES,
         "repo_url": REPO_URL,
-        "updated": f"Actualizado el {day_long(today)} a las {hour_local(now_utc)}, hora de Montevideo",
+        "generated": f"Página generada el {day_long(today)} a las {hour_local(now_utc)}, hora de Montevideo.",
+        "disclaimer": DISCLAIMER_SHORT,
     }
     pages = {
         "index.html": ("index.html.j2", {
@@ -475,6 +483,10 @@ def build_site(
             "river_text": river_text,
             "profile": Markup(charts.profile_svg(statuses, catalog)),
             "snapshot_url": f"{base}/snapshots/{today.isoformat()}/",
+            "last_data": (f"Último dato del río: {day_long(local_day(last_data))} a las {hour_local(last_data)}."
+                          if last_data else "No hay datos del río al día."),
+            "cities": [views[st.id] for st in sorted(catalog, key=lambda s: s.order) if st.represents],
+            "cota_line": COTA_SOURCE_LINE,
             "column": _column(views, catalog),
             "table": [views[st.id] for st in sorted(catalog, key=lambda s: s.order)],
             "dam": _dam_view(store, today),
@@ -493,8 +505,7 @@ def build_site(
             "downloads": _downloads(store, catalog, now_utc),
             "catalog_rows": _catalog_rows(catalog),
             "cota_sources": ", ".join(sorted({s.cota_source for s in catalog if s.cota_source})) or "ninguna",
-            "site_url": SITE_URL,
-            "today_iso": today.isoformat(),
+            "cite_url": f"{SITE_ORIGIN}{base}/snapshots/{today.isoformat()}/",
             "today_long": day_long(today),
         }),
     }

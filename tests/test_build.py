@@ -27,6 +27,11 @@ def _seed(store: Store) -> None:
         v = 4.0 + 2.0 * math.sin(i / 58.0) + (2.5 if d >= date(2026, 10, 25) else 0.0)
         rows.append(Obs("ina_74", "level", datetime(d.year, d.month, d.day, 15, tzinfo=timezone.utc), v, "ina"))
     store.upsert_obs(rows)
+    # Colón (represents Paysandú) stopped reporting on 25/10.
+    store.upsert_obs([
+        Obs("ina_80", "level", datetime(2026, 10, d, 15, tzinfo=timezone.utc), 5.0 + d / 100, "ina")
+        for d in range(1, 26)
+    ])
     # One archived INA forecast run for Paso de los Libres.
     issued = datetime(2026, 11, 1, 12, tzinfo=timezone.utc)
     store.upsert_forecasts([
@@ -151,7 +156,8 @@ def test_rio_sections_in_order(site):
         "El río hoy", "Estación por estación", "Lo que viene", "Esta crecida contra las anteriores",
         "Lo que surge de unir los datos", "Datos",
     ]
-    assert "Actualizado el 1 de noviembre de 2026 a las 18:05, hora de Montevideo" in _flat(html)
+    assert ("Página generada el 1 de noviembre de 2026 a las 18:05, hora de Montevideo. "
+            "Último dato del río: 1 de noviembre de 2026 a las 12:00.") in _flat(html)
     assert 'href="/clima-uy/snapshots/2026-11-01/"' in html
 
 
@@ -204,3 +210,81 @@ def test_cli_build(tmp_path, monkeypatch):
     assert (tmp_path / "site" / "static" / "css" / "site.css").is_file()
     assert main(["build", "--base-url", ""]) == 0
     assert 'href="/static/css/site.css"' in (tmp_path / "site" / "index.html").read_text(encoding="utf-8")
+
+
+DISCLAIMER = "Esto no es una alerta oficial. Alertas y evacuaciones: SINAE y el CECOED de tu departamento."
+
+
+def test_disclaimer_near_the_top(site):
+    out, _ = site
+    for page, before in [("rio/index.html", 'class="chart chart-wide chart-profile'), ("index.html", 'class="go"')]:
+        html = _read(out, page)
+        i = html.index('class="top-warning"')
+        assert i < html.index(before), page
+        assert DISCLAIMER in _flat(html[i:i + 600]), page
+        assert 'href="https://www.gub.uy/sistema-nacional-emergencias/"' in html[i:i + 600]
+
+
+def test_station_meta_names_the_source_and_cota_source(site):
+    out, _ = site
+    html = _read(out, "rio/index.html")
+    block = re.search(r'<li[^>]*id="estacion-ina_74".*?</li>', html, flags=re.S).group(0)
+    assert "dato del INA de las 12:00" in _flat(block)
+    flat = _flat(html)
+    assert flat.count("Cotas de alerta y evacuación: INA y Prefectura Naval Argentina.") >= 2
+    assert "a5" not in flat
+
+
+def test_stale_station_rendering(site):
+    out, _ = site
+    html = _read(out, "rio/index.html")
+    block = _flat(re.search(r'<li[^>]*id="estacion-ina_80".*?</li>', html, flags=re.S).group(0))
+    assert "Paysandú, medido en Colón, enfrente" in block
+    assert "desactualizada desde el 25/10/2026" in block
+    assert "más alto que el" not in block
+    lede = re.search(r'<p class="lede">(.*?)</p>', html, flags=re.S).group(1)
+    assert "Paysandú" not in lede and "Colón" not in lede
+    table = re.search(r'<table class="stations-table".*?</table>', html, flags=re.S).group(0)
+    row = re.search(r"<tr[^>]*>\s*<th scope=\"row\">Paysandú.*?</tr>", table, flags=re.S).group(0)
+    assert "desactualizada desde el 25/10/2026" in _flat(row)
+    empty = re.search(r"<tr[^>]*>\s*<th scope=\"row\">Nueva Palmira.*?</tr>", table, flags=re.S).group(0)
+    assert "sin datos" in _flat(empty)
+
+
+def test_city_jump_list(site):
+    out, _ = site
+    html = _read(out, "rio/index.html")
+    nav = re.search(r'<nav class="cities".*?</nav>', html, flags=re.S).group(0)
+    hrefs = re.findall(r'href="#([^"]+)"', nav)
+    assert hrefs == ["estacion-ana_77500000", "estacion-ina_74", "estacion-ina_79", "estacion-ina_80",
+                     "estacion-fray_bentos"]
+    for h in hrefs:
+        assert f'id="{h}"' in html
+
+
+def test_season_captions(site):
+    out, _ = site
+    html = _read(out, "rio/index.html")
+    def caption(sid):
+        fig = re.search(rf'<figure class="season" id="temporadas-{sid}".*?</figure>', html, flags=re.S).group(0)
+        return _flat(re.search(r"<figcaption>.*?</figcaption>", fig, flags=re.S).group(0))
+    assert caption("ina_74") == "Cota de alerta: INA / Prefectura Naval Argentina."
+    assert "no tiene cota oficial de alerta" in caption("ana_77500000")
+
+
+def test_outlook_missing_cells(site):
+    out, _ = site
+    html = _read(out, "index.html")
+    table = re.search(r'<table class="outlook-table".*?</table>', html, flags=re.S).group(0)
+    assert _flat(table).count("sin dato") == 8  # NDJ and DJF for the four regions besides Norte
+    flat = _flat(html)
+    assert "Para noviembre-enero y diciembre-febrero el boletín publicado solo da el dato del norte." in flat
+    assert "elobservador.com.uy" in html
+
+
+def test_datos_page_months_and_cite(site):
+    out, _ = site
+    html = _read(out, "datos/index.html")
+    flat = _flat(html)
+    assert "Lecturas de noviembre de 2026 (CSV)" in flat
+    assert "https://sebastian-reolon.github.io/clima-uy/snapshots/2026-11-01/" in flat

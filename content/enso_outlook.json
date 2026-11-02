@@ -1,20 +1,86 @@
 {
   "issued": "2026-10-15",
-  "source": "Boletín de perspectivas climáticas INUMET-UdelaR de octubre de 2026, citado por El Observador el 15/10/2026",
-  "source_url": "https://www.inumet.gub.uy/",
+  "source": "El Observador, 15/10/2026, sobre el boletín de perspectivas climáticas INUMET-UdelaR de octubre de 2026",
+  "source_url": "https://www.elobservador.com.uy/nacional/el-nino-ya-llego-y-sera-muy-fuerte-inumet-anticipa-mas-lluvias-y-revela-cuando-se-extendera-el-fenomeno-n6060512",
   "variable": "lluvia",
-  "terciles": ["por encima de lo normal", "normal", "por debajo de lo normal"],
-  "note": "Valores cargados a mano desde la nota de prensa. Donde la nota no da un valor, queda null y no se muestra.",
+  "terciles": [
+    "por encima de lo normal",
+    "normal",
+    "por debajo de lo normal"
+  ],
+  "note": "Valores cargados a mano desde la nota de El Observador. Para noviembre-enero y diciembre-febrero el boletín publicado solo da el dato del norte; el resto queda null y se muestra como sin dato.",
   "seasons": [
-    {"code": "OND", "label": "octubre a diciembre"},
-    {"code": "NDJ", "label": "noviembre a enero"},
-    {"code": "DJF", "label": "diciembre a febrero"}
+    {
+      "code": "OND",
+      "label": "octubre a diciembre"
+    },
+    {
+      "code": "NDJ",
+      "label": "noviembre a enero"
+    },
+    {
+      "code": "DJF",
+      "label": "diciembre a febrero"
+    }
   ],
   "regions": [
-    {"name": "Norte", "OND": [60, 30, 10], "NDJ": [60, null, null], "DJF": [50, null, null]},
-    {"name": "Noreste", "OND": [60, 30, 10], "NDJ": null, "DJF": null},
-    {"name": "Centro", "OND": [60, 30, 10], "NDJ": null, "DJF": null},
-    {"name": "Este", "OND": [60, 30, 10], "NDJ": null, "DJF": null},
-    {"name": "Resto del país", "OND": [40, 30, 30], "NDJ": null, "DJF": null}
+    {
+      "name": "Norte",
+      "OND": [
+        60,
+        30,
+        10
+      ],
+      "NDJ": [
+        60,
+        null,
+        null
+      ],
+      "DJF": [
+        50,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "Noreste",
+      "OND": [
+        60,
+        30,
+        10
+      ],
+      "NDJ": null,
+      "DJF": null
+    },
+    {
+      "name": "Centro",
+      "OND": [
+        60,
+        30,
+        10
+      ],
+      "NDJ": null,
+      "DJF": null
+    },
+    {
+      "name": "Este",
+      "OND": [
+        60,
+        30,
+        10
+      ],
+      "NDJ": null,
+      "DJF": null
+    },
+    {
+      "name": "Resto del país",
+      "OND": [
+        40,
+        30,
+        30
+      ],
+      "NDJ": null,
+      "DJF": null
+    }
   ]
 }

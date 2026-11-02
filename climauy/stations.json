@@ -259,7 +259,7 @@
     "represents": null,
     "alert_m": 8,
     "evac_m": 10,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [
       "9644"
@@ -282,7 +282,7 @@
     "represents": null,
     "alert_m": 15.5,
     "evac_m": 16.5,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 14
@@ -304,7 +304,7 @@
     "represents": null,
     "alert_m": 12,
     "evac_m": 14,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 15
@@ -325,7 +325,7 @@
     "represents": null,
     "alert_m": 11.5,
     "evac_m": 12.5,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [
       "9645"
@@ -368,7 +368,7 @@
     "represents": null,
     "alert_m": 9.5,
     "evac_m": 11,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 18
@@ -409,7 +409,7 @@
     "represents": null,
     "alert_m": 9.5,
     "evac_m": 11.5,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 20
@@ -430,7 +430,7 @@
     "represents": null,
     "alert_m": 9.5,
     "evac_m": 10.5,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 21
@@ -492,7 +492,7 @@
     "represents": null,
     "alert_m": 7.5,
     "evac_m": 8.5,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [
       "9646"
@@ -556,7 +556,7 @@
     "represents": "Bella Unión",
     "alert_m": 7.5,
     "evac_m": 8.5,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 27
@@ -577,7 +577,7 @@
     "represents": null,
     "alert_m": 10.3,
     "evac_m": 12,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 28
@@ -598,7 +598,7 @@
     "represents": null,
     "alert_m": 35.5,
     "evac_m": 36,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 29
@@ -619,7 +619,7 @@
     "represents": null,
     "alert_m": 17.3,
     "evac_m": 17.8,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 30
@@ -642,7 +642,7 @@
     "represents": "Salto",
     "alert_m": 11,
     "evac_m": 12.5,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 31
@@ -663,7 +663,7 @@
     "represents": "Paysandú",
     "alert_m": 7.1,
     "evac_m": 7.9,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 32
@@ -684,7 +684,7 @@
     "represents": null,
     "alert_m": 5.3,
     "evac_m": 6.3,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 33
@@ -705,7 +705,7 @@
     "represents": null,
     "alert_m": 5.3,
     "evac_m": 6.3,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 34
@@ -726,7 +726,7 @@
     "represents": null,
     "alert_m": 3.5,
     "evac_m": 3.8,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": "ina_84",
     "forecast_series": [],
     "order": 35
@@ -747,7 +747,7 @@
     "represents": null,
     "alert_m": 2.9,
     "evac_m": 3.1,
-    "cota_source": "INA a5 / Prefectura Naval Argentina",
+    "cota_source": "INA / Prefectura Naval Argentina",
     "tributary_of": null,
     "forecast_series": [],
     "order": 36

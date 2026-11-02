@@ -696,3 +696,29 @@ figure > h4:first-child {
   color: var(--ink);
   font-size: var(--step-0);
 }
+
+/* Short "not an official alert" line near the top of the river content. */
+.top-warning {
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  color: var(--ink);
+  border-left: 4px solid var(--ink);
+  padding-left: 0.75rem;
+  margin: 0 0 0.75rem;
+}
+.cities {
+  font-family: var(--font-display);
+  color: var(--ink-2);
+  margin-bottom: 1.5rem;
+}
+.cities a {
+  color: var(--ink);
+  font-weight: 600;
+}
+.stamp + .top-warning {
+  margin-top: -0.75rem;
+}
+.dams.is-stale dd,
+.dams.is-stale dt {
+  color: var(--ink-2);
+}

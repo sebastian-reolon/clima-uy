@@ -9,7 +9,7 @@
   {% else %}
   <p class="lede">Todavía no hay índices de la NOAA cargados.</p>
   {% endif %}
-  <p class="stamp">{{ updated }}</p>
+  <p class="stamp">{{ generated }}</p>
 
   <section aria-labelledby="indices">
     <h2 id="indices">Los dos índices, trimestre por trimestre</h2>
@@ -48,12 +48,14 @@
       </tbody>
     </table>
     </div>
-    <p class="small muted">Fuente: <a href="{{ outlook.source_url }}">{{ outlook.source }}</a>. Publicado el {{ outlook.issued }}.</p>
+    <p class="small muted">Para noviembre-enero y diciembre-febrero el boletín publicado solo da el dato del norte.</p>
+    <p class="small muted">Fuente: <a href="{{ outlook.source_url }}">{{ outlook.source }}</a>.</p>
     <p class="ojo">Ojo: se espera una segunda ventana de lluvias en marzo a mayo de 2027.</p>
   </section>
 
   <section aria-labelledby="rio" class="module-link">
     <h2 id="rio">El río Uruguay</h2>
+    <p class="top-warning">{{ disclaimer }} <a href="{{ sinae_url }}">SINAE</a> y el CECOED de tu departamento.</p>
     {% if river_text %}<p>{{ river_text }}</p>{% endif %}
     <p><a class="go" href="{{ base }}/rio/">Ver el río de punta a punta, de las represas de Brasil a Nueva Palmira</a></p>
   </section>

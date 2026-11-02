@@ -635,14 +635,35 @@ def test_plan_profile_labels_never_overlap(variant, fixture):
         assert x >= 0 and x + bw <= w and y + bh <= h
 
 
-def test_plan_profile_flood_labels_every_station_above_alert():
+CITIES = ["Bella Unión", "Salto", "Paysandú"]
+
+
+def legend_lines(root):
+    return [t.text for t in by_class(root, "text", "ax") if t.text.startswith("En rojo")]
+
+
+def test_plan_profile_flood_labels_only_cities_and_counts_the_rest():
     sts = flood_statuses()
     root = parse(profile_plan_svg(sts, REAL))
-    calls = {s.station_id for s in sts if s.percentile_today is not None and s.station_id != "ina_78"
-             and (s.above_alert or REAL_BY_ID[s.station_id].represents)}
-    assert len(calls) == 16
-    assert len(by_class(root, "text", "cn")) == len(calls)
-    assert len(by_class(root, "text", "ca")) == len(calls)
+    assert [t.text for t in by_class(root, "text", "cn")] == CITIES
+    assert len(by_class(root, "circle", "pa")) == 16  # every alert dot stays
+    assert legend_lines(root) == ["En rojo, 13 estaciones sobre su cota de alerta."]
+    # City callouts stay within two rows on wide.
+    assert len({t.get("y") for t in by_class(root, "text", "cn")}) <= 2
+
+
+def test_plan_profile_two_alert_stations_both_labelled():
+    sts = today_statuses()
+    sts[13] = pstatus("ina_66", 99.0, 98.0, 16.0, True)  # Puerto Concepción joins Paso de los Libres
+    root = parse(profile_plan_svg(sts, REAL))
+    names = [t.text for t in by_class(root, "text", "cn")]
+    assert names == ["Puerto Concepción", "Paso de los Libres"] + CITIES
+    assert [t.text for t in by_class(root, "text", "ca")] == ["Puerto Concepción", "Paso de los Libres"]
+    assert legend_lines(root) == []
+
+
+def test_plan_profile_today_has_no_legend_line():
+    assert legend_lines(parse(profile_plan_svg(today_statuses(), REAL))) == []
 
 
 def test_phone_start_km_rule():
@@ -697,13 +718,19 @@ def test_plan_profile_wide_today_staggers_two_rows_like_the_mockup():
     assert ys[0] == ys[2] and ys[1] == ys[3] and ys[1] > ys[0]
 
 
-def test_plan_profile_phone_flood_keeps_every_city():
+def test_plan_profile_phone_flood_labels_only_cities():
     sts = flood_statuses()
-    svg = profile_plan_svg(sts, REAL, width=340, height=560, start_km=phone_start_km(sts, REAL), variant="movil")
-    names = [t.text for t in by_class(parse(svg), "text", "cn")]
-    assert {"Bella Unión", "Salto", "Paysandú"} <= set(names)
-    # Every red dot stays, labelled or not.
-    assert len(by_class(parse(svg), "circle", "pa")) == 16
+    km = river_km(REAL)
+    start = phone_start_km(sts, REAL)
+    assert start == 620.0  # only the cities count as callouts now
+    root = parse(profile_plan_svg(sts, REAL, width=340, height=560, start_km=start, variant="movil"))
+    ys = [t.get("y") for t in by_class(root, "text", "cn")]
+    assert [t.text for t in by_class(root, "text", "cn")] == CITIES
+    assert len(set(ys)) == 3  # one row each
+    visible = [sid for sid in km if km[sid] >= start and REAL_BY_ID[sid].represents is None
+               and REAL_BY_ID[sid].alert_m is not None]
+    assert len(by_class(root, "circle", "pa")) == len(visible) + 3
+    assert legend_lines(root) == [f"En rojo, {len(visible)} estaciones sobre su cota de alerta."]
 
 
 def test_plan_profile_labels_clear_the_km_caption():
@@ -714,3 +741,17 @@ def test_plan_profile_labels_clear_the_km_caption():
         cap_x, cap_y = float(cap.get("x")), float(cap.get("y"))
         cap_box = (cap_x, cap_y - 10, len(cap.text) * 6.0, 14)
         assert not any(overlaps(cap_box, b) for b in label_boxes(svg))
+
+
+@pytest.mark.parametrize("variant", ["wide", "movil"])
+def test_plan_profile_flood_legend_line_clear_of_labels(variant):
+    sts = flood_statuses()
+    if variant == "wide":
+        svg = profile_plan_svg(sts, REAL)
+    else:
+        svg = profile_plan_svg(sts, REAL, width=340, height=560, start_km=phone_start_km(sts, REAL), variant="movil")
+    root = parse(svg)
+    line = next(t for t in by_class(root, "text", "ax") if t.text.startswith("En rojo"))
+    box = (float(line.get("x")), float(line.get("y")) - 10, len(line.text) * 6.0, 14)
+    assert not any(overlaps(box, b) for b in label_boxes(svg))
+    assert box[0] + box[2] <= float(root.get("viewBox").split()[2]) + 20

@@ -534,14 +534,30 @@ def _plan_points(statuses: Sequence[StationStatus], catalog: Sequence[Station],
     return out
 
 
-def _is_callout(ss: StationStatus, st: Station) -> bool:
-    """Ruling 7: Uruguayan cities on the main river, plus any other main-river station above alert."""
-    return st.represents is not None or bool(ss.above_alert)
+# Non-city stations above alert get their own callout only up to this many;
+# with more (a flood across the basin) they keep their alert dots and one
+# legend line counts them, so the drawing stays readable.
+MAX_ALERT_CALLOUTS = 2
+
+
+def _alert_only(ss: StationStatus, st: Station) -> bool:
+    return st.represents is None and bool(ss.above_alert)
+
+
+def _label_alerts(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> bool:
+    """Whether non-city stations above alert get callouts: judged on the whole river, same for both variants."""
+    return sum(_alert_only(ss, st) for _, ss, st in _plan_points(statuses, catalog)) <= MAX_ALERT_CALLOUTS
+
+
+def _is_callout(ss: StationStatus, st: Station, label_alerts: bool = True) -> bool:
+    """Uruguayan cities on the main river always; other main-river stations above alert when few (Ruling 7)."""
+    return st.represents is not None or (label_alerts and bool(ss.above_alert))
 
 
 def phone_start_km(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> float:
     """Where the phone variant starts: 620 km, or 60 km above the first callout when that is further up."""
-    callouts = [k for k, ss, st in _plan_points(statuses, catalog) if _is_callout(ss, st)]
+    label_alerts = _label_alerts(statuses, catalog)
+    callouts = [k for k, ss, st in _plan_points(statuses, catalog) if _is_callout(ss, st, label_alerts)]
     start = PHONE_START_KM if not callouts else min(PHONE_START_KM, callouts[0] - PHONE_CALLOUT_LEAD_KM)
     return max(0.0, start)
 
@@ -711,8 +727,11 @@ def profile_plan_svg(statuses: Sequence[StationStatus], catalog: Sequence[Statio
 
     # Callouts: leaders first, then the paper boxes, then the text, so a box
     # never hides another label's text.
-    calls = [(x, y, *_plan_label(ss, st)) for x, y, ss, st in xy if _is_callout(ss, st)]
-    is_city = [st.represents is not None for x, y, ss, st in xy if _is_callout(ss, st)]
+    label_alerts = _label_alerts(statuses, catalog)
+    shown = [(x, y, ss, st) for x, y, ss, st in xy if _is_callout(ss, st, label_alerts)]
+    calls = [(x, y, *_plan_label(ss, st)) for x, y, ss, st in shown]
+    is_city = [st.represents is not None for _, _, _, st in shown]
+    unlabelled = 0 if label_alerts else sum(_alert_only(ss, st) for _, _, ss, st in xy)
     # Per-character widths: 0,55 em of the bold name and 0,5 em of the value at
     # the sizes site.css sets (14 / 12,5 wide, 13 / 11,5 phone), above Barlow's
     # measured 0,45 em, so the paper box always clears the text.
@@ -722,13 +741,18 @@ def profile_plan_svg(statuses: Sequence[StationStatus], catalog: Sequence[Statio
     args = ([c[0] for c in calls], widths, prefer_start, width, not big)
     slots = _place_labels(*args, order=range(len(calls)), required=[False] * len(calls))
     if None in slots:
-        # Too many callouts to keep every leader clear (a flood across the
-        # basin): cities first and always, then the others that still fit.
-        # Those left out keep their alert dot.
+        # No place keeps every leader clear: cities first and always, then
+        # the others that still fit. Those left out keep their alert dot.
         order = [i for i in range(len(calls)) if is_city[i]] + [i for i in range(len(calls)) if not is_city[i]]
         slots = _place_labels(*args, order=order, required=is_city)
     base = T + ph + (52 if big else 64)
     row_h = 44 if big else 38
+    if unlabelled:
+        # One line under the km caption counts the alert dots left without a callout.
+        legend = (f"En rojo, {unlabelled} estación sobre su cota de alerta." if unlabelled == 1
+                  else f"En rojo, {unlabelled} estaciones sobre su cota de alerta.")
+        o.append(f'<text x="{L}" y="{_f(T + ph + 58)}" class="ax">{escape(legend)}</text>')
+        base = T + ph + 76
     # A top-row box under the km caption would hide it: drop the rows below it.
     caption_right = L + len(caption) * 6.0
     if any(slot and slot[0] == 0 and slot[1] < caption_right and base - 14 < T + ph + 44 for slot in slots):
@@ -748,7 +772,7 @@ def profile_plan_svg(statuses: Sequence[StationStatus], catalog: Sequence[Statio
                      f'text-anchor="{anchor}">{escape(name)}</text>')
         texts.append(f'<text x="{_f(tx)}" y="{_f(ty + 16)}" class="cv" text-anchor="{anchor}">{escape(value)}</text>')
     # Height follows the callout rows: taller when they need more, trimmed when fewer.
-    total_h = math.ceil(bottom + 12) if calls else math.ceil(T + ph + 52)
+    total_h = math.ceil(max(bottom, T + ph + (58 if unlabelled else 40)) + 12)
 
     title = "Perfil del río Uruguay hoy: cada estación comparada con su propia historia"
     desc = (

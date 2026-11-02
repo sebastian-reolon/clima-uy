@@ -879,3 +879,167 @@ def test_plan_profile_phone_km_caption_is_clear_of_the_leaders():
         assert cap.get("text-anchor") == "end"
         for lead in by_class(root, "line", "lead"):
             assert float(lead.get("y1")) > float(cap.get("y"))
+
+
+# ---------------------------------------------------------------- river Hovmöller (/rio/crecida/)
+
+from climauy.analysis.crecida import MatrixRow, RiverMatrix  # noqa: E402
+from climauy.site.charts import hov_band, hovmoller_svg  # noqa: E402
+
+HOV_DAYS = [date(2026, 9, 4) + timedelta(days=i) for i in range(60)]
+
+
+def hov_row(sid, km, city=None, pcts=None, peaks=()):
+    pcts = pcts if pcts is not None else [60.0] * 60
+    return MatrixRow(sid, f"Estación {sid}", city, km, "level", [None if p is None else 1.0 for p in pcts],
+                     pcts, list(peaks))
+
+
+def hov_matrix(rows=None, skipped=()):
+    if rows is None:
+        gappy = [None if i in (3, 4, 50) else 95.0 for i in range(60)]
+        rows = [hov_row("a", 0.0), hov_row("b", 250.0, pcts=gappy, peaks=[10, 40]),
+                hov_row("c", 728.0, "Bella Unión", peaks=[30]), hov_row("d", 862.0, "Salto"),
+                hov_row("e", 955.0, "Paysandú", peaks=[31])]
+    return RiverMatrix(days=HOV_DAYS, rows=rows, skipped=list(skipped), stations_total=33, km_max=1152.0, uy_km=728.0)
+
+
+def hov_both(m=None):
+    m = m or hov_matrix()
+    return hovmoller_svg(m), hovmoller_svg(m, width=360, variant="movil")
+
+
+def test_hov_band_edges():
+    assert [hov_band(p) for p in (0, 49.9, 50, 74.9, 75, 90, 94.9, 95, 98.9, 99, 100)] == [
+        0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5]
+
+
+def test_hov_one_cell_per_station_day_with_data():
+    for svg in hov_both():
+        root = parse(svg)
+        cells = [r for r in root.iter(SVG_NS + "rect") if re.fullmatch(r"b\d", r.get("class") or "")]
+        assert len(cells) == 5 * 60 - 3  # three blank days at station b
+
+
+def test_hov_cell_colour_follows_band():
+    root = parse(hovmoller_svg(hov_matrix()))
+    assert len(by_class(root, "rect", "b4")) == 57  # station b at 95
+    assert len(by_class(root, "rect", "b1")) == 4 * 60  # the others at 60
+
+
+def test_hov_columns_meet_at_midpoints_between_stations():
+    root = parse(hovmoller_svg(hov_matrix()))
+    cells = [r for r in root.iter(SVG_NS + "rect") if re.fullmatch(r"b\d", r.get("class") or "")]
+    first_row_y = min(float(r.get("y")) for r in cells)
+    xs = sorted({float(r.get("x")) for r in cells if float(r.get("y")) == first_row_y})
+    X = lambda k: 64 + k / 1152 * (1100 - 64 - 24)
+    assert xs[0] == pytest.approx(64)
+    assert xs[1] == pytest.approx((X(0) + X(250)) / 2, abs=0.06)
+    assert xs[2] == pytest.approx((X(250) + X(728)) / 2, abs=0.06)
+
+
+def test_hov_peaks_drawn_as_rings_on_their_station_and_day():
+    for svg in hov_both():
+        root = parse(svg)
+        rings = by_class(root, "circle", "crestpt")
+        assert len(rings) == 4
+    root = parse(hovmoller_svg(hov_matrix()))
+    hit = {int(h.get("data-i")): h for h in by_class(root, "rect", "hit")}
+    ring = next(c for c in by_class(root, "circle", "crestpt")
+                if float(c.get("cx")) == pytest.approx(64 + 728 / 1152 * 1012, abs=0.06))
+    y, h = float(hit[30].get("y")), float(hit[30].get("height"))
+    assert float(ring.get("cy")) == pytest.approx(y + h / 2, abs=0.06)
+
+
+def test_hov_hit_rows_one_per_day_with_date_titles():
+    for svg in hov_both():
+        root = parse(svg)
+        hits = by_class(root, "rect", "hit")
+        assert [int(h.get("data-i")) for h in hits] == list(range(60))
+        assert hits[0].find("s:title", NS).text == "4 de sep"
+        assert hits[-1].find("s:title", NS).text == "2 de nov"
+
+
+def test_hov_selection_starts_on_the_last_day():
+    for svg, variant in zip(hov_both(), ("wide", "movil")):
+        root = parse(svg)
+        sel = [e for e in root.iter() if e.get("id") == f"hov-{variant}-sel"]
+        assert len(sel) == 1 and sel[0].get("class") == "sel"
+        last = by_class(root, "rect", "hit")[-1]
+        assert float(sel[0].get("y")) == pytest.approx(float(last.get("y")))
+
+
+def test_hov_ids_unique_and_aria_points_at_title_and_desc():
+    ids = []
+    for svg in hov_both():
+        root = parse(svg)
+        assert root.get("role") == "img"
+        title, desc = root.find("s:title", NS), root.find("s:desc", NS)
+        assert root.get("aria-labelledby") == title.get("id")
+        assert root.get("aria-describedby") == desc.get("id")
+        assert "del 4/9 al 2/11" in desc.text
+        ids += [e.get("id") for e in root.iter() if e.get("id")]
+    assert len(ids) == len(set(ids)) == 6
+
+
+def test_hov_variants_have_their_classes_and_widths():
+    wide, movil = (parse(s) for s in hov_both())
+    assert wide.get("class") == "hov" and wide.get("viewBox").startswith("0 0 1100 ")
+    assert movil.get("class") == "hov movil" and movil.get("viewBox").startswith("0 0 360 ")
+
+
+def test_hov_week_ticks_on_mondays():
+    root = parse(hovmoller_svg(hov_matrix()))
+    labels = [t.text for t in by_class(root, "text", "ax")]
+    assert "7 sep" in labels and "26 oct" in labels and "4 sep" not in labels
+    assert labels.count("0") == 1 and "1000" in labels
+
+
+def test_hov_uruguayan_stretch_bracket_and_city_leads():
+    for svg, width in zip(hov_both(), (1100, 360)):
+        root = parse(svg)
+        line = by_class(root, "line", "uyline")[0]
+        assert float(line.get("x2")) == pytest.approx(width - (24 if width == 1100 else 8))
+        assert "tramo con costa uruguaya" in [t.text for t in by_class(root, "text", "axl")]
+        assert [t.text for t in by_class(root, "text", "cn")] == ["Bella Unión", "Salto", "Paysandú"]
+        assert len(by_class(root, "line", "lead")) == 3
+
+
+def _text_box(t, size=13.0, em=0.55):
+    x, w = float(t.get("x")), len(t.text) * size * em
+    left = x - w if t.get("text-anchor") == "end" else x
+    return left, left + w, float(t.get("y"))
+
+
+def test_hov_phone_city_labels_fit_and_do_not_collide():
+    root = parse(hovmoller_svg(hov_matrix(), width=360, variant="movil"))
+    boxes = [_text_box(t) for t in by_class(root, "text", "cn")]
+    for left, right, _ in boxes:
+        assert left >= 0 and right <= 360
+    for i, a in enumerate(boxes):
+        for b in boxes[i + 1:]:
+            assert a[2] != b[2] or a[1] <= b[0] or b[1] <= a[0]
+    # No leader runs through another city's label.
+    for lead in by_class(root, "line", "lead"):
+        x, y2 = float(lead.get("x1")), float(lead.get("y2"))
+        for left, right, y in boxes:
+            if y < y2:
+                assert not (left < x < right), (x, left, right)
+
+
+def test_hov_without_bella_union_draws_no_bracket():
+    m = hov_matrix()
+    m = RiverMatrix(m.days, m.rows, [], 33, 1152.0, None)
+    root = parse(hovmoller_svg(m))
+    assert by_class(root, "line", "uyline") == []
+
+
+def test_hov_empty_and_single_station():
+    root = parse(hovmoller_svg(hov_matrix(rows=[])))
+    assert "Sin datos del río en estos días." in [t.text for t in root.iter(SVG_NS + "text")]
+    assert len(by_class(root, "rect", "hit")) == 60
+    root = parse(hovmoller_svg(hov_matrix(rows=[hov_row("x", 500.0)])))
+    cells = by_class(root, "rect", "b1")
+    assert len(cells) == 60
+    assert float(cells[0].get("x")) == pytest.approx(64)
+    assert float(cells[0].get("width")) == pytest.approx(1100 - 64 - 24 + 0.4, abs=0.06)

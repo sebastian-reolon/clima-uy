@@ -18,11 +18,12 @@ from statistics import mean
 from typing import Iterable, Sequence
 from xml.sax.saxutils import escape
 
+from ..analysis.crecida import RiverMatrix
 from ..analysis.lag import LagResult
 from ..analysis.status import StationStatus
 from ..catalog import MAIN_RIVER, Station, great_circle_km, river_km  # noqa: F401 (re-exported)
 from ..fmt import day_numeric as _day, day_short as _day_short, days as _days
-from ..fmt import is_record, record_text, since_year
+from ..fmt import MONTHS, is_record, record_text, since_year
 from ..fmt import meters as _m, num as _num, pct as _pct
 from ..store import Forecast
 from ..timeutil import local_day
@@ -1250,3 +1251,144 @@ def lag_svg(result: LagResult, upstream_name: str, downstream_name: str) -> str:
         f"Por crecida, según la fecha del pico aguas abajo: {listing}. {result.reason}"
     )
     return _svg("chart-wide chart-lag", WIDE_W, LAG_H, title, desc, body)
+
+
+# ---------------------------------------------------------------- river Hovmöller (/rio/crecida/)
+#
+# x = km along the main river (as the home profile), y = day, oldest on top.
+# Each cell is a station's day coloured by its percentile band; blank without
+# data. Styled by the `.hov` rules of static/v2/css/site.css, like the approved
+# mockup (docs/mockups/d-crecida.html in el-nino-uy). The rows are hit targets
+# (data-i = day index) for the page's day selector, which moves the
+# `hov-{variant}-sel` outline.
+
+HOV_BOUNDS = (50, 75, 90, 95, 99)  # Ruling 4: bands <50, 50-75, 75-90, 90-95, 95-99, >=99
+HOV_MONTHS = [m[:3] for m in MONTHS]  # «sep», «oct»: the week ticks and the day titles
+_HOV_PHONE_ROW = 7.0  # phone: height of one day, in viewBox units
+_HOV_PHONE_CITY_ROW = 16.0  # phone: one city label per row, stepping down to the right
+
+
+def hov_band(p: float) -> int:
+    """Colour band 0 to 5 of a percentile (class b0..b5, tokens --hov-0..5)."""
+    return sum(1 for b in HOV_BOUNDS if p >= b)
+
+
+def hov_day(d: date) -> str:
+    return f"{d.day} de {HOV_MONTHS[d.month - 1]}"
+
+
+def _hov_margins(variant: str) -> tuple[int, int, int]:
+    """Left, right and top margins in viewBox units."""
+    return (64, 24, 24) if variant == "wide" else (40, 8, 24)
+
+
+def hovmoller_svg(matrix: RiverMatrix, width: int = 1100, variant: str = "wide") -> str:
+    """The river day by day (Ruling 7: "wide" for screens, "movil" about 360 wide for phones).
+
+    Columns run from one station's km to the midpoints with its neighbours
+    (the outer ones reach the plot's edges), rows are days, the most recent at
+    the bottom. Red rings mark each station's local peaks.
+    """
+    big = variant == "wide"
+    L, R, T = _hov_margins(variant)
+    days = matrix.days
+    n = len(days)
+    pw = width - L - R
+    ph = 546.0 if big else _HOV_PHONE_ROW * n
+    rowh = ph / max(n, 1)
+    k_max = matrix.km_max or 1.0
+
+    def X(k: float) -> float:
+        return L + k / k_max * pw
+
+    def Y(i: int) -> float:
+        return T + i * rowh
+
+    o: list[str] = []
+    xs = [X(r.km) for r in matrix.rows]
+    edges = [float(L)] + [(a + b) / 2 for a, b in zip(xs, xs[1:])] + [float(width - R)]
+    for j, r in enumerate(matrix.rows):
+        x0, x1 = edges[j], edges[j + 1]
+        for i, p in enumerate(r.percentiles):
+            if p is None:
+                continue
+            o.append(f'<rect x="{_f(x0)}" y="{_f(Y(i))}" width="{_f(x1 - x0 + .4)}" height="{_f(rowh + .4)}" '
+                     f'class="b{hov_band(p)}"/>')
+    if not matrix.rows:
+        o.append(f'<text x="{_f(L + pw / 2)}" y="{_f(T + ph / 2)}" class="ax" text-anchor="middle">'
+                 "Sin datos del río en estos días.</text>")
+
+    if matrix.uy_km is not None:
+        # Same start as the home profile's shading: PLAN_UY_LEAD wide units above Bella Unión.
+        wide_l, wide_r, _ = _hov_margins("wide")
+        lead_km = PLAN_UY_LEAD * k_max / (PLAN_WIDE_W - wide_l - wide_r)
+        ub = max(L, X(matrix.uy_km - lead_km))
+        label = "tramo con costa uruguaya"
+        o.append(f'<line x1="{_f(ub)}" x2="{width - R}" y1="{T - 8}" y2="{T - 8}" class="uyline"/>')
+        if ub + _text_width(label, 12) <= width - R:
+            o.append(f'<text x="{_f(ub)}" y="{T - 13}" class="axl">{label}</text>')
+        else:
+            o.append(f'<text x="{width - R}" y="{T - 13}" class="axl" text-anchor="end">{label}</text>')
+
+    ring = 3.2 if big else 2.6
+    for r in matrix.rows:
+        for i in r.peaks:
+            o.append(f'<circle cx="{_f(X(r.km))}" cy="{_f(Y(i) + rowh / 2)}" r="{ring}" class="crestpt"/>')
+
+    for i, d in enumerate(days):
+        if d.weekday() == 0:
+            o.append(f'<line x1="{L - 5}" x2="{L}" y1="{_f(Y(i))}" y2="{_f(Y(i))}" class="tick"/>')
+            o.append(f'<text x="{L - 8}" y="{_f(Y(i) + 4)}" class="ax" text-anchor="end">'
+                     f'{d.day} {HOV_MONTHS[d.month - 1]}</text>')
+    bottom = T + ph
+    for k in range(0, int(k_max) + 1, 200):
+        o.append(f'<line x1="{_f(X(k))}" x2="{_f(X(k))}" y1="{_f(bottom)}" y2="{_f(bottom + 6)}" class="tick"/>')
+        o.append(f'<text x="{_f(X(k))}" y="{_f(bottom + 20)}" class="ax" text-anchor="middle">{k}</text>')
+    caption = ("km desde Machadinho, en línea recta entre estaciones (aprox.)" if big
+               else "km desde Machadinho (aprox.)")
+    o.append(f'<text x="{L}" y="{_f(bottom + (40 if big else 36))}" class="ax">{escape(caption)}</text>')
+
+    cities = [r for r in matrix.rows if r.city]
+    if big:
+        # The mockup: one row of names under the axis, each right of its leader.
+        for r in cities:
+            x = X(r.km)
+            o.append(f'<line x1="{_f(x)}" x2="{_f(x)}" y1="{_f(bottom)}" y2="{_f(bottom + 46)}" class="lead"/>')
+            o.append(f'<text x="{_f(x + 4)}" y="{_f(bottom + 60)}" class="cn">{escape(r.city)}</text>')
+        total_h = bottom + 70
+    else:
+        # Phone: the cities are 30 to 40 units apart, so each takes its own row, stepping down to
+        # the right, the name ending at its leader. A leader only runs past the rows above it,
+        # where the names end left of it.
+        base = bottom + 56
+        for k, r in enumerate(cities):
+            x, y = X(r.km), base + k * _HOV_PHONE_CITY_ROW
+            o.append(f'<line x1="{_f(x)}" x2="{_f(x)}" y1="{_f(bottom)}" y2="{_f(y + 2)}" class="lead"/>')
+            if x - 4 - _text_width(r.city, 13) * 1.15 >= 0:
+                o.append(f'<text x="{_f(x - 4)}" y="{_f(y)}" class="cn" text-anchor="end">{escape(r.city)}</text>')
+            else:
+                o.append(f'<text x="{_f(x + 4)}" y="{_f(y)}" class="cn">{escape(r.city)}</text>')
+        total_h = base + max(len(cities) - 1, 0) * _HOV_PHONE_CITY_ROW + 12
+
+    for i, d in enumerate(days):
+        o.append(f'<rect x="{L}" y="{_f(Y(i))}" width="{pw}" height="{_f(rowh)}" class="hit" data-i="{i}">'
+                 f"<title>{hov_day(d)}</title></rect>")
+    sel_id = f"hov-{variant}-sel"
+    o.append(f'<rect id="{sel_id}" x="{L - 2}" y="{_f(Y(max(n - 1, 0)))}" width="{pw + 4}" height="{_f(rowh)}" '
+             'class="sel"/>')
+
+    title = "La crecida bajando por el río, día por día"
+    desc = (
+        f"Cada columna es una estación de Brasil a Nueva Palmira; cada fila, un día del {_day_short(days[0])} "
+        f"al {_day_short(days[-1])}. El color dice qué tan alto estaba el río comparado con la historia de esa "
+        "estación. Los anillos rojos marcan los picos de cada estación."
+    ) if days else "Sin días para mostrar."
+    cls = "hov" if big else "hov movil"
+    tid, did = f"hov-{variant}-titulo", f"hov-{variant}-desc"
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" class="{cls}" viewBox="0 0 {width} {math.ceil(total_h)}" '
+        f'role="img" aria-labelledby="{tid}" aria-describedby="{did}" font-family="{FONT}">'
+        f'<title id="{tid}">{escape(title)}</title><desc id="{did}">{escape(desc)}</desc>'
+        + "".join(o)
+        + "</svg>"
+    )

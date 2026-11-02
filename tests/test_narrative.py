@@ -138,8 +138,11 @@ def test_summary_fresh_without_pct_ignored_for_max():
     assert out == "El río está más alto en Paysandú: más que el 92% de los días desde 1990."
 
 
-def test_percentile_never_reads_100():
-    assert "más que el 99%" in river_summary([status("a", pct=100.0)], CATALOG)
+def test_percentile_uses_shared_formatter():
+    # Same rule as the charts: never rounded up; 99 to <100 with one decimal; 100 only when exact.
+    assert "más que el 99,5%" in river_summary([status("a", pct=99.56)], CATALOG)
+    assert "más que el 94%" in river_summary([status("a", pct=94.7)], CATALOG)
+    assert "más que el 100%" in river_summary([status("a", pct=100.0)], CATALOG)
 
 
 def test_summary_nothing_to_say_is_empty():

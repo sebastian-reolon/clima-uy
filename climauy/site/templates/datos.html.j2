@@ -1,0 +1,77 @@
+{% extends "base.html.j2" %}
+{% block title %}Datos para descargar | clima-uy{% endblock %}
+{% block description %}Descargas del monitor del río Uruguay en CSV y JSON, catálogo de estaciones, licencias y cómo citar.{% endblock %}
+{% block main %}
+<article class="doc">
+<h1>Datos</h1>
+<p class="lede">Todo lo que muestra el sitio se puede descargar, con la fuente de cada valor. Las horas están en UTC y los días en hora de Montevideo.</p>
+
+<section aria-labelledby="descargas">
+  <h2 id="descargas">Descargas</h2>
+  <ul class="downloads">
+    <li><a href="{{ base }}/data/rio/latest.json">Estado de hoy de todas las estaciones y la frase del día (JSON)</a></li>
+    <li><a href="{{ base }}/data/rio/stations.csv">Catálogo de estaciones (CSV)</a></li>
+    <li><a href="{{ base }}/data/enso/indices.csv">Índices RONI, ONI y Niño 3.4 semanal (CSV)</a></li>
+  </ul>
+  <h3>Lecturas crudas y pronósticos, por mes</h3>
+  <p class="prose">Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo.</p>
+  <ul class="downloads">
+  {% for m in downloads.months %}
+    <li><a href="{{ base }}/data/rio/raw/{{ m }}.csv">Lecturas de {{ m }} (CSV)</a></li>
+    <li><a href="{{ base }}/data/rio/forecasts/{{ m }}.csv">Pronósticos de {{ m }} (CSV)</a></li>
+  {% endfor %}
+  </ul>
+  <h3>Medias diarias por estación</h3>
+  <p class="prose">Una fila por día, con la media del día y cuántas lecturas la forman.</p>
+  {% if downloads.series %}
+  <ul class="downloads columns">
+  {% for s in downloads.series %}
+    <li><a href="{{ base }}/{{ s.path }}">{{ s.name }}</a></li>
+  {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Todavía no hay series cargadas.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="catalogo">
+  <h2 id="catalogo">Catálogo de estaciones</h2>
+  <div class="table-wrap">
+  <table class="catalog-table">
+    <caption>Fuente de las cotas de alerta y evacuación: {{ cota_sources }}. Las estaciones de ANA no tienen cotas publicadas.</caption>
+    <thead><tr><th scope="col">Estación</th><th scope="col">País</th><th scope="col">Río</th><th scope="col">Series</th><th scope="col">Alerta y evacuación</th><th scope="col">Ciudad que representa</th></tr></thead>
+    <tbody>
+    {% for r in catalog_rows %}
+      <tr><th scope="row">{{ r.name }}</th><td>{{ r.country }}</td><td>{{ r.river }}</td><td>{{ r.sources }}</td>
+      <td>{% if r.cotas %}{{ r.cotas }}{% else %}<span class="muted">sin cota oficial</span>{% endif %}</td>
+      <td>{{ r.represents }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section aria-labelledby="licencias">
+  <h2 id="licencias">Licencias y atribución</h2>
+  <p class="prose">Los datos son de ANA (Brasil), INA y Prefectura Naval Argentina, CTM Salto Grande, GloFAS vía Open-Meteo, NOAA CPC e INUMET. Las condiciones de reutilización de cada fuente se están verificando y quedan en <a href="{{ repo_url }}/blob/main/docs/licencias.md">el documento de licencias del repositorio</a>. Si usás estos datos, citá siempre también la fuente original.</p>
+</section>
+
+<section aria-labelledby="citar">
+  <h2 id="citar">Cómo citar</h2>
+  <p class="prose">Cada día queda una foto fija con link propio. Para citar el estado del río de un día, usá esa foto:</p>
+  <p class="cite">clima-uy, monitor del río Uruguay, foto del {{ today_long }}. {{ site_url }}/snapshots/{{ today_iso }}/</p>
+</section>
+
+<section aria-labelledby="codigo">
+  <h2 id="codigo">Código</h2>
+  <p class="prose">El procesamiento, los gráficos y esta página están en <a href="{{ repo_url }}">el repositorio público</a>. La metodología está en <a href="{{ base }}/rio/metodologia/">su propia página</a>.</p>
+</section>
+
+<section aria-labelledby="cambios">
+  <h2 id="cambios">Registro de cambios</h2>
+  <ul class="changelog">
+    <li><span class="num">1 de noviembre de 2026.</span> Primera versión: la portada de El Niño y el módulo del río Uruguay.</li>
+  </ul>
+</section>
+</article>
+{% endblock %}

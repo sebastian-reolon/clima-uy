@@ -21,6 +21,8 @@ from xml.sax.saxutils import escape
 from ..analysis.lag import LagResult
 from ..analysis.status import StationStatus
 from ..catalog import Station
+from ..fmt import day_numeric as _day, day_short as _day_short, days as _days
+from ..fmt import meters as _m, num as _num, pct as _pct
 from ..store import Forecast
 from ..timeutil import local_day
 
@@ -53,46 +55,6 @@ def _f(v: float) -> str:
     """Compact coordinate."""
     s = f"{v:.1f}"
     return s[:-2] if s.endswith(".0") else s
-
-
-def _num(v: float, decimals: int | None = None) -> str:
-    """Uruguayan number: decimal comma, dot for thousands."""
-    if decimals is None:
-        decimals = 0 if abs(v) >= 100 else 2
-    s = f"{v:,.{decimals}f}"
-    return s.replace(",", "\0").replace(".", ",").replace("\0", ".")
-
-
-def _m(v: float) -> str:
-    """Meters with as many decimals as the value needs (7,5 m; 11 m; 7,66 m)."""
-    s = f"{v:.2f}".rstrip("0").rstrip(".")
-    return s.replace(".", ",") + " m"
-
-
-def _pct(p: float) -> str:
-    """Percentile as text, never rounded up: 94,7 -> "94"; 99,56 -> "99,5"; 100 only when exactly 100.
-
-    Rounding would turn 99,5 into "100", a record that is not one.
-    """
-    if p >= 100.0:
-        return "100"
-    if p >= 99.0:
-        tenths = min(math.floor(p * 10 + 1e-9), 999)
-        return f"{tenths // 10},{tenths % 10}"
-    return str(math.floor(p + 1e-9))
-
-
-def _day(d: date) -> str:
-    return f"{d.day}/{d.month}/{d.year}"
-
-
-def _day_short(d: date) -> str:
-    return f"{d.day}/{d.month}"
-
-
-def _days(n: float) -> str:
-    n = int(round(n))
-    return f"{n} día" if n == 1 else f"{n} días"
 
 
 def _svg(kind: str, width: float, height: float, title: str, desc: str, body: Iterable[str],

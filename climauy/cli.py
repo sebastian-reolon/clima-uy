@@ -6,6 +6,7 @@ import dataclasses
 import json
 import logging
 import sys
+from datetime import datetime, timezone
 
 from climauy.catalog import load_catalog
 from climauy.config import Config
@@ -37,16 +38,31 @@ def _backfill(station: str | None) -> int:
     return 1 if result.get(FAILURES_KEY) else 0
 
 
+def _build(base_url: str) -> int:
+    from climauy.site.build import build_site  # jinja2 is only needed for this command
+
+    cfg = Config.from_env()
+    now = datetime.now(timezone.utc)
+    with Store(cfg.db_path) as store:
+        pages = build_site(store, load_catalog(), cfg.out_dir, now, base_url=base_url)
+    print(json.dumps({"pages": [str(p.relative_to(cfg.out_dir)) for p in pages], "built_utc": now.isoformat()}))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="climauy")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("ingest", help="ingest the raw archive into the store")
     bf = sub.add_parser("backfill", help="download daily history since 1990")
     bf.add_argument("--station", help="only this station id")
+    b = sub.add_parser("build", help="build the static site into CLIMAUY_OUT")
+    b.add_argument("--base-url", default="/clima-uy", help='path prefix of the site ("" for the root)')
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, stream=sys.stderr)
     if args.command == "ingest":
         return _ingest()
     if args.command == "backfill":
         return _backfill(args.station)
+    if args.command == "build":
+        return _build(args.base_url)
     return 2

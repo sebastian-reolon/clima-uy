@@ -17,7 +17,7 @@ include = ["climauy*"]
 
 [tool.setuptools.package-data]
 climauy = ["stations.json"]
-"climauy.site" = ["static/css/*.css", "static/js/*.js", "static/fonts/*.woff2", "static/fonts/*.txt"]
+"climauy.site" = ["static/css/*.css", "static/js/*.js", "static/fonts/*.woff2", "static/fonts/*.txt", "templates/*.j2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

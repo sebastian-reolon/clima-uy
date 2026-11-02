@@ -5,30 +5,11 @@ from typing import Sequence
 
 from .analysis.status import StationStatus
 from .catalog import Station
+from .fmt import is_season, pct, season_key, season_label, signed
 from .store import IndexValue
 
 HIGH_PERCENTILE = 90
 MAX_LISTED = 4
-
-# 3-month ONI/RONI codes -> (Spanish span, center month number). CPC labels each
-# season with the year of its CENTER month: "2026-DJF" is Dec 2025 to Feb 2026 and
-# "2026-NDJ" is Nov 2026 to Jan 2027.
-_SEASONS = {
-    "DJF": ("diciembre-febrero", 1),
-    "JFM": ("enero-marzo", 2),
-    "FMA": ("febrero-abril", 3),
-    "MAM": ("marzo-mayo", 4),
-    "AMJ": ("abril-junio", 5),
-    "MJJ": ("mayo-julio", 6),
-    "JJA": ("junio-agosto", 7),
-    "JAS": ("julio-septiembre", 8),
-    "ASO": ("agosto-octubre", 9),
-    "SON": ("septiembre-noviembre", 10),
-    "OND": ("octubre-diciembre", 11),
-    "NDJ": ("noviembre-enero", 12),
-}
-_MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
-           "septiembre", "octubre", "noviembre", "diciembre"]
 
 
 def _join(items: list[str]) -> str:
@@ -62,11 +43,11 @@ def river_summary(statuses: Sequence[StationStatus], catalog: Sequence[Station])
     parts = []
     if ranked:
         top_st, top_ss = max(ranked, key=lambda r: r[1].percentile_today)
-        pct = top_ss.percentile_today
-        if pct >= HIGH_PERCENTILE:
-            # Round half up, capped at 99 so it never reads "más que el 100%".
-            shown = min(99, int(pct + 0.5))
-            parts.append(f"El río está más alto en {_display(top_st)}: más que el {shown}% de los días desde 1990.")
+        top_pct = top_ss.percentile_today
+        if top_pct >= HIGH_PERCENTILE:
+            parts.append(
+                f"El río está más alto en {_display(top_st)}: más que el {pct(top_pct)}% de los días desde 1990."
+            )
         else:
             parts.append("El río está dentro de valores habituales en todo el recorrido.")
 
@@ -88,33 +69,13 @@ def river_summary(statuses: Sequence[StationStatus], catalog: Sequence[Station])
     return " ".join(parts)
 
 
-def _signed(value: float) -> str:
-    # round + 0.0 turns a tiny negative (-0.001) into +0,00 instead of -0,00.
-    return f"{round(value, 2) + 0.0:+.2f}".replace(".", ",")
-
-
-def _period_key(period: str) -> tuple[int, int]:
-    year, code = period.split("-", 1)
-    return int(year), _SEASONS[code][1]
-
-
-def _period_label(period: str) -> str:
-    year_s, code = period.split("-", 1)
-    year, center = int(year_s), _SEASONS[code][1]
-    if center == 1:
-        return f"diciembre de {year - 1} a febrero de {year}"
-    if center == 12:
-        return f"noviembre de {year} a enero de {year + 1}"
-    return f"{_SEASONS[code][0]} de {year}"
-
-
 def enso_summary(indices: Sequence[IndexValue]) -> str:
     """Sentence on the latest RONI and the ONI of the same period; "" without RONI."""
     # Entries with unknown season codes (or malformed periods) are filtered out.
-    ronis = [i for i in indices if i.name == "RONI" and i.period.split("-", 1)[-1] in _SEASONS]
+    ronis = [i for i in indices if i.name == "RONI" and is_season(i.period)]
     if not ronis:
         return ""
-    latest = max(ronis, key=lambda i: _period_key(i.period))
+    latest = max(ronis, key=lambda i: season_key(i.period))
     if latest.value >= 0.5:
         lead = "El Niño sigue activo:"
     elif latest.value <= -0.5:
@@ -122,10 +83,10 @@ def enso_summary(indices: Sequence[IndexValue]) -> str:
     else:
         lead = "El Pacífico está en condiciones neutrales:"
     text = (
-        f"{lead} el índice oficial de la NOAA (RONI) está en {_signed(latest.value)} "
-        f"para {_period_label(latest.period)}"
+        f"{lead} el índice oficial de la NOAA (RONI) está en {signed(latest.value)} "
+        f"para {season_label(latest.period)}"
     )
     oni = next((i for i in indices if i.name == "ONI" and i.period == latest.period), None)
     if oni is not None:
-        text += f"; el índice tradicional (ONI) marca {_signed(oni.value)}"
+        text += f"; el índice tradicional (ONI) marca {signed(oni.value)}"
     return text + "."

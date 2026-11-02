@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{% endblock %}</title>
+<meta name="description" content="{% block description %}{% endblock %}">
+<link rel="stylesheet" href="{{ base }}/static/css/site.css">
+<link rel="preload" href="{{ base }}/static/fonts/barlow-condensed-600.woff2" as="font" type="font/woff2" crossorigin>
+</head>
+<body>
+<a class="skip" href="#contenido">Ir al contenido</a>
+<header class="site-header">
+  <div class="page site-header-inner">
+    <a class="wordmark" href="{{ base }}/">clima-uy</a>
+    <nav aria-label="Secciones">
+      <a href="{{ base }}/"{% if nav == "home" %} aria-current="page"{% endif %}>El Niño</a>
+      <a href="{{ base }}/rio/"{% if nav == "rio" %} aria-current="page"{% endif %}>Río Uruguay</a>
+      <a href="{{ base }}/datos/"{% if nav == "datos" %} aria-current="page"{% endif %}>Datos</a>
+    </nav>
+  </div>
+</header>
+<main id="contenido" class="page">
+{% block main %}{% endblock %}
+</main>
+<footer class="site-footer">
+  <div class="page">
+    <p class="footer-warning">Esto no es una alerta oficial. Para alertas y evacuaciones: <a href="{{ sinae_url }}">SINAE</a> y el CECOED de tu departamento.</p>
+    <p>Fuentes:
+    {% for name, url in sources %}<a href="{{ url }}">{{ name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}.
+    Código y datos en <a href="{{ repo_url }}">el repositorio público</a>.</p>
+  </div>
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

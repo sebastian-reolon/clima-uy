@@ -27,20 +27,26 @@ from ..fmt import meters as _m, num as _num, pct as _pct
 from ..store import Forecast
 from ..timeutil import local_day
 
-PAPER = "#EEF1EC"
-INK = "#1B2A33"
-INK_2 = "#4F5E66"
-GRID = "#C9D3CC"
-SILT = "#9C7A4D"
-ALERT = "#E3A21A"  # fills and swatches only: 2:1 on paper
-# Darker amber for thin alert lines and ticks on paper (3.7:1, enough for
-# graphics, not for text), kept apart from the sediment brown. site.css names
-# it --alerta-linea. Alert text is set in ink.
-ALERT_LINE = "#A87000"
-EVAC = "#C62828"
-LOW = "#3E6B7A"
+# Palette: sRGB hex of the OKLCH tokens in design.md (static/v2/css/site.css).
+# Colour only marks a state: blue = water or rising, red = alert, the rest ink.
+PAPER = "#F7F8F9"  # --paper  oklch(97.8% 0.002 250)
+INK = "#15191E"  # --ink    oklch(21% 0.012 255)
+INK_2 = "#54585F"  # --ink-2  oklch(46% 0.012 255)
+GRID = "#D2D8DE"  # --grid-2 oklch(88% 0.01 245), chart grid
+WATER = "#0062A1"  # --water  oklch(48% 0.13 245); --water-2 is this at opacity .12
+ALERT = "#C92420"  # --alert  oklch(54% 0.2 28)
+# Older names kept so the /rio/ charts did not change shape: today's line and
+# water fills (was sediment brown) are water, the 3-days-ago line and past
+# seasons (was a muted teal) are ink-2. design.md has a single red, dark
+# enough for thin lines, so alert lines use it and the evacuation line is told
+# apart by its dash and its label.
+SILT = WATER
+LOW = INK_2
+ALERT_LINE = ALERT
+EVAC = ALERT
+EVAC_DASH = "6 3"
 
-FONT = "Barlow Condensed, Arial Narrow, sans-serif"
+FONT = "Barlow, sans-serif"
 WIDE_W = 600
 WIDE_FONT = 23
 GAUGE_W = 320
@@ -164,8 +170,14 @@ def _tick_label(v: float, step: float) -> str:
 
 
 def _text_width(s: str, size: float) -> float:
-    """Rough advance width in Barlow Condensed, enough to keep labels apart."""
-    return len(s) * size * 0.43
+    """Rough advance width in Barlow, enough to keep labels apart.
+
+    Barlow runs 0,43 to 0,45 em per character on Spanish words, 0,5 on
+    digits and up to 0,55 on words heavy in m, d, b, o (measured on the
+    self-hosted woff2). 0,5 keeps a margin on most labels and still lets two
+    rows of names fit under the old profile.
+    """
+    return len(s) * size * 0.5
 
 
 WIDE_FONT_DESKTOP = 14  # .chart-wide text size at >= 56em in site.css
@@ -217,7 +229,8 @@ def _sample_band(color: str, opacity: float) -> str:
 
 # ---------------------------------------------------------------- profile
 
-P_LEFT, P_RIGHT = 84, 584
+# P_LEFT leaves room for "mediana" in Barlow at the wide font (about 87 units).
+P_LEFT, P_RIGHT = 98, 584
 P_TOP, P_BOTTOM = 160, 424
 DOTTED = "0 7"  # with round caps: a dotted line
 # Exceedance axis: e = 100 - percentile on a log scale, from the median (e = 50,
@@ -453,6 +466,307 @@ def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -
                 "Perfil del río Uruguay: qué tan alto está cada estación hoy", desc, body)
 
 
+# ---------------------------------------------------------------- plan profile (home)
+#
+# The home's drawing: x = great-circle km along the main river, y = percentile
+# on a linear axis. Styled by the `.perfil` rules of static/v2/css/site.css
+# (class names below), not inline, like the approved mockup.
+
+MAIN_RIVER = "Uruguay"
+PLAN_WIDE_W = 1100
+# Ruling 6: the Uruguayan stretch starts this many wide-variant units upstream
+# of Bella Unión's station. Turned into km once, so the shading starts at the
+# same point of the river in every variant.
+PLAN_UY_LEAD = 14
+PLAN_UY_CITY = "Bella Unión"
+# Ruling 7: the phone variant starts here, or 60 km above the first callout.
+PHONE_START_KM = 620.0
+PHONE_CALLOUT_LEAD_KM = 60.0
+_EARTH_KM = 6371.0
+
+
+def _plan_margins(variant: str) -> tuple[int, int, int, int]:
+    """Left, right, top, bottom margins in viewBox units."""
+    return (64, 24, 36, 150) if variant == "wide" else (34, 8, 36, 240)
+
+
+def _great_circle_km(a: Station, b: Station) -> float:
+    p1, p2 = math.radians(a.lat), math.radians(b.lat)
+    dp, dl = p2 - p1, math.radians(b.lon - a.lon)
+    h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * _EARTH_KM * math.asin(math.sqrt(h))
+
+
+def river_km(catalog: Sequence[Station]) -> dict[str, float]:
+    """Cumulative great-circle km of each main-river station from the first one, in catalogue order (Ruling 5).
+
+    A station at the very same point as the previous one is a twin gauge
+    (Salto Grande Arriba and Abajo, upstream and downstream of the dam): only
+    the first, Arriba, is kept.
+    """
+    km: dict[str, float] = {}
+    acc = 0.0
+    prev: Station | None = None
+    for st in sorted(catalog, key=lambda s: s.order):
+        if st.river != MAIN_RIVER:
+            continue
+        if prev is not None:
+            step = _great_circle_km(prev, st)
+            if step < 1e-6:
+                continue
+            acc += step
+        km[st.id] = acc
+        prev = st
+    return km
+
+
+def _plan_points(statuses: Sequence[StationStatus], catalog: Sequence[Station],
+                 start_km: float = 0.0) -> list[tuple[float, StationStatus, Station]]:
+    """(km, status, station) of each main-river station with a percentile today, downstream."""
+    by_id = {s.station_id: s for s in statuses}
+    stations = {s.id: s for s in catalog}
+    out = []
+    for sid, k in river_km(catalog).items():
+        ss = by_id.get(sid)
+        if ss is None or ss.percentile_today is None or k < start_km:
+            continue
+        out.append((k, ss, stations[sid]))
+    return out
+
+
+def _is_callout(ss: StationStatus, st: Station) -> bool:
+    """Ruling 7: Uruguayan cities on the main river, plus any other main-river station above alert."""
+    return st.represents is not None or bool(ss.above_alert)
+
+
+def phone_start_km(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> float:
+    """Where the phone variant starts: 620 km, or 60 km above the first callout when that is further up."""
+    callouts = [k for k, ss, st in _plan_points(statuses, catalog) if _is_callout(ss, st)]
+    start = PHONE_START_KM if not callouts else min(PHONE_START_KM, callouts[0] - PHONE_CALLOUT_LEAD_KM)
+    return max(0.0, start)
+
+
+def _floor_pct(p: float) -> int:
+    return min(100, math.floor(p + 1e-9))
+
+
+def _plan_label(ss: StationStatus, st: Station) -> tuple[str, str, bool]:
+    """(name, value line, alert style) of a callout."""
+    if ss.level_m is not None:
+        reading = f"{_num(ss.level_m, 2)} m"
+    elif ss.variable_used == "discharge" and ss.latest_value is not None:
+        reading = f"{_num(ss.latest_value, 0)} m³/s"
+    else:
+        reading = None
+    if st.represents is not None:
+        tail = f"P{_floor_pct(ss.percentile_today)}"
+        name, alert = st.represents, bool(ss.above_alert)
+    else:
+        tail = "sobre alerta"
+        name, alert = st.name, True
+    return name, (f"{reading} · {tail}" if reading else tail), alert
+
+
+Slot = tuple[int, float, bool]  # row, box left edge, box right of its leader
+
+
+def _place_labels(xs: Sequence[float], widths: Sequence[float], prefer_start: Sequence[bool],
+                  width: float, one_per_row: bool, order: Sequence[int],
+                  required: Sequence[bool]) -> list[Slot | None]:
+    """Row, box left edge and side of each label; None for a label left out.
+
+    Leaders drop straight down from each point to its box, so two rules keep
+    every label readable: boxes in one row do not touch, and no box covers the
+    leader of a label in a row below it. Greedy over `order`: a label joins an
+    existing row (wide only; it starts staggered over two rows like the
+    mockup) or a new row inserted wherever both rules hold. Phone labels get a
+    row each and first try not to cover the leaders still to come, which gives
+    the mockup's cascade. A label with no such place goes to a new bottom row
+    when `required`, else is left out. Rows are ranked at the end.
+    """
+    gap, pad = 8.0, 2.0
+    placed: list[tuple[float, float, float, float]] = []  # row, left, right, leader x
+
+    def box(i: int, start: bool) -> tuple[float, float]:
+        left = xs[i] + 1 if start else xs[i] - 1 - widths[i]
+        left = min(max(left, pad), width - pad - widths[i])
+        return left, left + widths[i]
+
+    def covers(left: float, right: float, x: float) -> bool:
+        return left - pad <= x <= right + pad
+
+    def fits(i: int, row: float, left: float, right: float, ahead: Sequence[float]) -> bool:
+        if any(covers(left, right, x) for x in ahead):
+            return False
+        for r, l2, r2, x2 in placed:
+            if r == row and (one_per_row or (left < r2 + gap and l2 < right + gap)):
+                return False
+            if r < row and covers(l2, r2, xs[i]):
+                return False
+            if r > row and covers(left, right, x2):
+                return False
+        return True
+
+    def candidates(k: int) -> list[float]:
+        rows = sorted({r for r, *_ in placed})
+        if not rows:
+            return [0.0]
+        below, above = rows[-1] + 1, rows[0] - 1
+        between = [(a + b) / 2 for a, b in zip(rows, rows[1:])]
+        if one_per_row:
+            return [below] + between[::-1] + [above]
+        stagger = k % 2
+        first = [rows[stagger]] if stagger < len(rows) else [below]
+        return first + [r for r in rows if r not in first] + [below] + between + [above]
+
+    slots: dict[int, tuple[float, float, bool]] = {}
+    for k, i in enumerate(order):
+        sides = (prefer_start[i], not prefer_start[i])
+        to_come = [xs[j] for j in order[k + 1:]]
+        choice = None
+        for ahead in (to_come, ()):
+            for row in candidates(k):
+                for start in sides:
+                    left, right = box(i, start)
+                    if fits(i, row, left, right, ahead):
+                        choice = (row, left, start)
+                        break
+                if choice:
+                    break
+            if choice:
+                break
+        if choice is None:
+            if not required[i]:
+                continue
+            # No place keeps every leader clear: a new bottom row at least keeps boxes apart.
+            bottom = max((r for r, *_ in placed), default=-1.0) + 1
+            choice = (bottom, box(i, prefer_start[i])[0], prefer_start[i])
+        placed.append((choice[0], choice[1], choice[1] + widths[i], xs[i]))
+        slots[i] = choice
+    rank = {r: n for n, r in enumerate(sorted({r for r, _, _ in slots.values()}))}
+    return [(rank[slots[i][0]], slots[i][1], slots[i][2]) if i in slots else None for i in range(len(xs))]
+
+
+def profile_plan_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station], width: int = 1100,
+                     height: int = 500, start_km: float = 0.0, variant: str = "wide") -> str:
+    """The river's longitudinal profile as a technical drawing (home page, Rulings 4 to 7).
+
+    x: km from Machadinho along straight lines between stations. y: today's
+    percentile of each station against its own history, linear from 100 down
+    to 50, or lower when a plotted value is lower. Callouts name the
+    Uruguayan cities and any other station above its alert level. `variant`
+    "movil" is the cropped phone drawing (class `perfil movil`, start it at
+    `phone_start_km`; height 560 gives the mockup's plot). `height` sets the
+    plot area: the drawing ends below the last callout row.
+    """
+    big = variant == "wide"
+    L, R, T, B = _plan_margins(variant)
+    pw, ph = width - L - R, height - T - B
+    km = river_km(catalog)
+    k_max = max(km.values(), default=0.0) or 1.0
+    k0 = min(max(0.0, start_km), k_max - 1.0)
+    pts = _plan_points(statuses, catalog, k0)
+
+    values = [ss.percentile_today for _, ss, _ in pts] + [
+        ss.percentile_3d_ago for _, ss, _ in pts if ss.percentile_3d_ago is not None]
+    low = min(values, default=100.0)
+    p_min = 50 if low >= 50 else max(0, math.floor(low / 10) * 10)
+
+    def X(k: float) -> float:
+        return L + (k - k0) / (k_max - k0) * pw
+
+    def Y(p: float) -> float:
+        return T + (100 - min(p, 100.0)) / (100 - p_min) * ph
+
+    o: list[str] = []
+    for p in range(p_min, 101, 10):
+        o.append(f'<line x1="{L}" x2="{width - R}" y1="{_f(Y(p))}" y2="{_f(Y(p))}" class="g{" g2" if p == 90 else ""}"/>')
+        o.append(f'<text x="{L - 8}" y="{_f(Y(p) + 4)}" class="ax" text-anchor="end">{p}</text>')
+    o.append(f'<text x="{L}" y="{T - 14}" class="ax">percentil</text>')
+    for k in range(int(math.ceil(k0 / 200) * 200), int(k_max) + 1, 200):
+        o.append(f'<line x1="{_f(X(k))}" x2="{_f(X(k))}" y1="{_f(T + ph)}" y2="{_f(T + ph + 6)}" class="tick"/>')
+        o.append(f'<text x="{_f(X(k))}" y="{_f(T + ph + 20)}" class="ax" text-anchor="middle">{_num(k, 0)}</text>')
+    caption = ("km desde Machadinho, en línea recta entre estaciones (aprox.)" if big
+               else "km desde Machadinho (aprox.)")
+    o.append(f'<text x="{L}" y="{_f(T + ph + 40)}" class="ax">{escape(caption)}</text>')
+
+    uy = next((s for s in catalog if s.represents == PLAN_UY_CITY and s.id in km), None)
+    if uy is not None:
+        wide_l, wide_r, _, _ = _plan_margins("wide")
+        lead_km = PLAN_UY_LEAD * k_max / (PLAN_WIDE_W - wide_l - wide_r)
+        ub = max(L, X(km[uy.id] - lead_km))
+        o.append(f'<rect x="{_f(ub)}" y="{T}" width="{_f(width - R - ub)}" height="{_f(ph)}" class="uy"/>')
+        o.append(f'<text x="{_f(ub + 6)}" y="{T + 14}" class="axl">tramo con costa uruguaya</text>')
+
+    xy = [(X(k), Y(ss.percentile_today), ss, st) for k, ss, st in pts]
+    ago = [(x, Y(ss.percentile_3d_ago)) for x, _, ss, _ in xy if ss.percentile_3d_ago is not None]
+    if ago:
+        o.append('<polyline class="l3" fill="none" points="' + " ".join(f"{_f(x)},{_f(y)}" for x, y in ago) + '"/>')
+    if xy:
+        o.append('<polyline class="l0" fill="none" points="' + " ".join(f"{_f(x)},{_f(y)}" for x, y, _, _ in xy) + '"/>')
+    for x, y, ss, st in xy:
+        city = st.represents is not None
+        cls = "pa" if ss.above_alert else ("pc" if city else "p")
+        o.append(f'<circle cx="{_f(x)}" cy="{_f(y)}" r="{4.5 if city else 2.6}" class="{cls}"/>')
+
+    # Callouts: leaders first, then the paper boxes, then the text, so a box
+    # never hides another label's text.
+    calls = [(x, y, *_plan_label(ss, st)) for x, y, ss, st in xy if _is_callout(ss, st)]
+    is_city = [st.represents is not None for x, y, ss, st in xy if _is_callout(ss, st)]
+    # Per-character widths: 0,55 em of the bold name and 0,5 em of the value at
+    # the sizes site.css sets (14 / 12,5 wide, 13 / 11,5 phone), above Barlow's
+    # measured 0,45 em, so the paper box always clears the text.
+    name_em, value_em = (7.7, 6.25) if big else (7.15, 5.75)
+    widths = [max(len(name) * name_em, len(value) * value_em) + 6 for _, _, name, value, _ in calls]
+    prefer_start = [x < width * (0.4 if big else 0.5) for x, *_ in calls]
+    args = ([c[0] for c in calls], widths, prefer_start, width, not big)
+    slots = _place_labels(*args, order=range(len(calls)), required=[False] * len(calls))
+    if None in slots:
+        # Too many callouts to keep every leader clear (a flood across the
+        # basin): cities first and always, then the others that still fit.
+        # Those left out keep their alert dot.
+        order = [i for i in range(len(calls)) if is_city[i]] + [i for i in range(len(calls)) if not is_city[i]]
+        slots = _place_labels(*args, order=order, required=is_city)
+    base = T + ph + (52 if big else 64)
+    row_h = 44 if big else 38
+    # A top-row box under the km caption would hide it: drop the rows below it.
+    caption_right = L + len(caption) * 6.0
+    if any(slot and slot[0] == 0 and slot[1] < caption_right and base - 14 < T + ph + 44 for slot in slots):
+        base = T + ph + 44 + 14
+    leaders, boxes, texts = [], [], []
+    bottom = 0.0
+    for (x, y, name, value, alert), w, slot in zip(calls, widths, slots):
+        if slot is None:
+            continue
+        row, left, start = slot
+        ty = base + row * row_h
+        bottom = max(bottom, ty + 22)
+        tx, anchor = (left + 3, "start") if start else (left + w - 3, "end")
+        leaders.append(f'<line x1="{_f(x)}" y1="{_f(y + 6)}" x2="{_f(x)}" y2="{_f(ty - 14)}" class="lead"/>')
+        boxes.append(f'<rect x="{_f(left)}" y="{_f(ty - 14)}" width="{_f(w)}" height="36" class="lbg"/>')
+        texts.append(f'<text x="{_f(tx)}" y="{_f(ty)}" class="cn{" ca" if alert else ""}" '
+                     f'text-anchor="{anchor}">{escape(name)}</text>')
+        texts.append(f'<text x="{_f(tx)}" y="{_f(ty + 16)}" class="cv" text-anchor="{anchor}">{escape(value)}</text>')
+    # Height follows the callout rows: taller when they need more, trimmed when fewer.
+    total_h = math.ceil(bottom + 12) if calls else math.ceil(T + ph + 52)
+
+    title = "Perfil del río Uruguay hoy: cada estación comparada con su propia historia"
+    desc = (
+        f"Percentil de hoy en cada estación con dato, de aguas arriba a aguas abajo, en una escala de "
+        f"{p_min} a 100: "
+        + "; ".join(f"{st.name} {_floor_pct(ss.percentile_today)}" for _, ss, st in pts)
+        + "."
+    ) if pts else "Ninguna estación del río tiene dato al día."
+    cls = "perfil" if big else "perfil movil"
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" class="{cls}" viewBox="0 0 {width} {total_h}" '
+        f'role="img" aria-label="{escape(title)}" font-family="{FONT}">'
+        f"<title>{escape(title)}</title><desc>{escape(desc)}</desc>"
+        + "".join(o + leaders + boxes + texts)
+        + "</svg>"
+    )
+
+
 # ---------------------------------------------------------------- gauge
 
 def _has_cota(station: Station) -> bool:
@@ -539,7 +853,8 @@ def gauge_svg(status: StationStatus, station: Station) -> str:
         row = 1 if start < prev_end + 8 else 0
         rows_used = max(rows_used, row + 1)
         ty = row_y + row * 18
-        body.append(_line(cx, plate_y, cx, ty - 13, color, 2.5, cls=cls))
+        body.append(_line(cx, plate_y, cx, ty - 13, color, 2.5, dash=EVAC_DASH if name != "alerta" else None,
+                          cls=cls))
         body.append(_text(start, ty, label, fill=INK))
         prev_end = start + w
 

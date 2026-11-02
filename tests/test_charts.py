@@ -448,3 +448,269 @@ def test_glofas_chart_says_downloaded_not_issued():
     assert "bajado el 2/11" in texts_of(svg) and not any("emitido" in t for t in texts_of(svg))
     ina = forecast_band_svg({date(2026, 10, 31): 6.0}, forecasts())
     assert "emitido el" in parse(ina).find("s:desc", NS).text
+
+
+# ---------------------------------------------------------------- plan profile (home)
+
+from climauy.site import charts as charts_mod  # noqa: E402
+from climauy.site.charts import phone_start_km, profile_plan_svg, river_km  # noqa: E402
+
+SVG_NS = "{http://www.w3.org/2000/svg}"
+REAL = load_catalog()
+REAL_BY_ID = {s.id: s for s in REAL}
+
+# Main-river readings of 2026-11-02 (the approved mockup's data):
+# (id, percentile today, percentile 3 days ago, level m, above alert).
+TODAY = [
+    ("ana_72700000", 73.3, None, 3.41, None), ("ana_73200080", 73.4, None, 367.88, None),
+    ("ana_74050000", None, None, 2.94, None), ("ana_74100000", 79.3, None, 2.55, None),
+    ("ana_74329000", 67.1, None, 2.53, None), ("ina_60", 73.8, 84.9, 3.75, None),
+    ("ana_74500000", 66.4, None, 2.64, None), ("ina_61", 79.5, 87.0, 3.2, None),
+    ("ina_63", 83.1, 88.6, 4.45, None), ("ana_74720000", None, None, 3.84, None),
+    ("ina_64", 89.0, 95.0, 3.7, None), ("ana_74800000", 79.3, None, 2.13, None),
+    ("ina_65", 80.5, 89.6, 3.33, False), ("ina_66", 81.6, 95.4, 3.6, False),
+    ("ina_67", 74.5, 94.3, 4.83, False), ("ina_68", 86.3, 96.6, 6.64, False),
+    ("ana_75780000", 81.8, None, 5.59, None), ("ina_69", 93.6, 96.2, 8.0, False),
+    ("ana_75900000", 85.8, None, 5.93, None), ("ina_70", 93.2, 95.8, 8.12, False),
+    ("ina_71", 94.5, 95.9, 7.98, False), ("ina_72", 93.9, 95.1, 7.66, True),
+    ("ana_77150000", 91.6, None, 7.624, None), ("ina_74", 95.0, 93.7, 6.05, False),
+    ("ina_75", 86.6, 69.1, 9.18, False), ("ina_77", 93.8, 92.7, 34.99, False),
+    ("ina_78", 93.7, 92.4, 12.35, False), ("ina_79", 92.3, 91.3, 9.3, False),
+    ("ina_80", 91.2, 91.2, 5.5, False), ("ina_81", 90.8, 91.2, 4.3, False),
+    ("ina_82", 87.4, 88.5, 3.32, False), ("ina_84", 80.9, 86.4, 2.1, False),
+    ("fray_bentos", None, None, None, None), ("ina_1699", None, None, 1.17, None),
+]
+
+
+def pstatus(sid, pct, pct3=None, level=None, above=None):
+    return StationStatus(
+        station_id=sid, variable_used="level", latest_value=level,
+        latest_time_utc=datetime(2026, 11, 2, tzinfo=timezone.utc), latest_source="ina", stale=False,
+        stale_since=None, level_change_3d_m=None, discharge_change_3d_pct=None, trend=None, trend_basis=None,
+        percentile_today=pct, percentile_3d_ago=pct3, alert_percentile=None, level_m=level,
+        above_alert=above, above_evac=None, history_years=30.0, history_start_year=1990,
+    )
+
+
+def today_statuses():
+    return [pstatus(*row) for row in TODAY]
+
+
+def flood_statuses():
+    """Every main-river station above percentile 99, every one with an alert level above it."""
+    out = []
+    for sid, pct, _, level, _ in TODAY:
+        st = REAL_BY_ID[sid]
+        if pct is None:
+            out.append(pstatus(sid, None, None, level))
+            continue
+        out.append(pstatus(sid, 99.6, 99.2, level + 3.0, True if st.alert_m is not None else None))
+    return out
+
+
+def by_class(root, tag, cls):
+    return [e for e in root.iter(SVG_NS + tag) if cls in (e.get("class") or "").split()]
+
+
+def label_boxes(svg):
+    root = parse(svg)
+    return [(float(r.get("x")), float(r.get("y")), float(r.get("width")), float(r.get("height")))
+            for r in by_class(root, "rect", "lbg")]
+
+
+def overlaps(a, b):
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    return ax < bx + bw and bx < ax + aw and ay < by + bh and by < ay + ah
+
+
+def test_palette_matches_design_tokens():
+    assert charts_mod.PAPER == "#F7F8F9"      # --paper oklch(97.8% 0.002 250)
+    assert charts_mod.GRID == "#D2D8DE"       # --grid-2 oklch(88% 0.01 245)
+    assert charts_mod.INK == "#15191E"        # --ink oklch(21% 0.012 255)
+    assert charts_mod.INK_2 == "#54585F"      # --ink-2 oklch(46% 0.012 255)
+    assert charts_mod.WATER == "#0062A1"      # --water oklch(48% 0.13 245)
+    assert charts_mod.ALERT == "#C92420"      # --alert oklch(54% 0.2 28)
+    assert charts_mod.SILT == charts_mod.WATER
+    assert charts_mod.LOW == charts_mod.INK_2
+    assert charts_mod.ALERT_LINE == charts_mod.EVAC == charts_mod.ALERT
+    assert charts_mod.FONT == "Barlow, sans-serif"
+    assert "mono" not in charts_mod.FONT.lower()
+
+
+def test_old_charts_use_new_palette_only():
+    old = {"#EEF1EC", "#1B2A33", "#4F5E66", "#C9D3CC", "#9C7A4D", "#E3A21A", "#A87000", "#C62828", "#3E6B7A"}
+    for svg in all_svgs():
+        assert not any(h in svg for h in old)
+        assert "Barlow Condensed" not in svg
+
+
+def test_river_km_monotonic_and_counts_salto_grande_once():
+    km = river_km(REAL)
+    main = [s for s in REAL if s.river == "Uruguay"]
+    assert "ina_78" not in km and "ina_77" in km
+    assert len(km) == len(main) - 1
+    assert list(km) == [s.id for s in main if s.id != "ina_78"]
+    vals = list(km.values())
+    assert vals[0] == 0.0
+    assert all(b > a for a, b in zip(vals, vals[1:]))
+    assert "ana_77500000" not in km  # Quaraí is a tributary
+
+
+def test_plan_profile_x_monotonic_and_one_point_per_plotted_station():
+    root = parse(profile_plan_svg(today_statuses(), REAL))
+    circles = [c for c in root.iter(SVG_NS + "circle")]
+    xs = [float(c.get("cx")) for c in circles]
+    assert all(b > a for a, b in zip(xs, xs[1:]))
+    plotted = [r for r in TODAY if r[1] is not None and r[0] != "ina_78"]
+    assert len(circles) == len(plotted)
+
+
+def test_plan_profile_marks_cities_and_alert():
+    root = parse(profile_plan_svg(today_statuses(), REAL))
+    assert len(by_class(root, "circle", "pc")) == 3  # Bella Unión, Salto, Paysandú
+    assert len(by_class(root, "circle", "pa")) == 1  # Paso de los Libres
+    names = [t.text for t in by_class(root, "text", "cn")]
+    assert names == ["Paso de los Libres", "Bella Unión", "Salto", "Paysandú"]
+    alert = by_class(root, "text", "ca")
+    assert [t.text for t in alert] == ["Paso de los Libres"]
+    values = [t.text for t in by_class(root, "text", "cv")]
+    assert values == ["7,66 m · sobre alerta", "6,05 m · P95", "9,30 m · P92", "5,50 m · P91"]
+
+
+def test_plan_profile_accessible():
+    svg = profile_plan_svg(today_statuses(), REAL)
+    root = parse(svg)
+    assert root.get("role") == "img"
+    assert root.get("aria-label")
+    assert "perfil" in root.get("class").split()
+    title = root.find("s:title", NS)
+    assert title is not None and "río Uruguay" in title.text
+    assert root[0].tag == SVG_NS + "title"
+
+
+def y_axis_labels(svg):
+    root = parse(svg)
+    return [int(t.text) for t in by_class(root, "text", "ax") if t.get("text-anchor") == "end"]
+
+
+def test_plan_profile_y_axis_50_to_100_by_default():
+    labels = y_axis_labels(profile_plan_svg(today_statuses(), REAL))
+    assert labels == [50, 60, 70, 80, 90, 100]
+
+
+def test_plan_profile_y_bottom_drops_below_50():
+    sts = today_statuses()
+    sts[0] = pstatus("ana_72700000", 47.0, None, 3.41)
+    assert min(y_axis_labels(profile_plan_svg(sts, REAL))) == 40
+    sts = today_statuses()
+    sts[5] = pstatus("ina_60", 73.0, 30.0, 3.75)  # a low 3-day value counts too
+    assert min(y_axis_labels(profile_plan_svg(sts, REAL))) == 30
+
+
+def test_plan_profile_reference_line_at_90_dashed():
+    root = parse(profile_plan_svg(today_statuses(), REAL))
+    assert len(by_class(root, "line", "g2")) == 1
+    assert len(by_class(root, "polyline", "l0")) == 1
+    assert len(by_class(root, "polyline", "l3")) == 1
+    assert len(by_class(root, "rect", "uy")) == 1
+
+
+@pytest.mark.parametrize("variant", ["wide", "movil"])
+@pytest.mark.parametrize("fixture", [today_statuses, flood_statuses])
+def test_plan_profile_labels_never_overlap(variant, fixture):
+    sts = fixture()
+    if variant == "wide":
+        svg = profile_plan_svg(sts, REAL)
+    else:
+        svg = profile_plan_svg(sts, REAL, width=340, height=560, start_km=phone_start_km(sts, REAL), variant="movil")
+    boxes = label_boxes(svg)
+    assert boxes
+    for i, a in enumerate(boxes):
+        for b in boxes[i + 1:]:
+            assert not overlaps(a, b), (a, b)
+    root = parse(svg)
+    w, h = (float(v) for v in root.get("viewBox").split()[2:])
+    for x, y, bw, bh in boxes:
+        assert x >= 0 and x + bw <= w and y + bh <= h
+
+
+def test_plan_profile_flood_labels_every_station_above_alert():
+    sts = flood_statuses()
+    root = parse(profile_plan_svg(sts, REAL))
+    calls = {s.station_id for s in sts if s.percentile_today is not None and s.station_id != "ina_78"
+             and (s.above_alert or REAL_BY_ID[s.station_id].represents)}
+    assert len(calls) == 16
+    assert len(by_class(root, "text", "cn")) == len(calls)
+    assert len(by_class(root, "text", "ca")) == len(calls)
+
+
+def test_phone_start_km_rule():
+    km = river_km(REAL)
+    # Today the first callout is Paso de los Libres, at about 648 km: start 60 km above it.
+    assert phone_start_km(today_statuses(), REAL) == pytest.approx(km["ina_72"] - 60.0)
+    # Callouts all downstream of 680 km: the start stays at 620 km.
+    late = [pstatus(sid, pct, None, level, None) for sid, pct, _, level, _ in TODAY]
+    assert phone_start_km(late, REAL) == 620.0
+    # A callout further upstream pulls the start along.
+    sts = today_statuses()
+    sts[13] = pstatus("ina_66", 99.0, 98.0, 16.0, True)
+    assert phone_start_km(sts, REAL) == pytest.approx(km["ina_66"] - 60.0)
+
+
+def test_plan_profile_phone_variant_starts_at_start_km():
+    km = river_km(REAL)
+    svg = profile_plan_svg(today_statuses(), REAL, width=340, height=560, start_km=620.0, variant="movil")
+    root = parse(svg)
+    assert root.get("class").split() == ["perfil", "movil"]
+    assert root.get("viewBox").split()[2] == "340"
+    plotted = [r for r in TODAY if r[1] is not None and r[0] != "ina_78" and km[r[0]] >= 620.0]
+    circles = list(root.iter(SVG_NS + "circle"))
+    assert len(circles) == len(plotted)
+    # The first plotted station after 620 km sits right of the left margin, at its km.
+    ticks = [int(t.text.replace(".", "")) for t in by_class(root, "text", "ax") if t.get("text-anchor") == "middle"]
+    assert ticks and ticks[0] >= 620
+
+
+@pytest.mark.parametrize("variant", ["wide", "movil"])
+@pytest.mark.parametrize("fixture", [today_statuses, flood_statuses])
+def test_plan_profile_leaders_never_run_under_another_label(variant, fixture):
+    sts = fixture()
+    if variant == "wide":
+        svg = profile_plan_svg(sts, REAL)
+    else:
+        svg = profile_plan_svg(sts, REAL, width=340, height=560, start_km=phone_start_km(sts, REAL), variant="movil")
+    root = parse(svg)
+    leads = [(float(l.get("x1")), float(l.get("y1")), float(l.get("y2"))) for l in by_class(root, "line", "lead")]
+    boxes = label_boxes(svg)
+    assert len(leads) == len(boxes)
+    for k, (x, y1, y2) in enumerate(leads):
+        for j, (bx, by, bw, bh) in enumerate(boxes):
+            if j == k:
+                continue
+            assert not (bx <= x <= bx + bw and by < y2 and y1 < by + bh), (k, j)
+
+
+def test_plan_profile_wide_today_staggers_two_rows_like_the_mockup():
+    root = parse(profile_plan_svg(today_statuses(), REAL))
+    ys = [float(t.get("y")) for t in by_class(root, "text", "cn")]
+    assert ys[0] == ys[2] and ys[1] == ys[3] and ys[1] > ys[0]
+
+
+def test_plan_profile_phone_flood_keeps_every_city():
+    sts = flood_statuses()
+    svg = profile_plan_svg(sts, REAL, width=340, height=560, start_km=phone_start_km(sts, REAL), variant="movil")
+    names = [t.text for t in by_class(parse(svg), "text", "cn")]
+    assert {"Bella Unión", "Salto", "Paysandú"} <= set(names)
+    # Every red dot stays, labelled or not.
+    assert len(by_class(parse(svg), "circle", "pa")) == 16
+
+
+def test_plan_profile_labels_clear_the_km_caption():
+    for sts in (today_statuses(), flood_statuses()):
+        svg = profile_plan_svg(sts, REAL)
+        root = parse(svg)
+        cap = next(t for t in by_class(root, "text", "ax") if t.text.startswith("km desde"))
+        cap_x, cap_y = float(cap.get("x")), float(cap.get("y"))
+        cap_box = (cap_x, cap_y - 10, len(cap.text) * 6.0, 14)
+        assert not any(overlaps(cap_box, b) for b in label_boxes(svg))

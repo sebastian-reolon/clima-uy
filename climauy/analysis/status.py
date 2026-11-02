@@ -48,8 +48,15 @@ class StationStatus:
 
 
 def stale_after(readings: Sequence[Obs]) -> timedelta:
-    """48 h for a daily-resolution series (median spacing of recent readings >= 20 h), else 36 h."""
-    times = sorted({o.time_utc for o in readings[-SPACING_READINGS:]})
+    """48 h for a daily-resolution series (median spacing of recent readings >= 20 h), else 36 h.
+
+    Judged on the source of the latest reading only: INA (03:00Z) and CTM
+    (10:00Z) both read once a day, but merged their gaps alternate 7 h / 17 h.
+    """
+    if not readings:
+        return STALE_AFTER
+    own = [o for o in readings if o.source == readings[-1].source]
+    times = sorted({o.time_utc for o in own[-SPACING_READINGS:]})
     gaps = [b - a for a, b in zip(times, times[1:])]
     return STALE_AFTER_DAILY if gaps and median(gaps) >= DAILY_SPACING else STALE_AFTER
 

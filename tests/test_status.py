@@ -314,3 +314,16 @@ def test_history_start_year_is_first_day_since_1990(store):
 def test_history_start_year_none_without_data(store):
     [r] = compute_status(store, [st()], NOW)
     assert r.history_start_year is None
+
+
+def test_ina_and_ctm_daily_readings_interleaved_are_still_daily(store):
+    # INA at 03:00Z and CTM at 10:00Z every day: merged gaps alternate 7 h / 17 h, but each
+    # series is daily, so the station gets 48 h.
+    last = NOW - timedelta(hours=40)  # the CTM reading, 40 h old
+    rows = []
+    for i in range(40):
+        rows.append(ob(last - timedelta(days=i), 3.0, "ctm"))
+        rows.append(ob(last - timedelta(days=i, hours=7), 3.0, "ina"))
+    store.upsert_obs(rows)
+    [r] = compute_status(store, [st()], NOW)
+    assert r.latest_source == "ctm" and r.stale is False

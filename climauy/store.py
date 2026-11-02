@@ -113,6 +113,10 @@ CREATE TABLE IF NOT EXISTS backfill_chunk (
     completed_utc TEXT NOT NULL,
     PRIMARY KEY (source, series, variable, chunk_start)
 );
+CREATE TABLE IF NOT EXISTS meta (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
 
 
@@ -278,3 +282,33 @@ class Store:
         rows += self._conn.execute(base + "AND time_utc>? ORDER BY time_utc LIMIT ?", (*a, e, n))
         rows.sort(key=lambda r: r[2])
         return [Obs(r[0], r[1], _dec(r[2]), r[3], r[4], r[5]) for r in rows]
+
+    def obs_between(self, start_utc: datetime, end_utc: datetime) -> list[Obs]:
+        """Every stored row (suspect included) with start <= time < end, ordered for export."""
+        rows = self._conn.execute(
+            "SELECT station_id, variable, time_utc, value, source, quality FROM obs "
+            "WHERE time_utc>=? AND time_utc<? ORDER BY time_utc, station_id, variable, source",
+            (_enc(start_utc), _enc(end_utc)),
+        )
+        return [Obs(r[0], r[1], _dec(r[2]), r[3], r[4], r[5]) for r in rows]
+
+    def forecasts_issued_between(self, start_utc: datetime, end_utc: datetime) -> list[Forecast]:
+        """Every forecast value of the runs issued with start <= issued < end."""
+        rows = self._conn.execute(
+            "SELECT issuer, station_id, variable, issued_utc, valid_utc, qualifier, value FROM forecast "
+            "WHERE issued_utc>=? AND issued_utc<? "
+            "ORDER BY issued_utc, issuer, station_id, variable, valid_utc, qualifier",
+            (_enc(start_utc), _enc(end_utc)),
+        )
+        return [Forecast(r[0], r[1], r[2], _dec(r[3]), _dec(r[4]), r[5], r[6]) for r in rows]
+
+    def meta_get(self, key: str) -> str | None:
+        row = self._conn.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
+        return row[0] if row else None
+
+    def meta_set(self, key: str, value: str) -> None:
+        with self._conn:
+            self._conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?,?) ON CONFLICT (key) DO UPDATE SET value=excluded.value",
+                (key, value),
+            )

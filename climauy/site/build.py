@@ -440,6 +440,28 @@ def _env() -> Environment:
     return env
 
 
+def _common(base: str) -> dict:
+    return {
+        "base": base,
+        "footer_text": FOOTER_TEXT,
+        "sinae_url": SINAE_URL,
+        "sources": SOURCES,
+        "repo_url": REPO_URL,
+    }
+
+
+def render_snapshot_index(out_dir: Path, days: Sequence[date], base_url: str = "/clima-uy") -> Path:
+    """Write snapshots/index.html listing the given days (in the order given)."""
+    base = base_url.rstrip("/")
+    path = out_dir / "snapshots" / "index.html"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    items = [{"key": d.isoformat(), "label": day_long(d)} for d in days]
+    path.write_text(
+        _env().get_template("snapshots.html.j2").render(**_common(base), nav="", days=items), encoding="utf-8"
+    )
+    return path
+
+
 def build_site(
     store: Store,
     catalog: Sequence[Station],
@@ -470,11 +492,7 @@ def build_site(
     lag_results = run_production_lags(store, catalog)
 
     common = {
-        "base": base,
-        "footer_text": FOOTER_TEXT,
-        "sinae_url": SINAE_URL,
-        "sources": SOURCES,
-        "repo_url": REPO_URL,
+        **_common(base),
         "generated": f"Página generada el {day_long(today)} a las {hour_local(now_utc)}, hora de Montevideo.",
         "disclaimer": DISCLAIMER_SHORT,
     }

@@ -1,0 +1,18 @@
+{% extends "base.html.j2" %}
+{% block title %}Fotos diarias | clima-uy{% endblock %}
+{% block description %}Una foto fija por día del monitor del río Uruguay, para citar el estado de un día.{% endblock %}
+{% block main %}
+<article class="doc">
+<h1>Fotos diarias</h1>
+<p class="lede">Cada día queda una foto fija de la portada y del río, con los datos de ese día. Durante el día se actualiza y cuando cambia el día queda como está.</p>
+{% if days %}
+<ul class="downloads">
+{% for d in days %}
+  <li><a href="{{ base }}/snapshots/{{ d.key }}/">{{ d.label }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+<p class="muted">Todavía no hay fotos.</p>
+{% endif %}
+</article>
+{% endblock %}

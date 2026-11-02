@@ -48,7 +48,7 @@ DAILY_COLUMNS = ["date_local", "value", "n_readings"]
 RAW_COLUMNS = ["station_id", "variable", "time_utc", "value", "source", "quality"]
 FORECAST_COLUMNS = ["issuer", "station_id", "variable", "issued_utc", "valid_utc", "qualifier", "value"]
 INDEX_COLUMNS = ["name", "period", "value"]
-CRECIDA_COLUMNS = ["date", "station_id", "station", "km", "variable", "value", "percentile"]
+CRECIDA_COLUMNS = ["date", "station_id", "station", "km", "variable", "value", "percentile", "partial"]
 CRECIDA_CSV = "data/rio/crecida-60d.csv"  # the /rio/crecida/ matrix, rewritten on every build
 
 
@@ -249,16 +249,20 @@ def write_crecida_csv(out_dir: Path, matrix: RiverMatrix, catalog: Sequence[Stat
     `value` is the day mean of the variable the page uses (m or m³/s). It is
     left empty when the station's source family is not republished in full
     (FULL_SERIES_SOURCES): the percentile, which the page shows, stays.
+    `percentile` is already truncated to a tenth in the matrix. `partial` is 1
+    on the build's own day, whose mean still changes, else 0.
     """
     by_id = {s.id: s for s in catalog}
+    last = len(matrix.days) - 1
     rows = []
     for r in matrix.rows:
         full = all(s in FULL_SERIES_SOURCES for s in family_for(by_id[r.station_id], r.variable))
-        for d, v, p in zip(matrix.days, r.values, r.percentiles):
+        for i, (d, v, p) in enumerate(zip(matrix.days, r.values, r.percentiles)):
             if v is None or p is None:
                 continue
             rows.append([d.isoformat(), r.station_id, r.name, round(r.km, 1), r.variable,
-                         round(v, 4) if full else None, round(p, 1)])
+                         round(v, 4) if full else None, f"{p:.1f}",
+                         1 if matrix.partial_last and i == last else 0])
     return _write_csv(out_dir / CRECIDA_CSV, CRECIDA_COLUMNS, rows)
 
 

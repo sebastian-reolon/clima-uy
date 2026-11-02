@@ -2,11 +2,12 @@
 {# Sheet 3: the river day by day. Ported from the approved mockup d-crecida.html (2026-11-02).
    The diagram is static SVG; the day selector is the only script and only redraws the day profile. #}
 {% block title %}La crecida, día por día | clima-uy{% endblock %}
-{% block description %}Los últimos {{ window_days }} días del río Uruguay, de las represas de Brasil a Nueva Palmira: cada estación comparada con su propia historia, día por día, con la matriz en CSV.{% endblock %}
+{% block description %}Los últimos {{ window_days }} días del río Uruguay, {{ stretch }}: cada estación comparada con su propia historia, día por día, con la matriz en CSV.{% endblock %}
 {% block main %}
 <div class="cab">
 <section class="resp"><h1>La crecida, día por día</h1>
-<p>Los últimos {{ window_days }} días del río, de las represas de Brasil a Nueva Palmira. Una crecida que baja se ve como una franja oscura en diagonal: cuanto más inclinada, más lento viaja el agua.</p>
+<p>Los últimos {{ window_days }} días del río, {{ stretch }}. Una crecida que baja se ve como una franja oscura en diagonal: cuanto más inclinada, más lento viaja el agua.</p>
+<p class="crumb"><a href="{{ base }}/rio/">El río estación por estación</a></p>
 </section>
 <dl class="cajetin">
 {% for label, value in cajetin %}
@@ -29,8 +30,9 @@
 </section>
 {% endblock %}
 {% block notes %}
-<li>Entran las estaciones con {{ min_years }} años o más de historia y dato en al menos {{ min_coverage }}% de los días de la ventana.{% if skipped %} Quedan afuera: {{ skipped }}.{% endif %}</li>
-<li>Un pico es un día más alto que los {{ peak_days }} anteriores y los {{ peak_days }} siguientes, con percentil {{ peak_pct }} o más. Cada estación usa nivel o caudal, el que tenga más datos en la ventana.</li>
+<li>Entran las estaciones con {{ min_years }} años o más de historia y dato en al menos {{ min_coverage }}% de los días de la ventana.{% if skipped_history %} Sin {{ min_years }} años de historia: {{ skipped_history }}.{% endif %}{% if skipped_gaps %} Con huecos en estos días: {{ skipped_gaps }}.{% endif %}</li>
+{% if partial %}<li>La última fila es hoy y se completa a medida que llegan datos.</li>
+{% endif %}<li>Un pico es un día más alto que los {{ peak_days }} días anteriores y los {{ peak_days }} siguientes, con percentil {{ peak_pct }} o más. Cada estación usa nivel o caudal, el que tenga más datos en la ventana.</li>
 <li>La matriz se descarga en <a href="{{ base }}/{{ csv_path }}">CSV</a>: una fila por estación y día, con la media del día y su percentil.</li>
 {% endblock %}
 {% block scripts %}
@@ -38,6 +40,7 @@
 <script>
 (function () {
   "use strict";
+  document.documentElement.classList.add("js");  // the selection outline and the row pointer need this script
   var D = JSON.parse(document.getElementById("crecida-datos").textContent);
   var n = D.days.length;
   var box = document.getElementById("dia-control"), inp = document.getElementById("dia");
@@ -56,7 +59,7 @@
   }
   function dayText(i) {
     var p = D.days[i].split("-");
-    return (+p[2]) + " de " + D.months[+p[1] - 1];
+    return (+p[2]) + " de " + D.months[+p[1] - 1] + (D.partial && i === n - 1 ? D.partialText : "");
   }
   function moveSelection(i) {
     var hovs = document.querySelectorAll("svg.hov");
@@ -72,7 +75,10 @@
     // The viewBox follows the drawn width, so 12-unit text is 12 px on any screen.
     var W = Math.max(280, Math.round(svg.getBoundingClientRect().width) || 1100);
     var narrow = W < 600;
-    var L = narrow ? 34 : 64, R = narrow ? 8 : 24, T = 30, PH = 200, H = T + PH + 20;
+    var cities = D.rows.filter(function (r) { return r.city && r.p[i] != null; });
+    // Narrow: one label row per city above the plot (rightmost city on top), each with a leader.
+    var ROW = 14, T = narrow ? 18 + ROW * cities.length : 30;
+    var L = narrow ? 34 : 64, R = narrow ? 8 : 24, PH = 200, H = T + PH + 20;
     var X = function (k) { return L + k / D.kmMax * (W - L - R); };
     var Y = function (p) { return T + (100 - Math.max(50, p)) / 50 * PH; };
     while (svg.firstChild) svg.removeChild(svg.firstChild);
@@ -86,21 +92,36 @@
       if (r.p[i] != null) pts.push(X(r.km).toFixed(1) + "," + Y(r.p[i]).toFixed(1));
     });
     if (pts.length) svg.appendChild(el("polyline", {"class": "ln", points: pts.join(" ")}));
-    // City labels above their point; a label that would overlap one already placed moves up a line.
     var placed = [];
-    D.rows.forEach(function (r) {
-      var v = r.p[i];
-      if (!r.city || v == null) return;
-      var x = X(r.km), y = Y(v), label = r.city + " P" + Math.floor(v), w = label.length * 6.6;
-      svg.appendChild(el("circle", {"class": "pt", cx: x.toFixed(1), cy: y.toFixed(1), r: 4}));
-      var end = x + 6 + w > W - R, left = end ? x - 6 - w : x + 6, ty = y - 8;
-      for (var tries = 0; tries < 6; tries++) {
-        var hit = placed.some(function (b) { return left < b[1] && left + w > b[0] && ty - 12 < b[3] && ty + 2 > b[2]; });
-        if (!hit) break;
-        ty -= 14;
+    function free(left, w, ty) {
+      return !placed.some(function (b) { return left < b[1] && left + w > b[0] && ty - 13 < b[3] && ty + 3 > b[2]; });
+    }
+    function clampX(l, w) { return Math.max(2, Math.min(l, W - 2 - w)); }
+    cities.forEach(function (r, k) {
+      var v = r.p[i], x = X(r.km), y = Y(v), label = r.city + " P" + Math.floor(v), w = label.length * 6.6;
+      var left, ty;
+      if (narrow) {
+        // Row k from the bottom: a leader only crosses rows of cities further left, whose names end left of it.
+        ty = 13 + ROW * (cities.length - 1 - k);
+        left = x - 4 - w >= 2 ? x - 4 - w : clampX(x + 4, w);
+        svg.appendChild(el("line", {"class": "lead", x1: x.toFixed(1), x2: x.toFixed(1), y1: (ty + 3).toFixed(1), y2: (y - 5).toFixed(1)}));
+      } else {
+        // Wide, as the mockup: next to the point, moving up a line (then below) to clear earlier labels.
+        var sides = [clampX(x + 6, w), clampX(x - 6 - w, w)], tys = [], j;
+        for (j = 0; j < 6; j++) tys.push(y - 8 - ROW * j);
+        for (j = 0; j < 4; j++) tys.push(y + 20 + ROW * j);
+        tys = tys.filter(function (t) { return t - 13 >= 0 && t + 3 <= H; });
+        if (!tys.length) tys = [Math.min(Math.max(13, y - 8), H - 3)];
+        left = sides[0]; ty = tys[0];
+        search: for (var a = 0; a < tys.length; a++) {
+          for (var b = 0; b < 2; b++) {
+            if (free(sides[b], w, tys[a])) { left = sides[b]; ty = tys[a]; break search; }
+          }
+        }
       }
       placed.push([left, left + w, ty - 12, ty + 2]);
-      svg.appendChild(el("text", {"class": "ax", x: (end ? x - 6 : x + 6).toFixed(1), y: ty.toFixed(1), "text-anchor": end ? "end" : "start"}, label));
+      svg.appendChild(el("circle", {"class": "pt", cx: x.toFixed(1), cy: y.toFixed(1), r: 4}));
+      svg.appendChild(el("text", {"class": "ax", x: left.toFixed(1), y: ty.toFixed(1)}, label));
       said.push(label);
     });
     if (!pts.length) svg.appendChild(el("text", {"class": "ax", x: W / 2, y: T + PH / 2, "text-anchor": "middle"}, "Sin datos ese día."));

@@ -10,17 +10,21 @@ Rulings (docs plan 2026-11-02, clima-uy crecida):
   Grande is left out, as in the profile). Each uses its discharge or level
   series, built like status.py (one source family, never mixed), among those
   with at least MIN_HISTORY_YEARS of history: the one with more days in the
-  window, discharge on a tie. Kept only with data on 80% of the window days;
-  the stations with history that miss it are listed by name in `skipped`.
-  Stations without such a series at all are neither kept nor listed.
+  window, discharge on a tie. Kept only with data on 80% of the window days.
+  The rest are named in two groups: without such a series
+  (`skipped_history`) and with one but too many gaps (`skipped_gaps`).
 - Cell: percentile_of(day mean, daily means from BASELINE_START up to the
-  window start, exclusive). A day without data is None.
-- Peak: a day whose value is strictly the highest within PEAK_HALF_WIDTH days
-  either side (a tie is no peak; missing days do not count), at percentile
-  PEAK_MIN_PERCENTILE or more, and not among the first or last PEAK_EDGE_DAYS.
+  window start, exclusive), truncated to a tenth (never rounded up). A day
+  without data is None. The build's window ends today, a partial day.
+- Peak: a day whose value is strictly higher than every other day within
+  PEAK_HALF_WIDTH days either side, at percentile PEAK_MIN_PERCENTILE or
+  more, with those days all inside the window and data on at least
+  PEAK_MIN_NEIGHBOURS of them, so «más alto que los cinco días anteriores y
+  los cinco siguientes» is true as written.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Literal, Sequence
@@ -34,7 +38,7 @@ WINDOW_DAYS = 60
 MIN_COVERAGE = 0.8
 PEAK_HALF_WIDTH = 5
 PEAK_MIN_PERCENTILE = 90.0
-PEAK_EDGE_DAYS = 2
+PEAK_MIN_NEIGHBOURS = 8  # of the 2 * PEAK_HALF_WIDTH days around it
 # Where the river starts to have a Uruguayan bank (same city as the home profile's shading).
 UY_CITY = "Bella Unión"
 
@@ -57,21 +61,28 @@ class MatrixRow:
 class RiverMatrix:
     days: list[date]  # oldest first
     rows: list[MatrixRow]  # downstream order
-    skipped: list[str]  # names of the stations with history but too few days in the window
-    stations_total: int  # main-river stations (twin gauge excluded): the «de m» of the page
+    skipped_history: list[str]  # names of the stations without MIN_HISTORY_YEARS of history
+    skipped_gaps: list[str]  # names of the stations with history but too few days in the window
+    stations_total: int  # main-river stations (twin gauge excluded): rows plus both skipped groups
     km_max: float  # km of the last main-river station, the drawing's right edge
     uy_km: float | None  # km of the station that stands for UY_CITY, where the Uruguayan bank begins
+    partial_last: bool = False  # the last day is still in progress (the build's own day)
+
+
+def floor_tenth(p: float) -> float:
+    """Truncate a percentile to one decimal: 89,96 is 89,9, never 90. The epsilon keeps an exact tenth."""
+    return math.floor(p * 10 + 1e-9) / 10
 
 
 def _peaks(values: Sequence[float | None], percentiles: Sequence[float | None]) -> list[int]:
-    n = len(values)
+    n, h = len(values), PEAK_HALF_WIDTH
     out = []
-    for i in range(PEAK_EDGE_DAYS, n - PEAK_EDGE_DAYS):
+    for i in range(h, n - h):
         v, p = values[i], percentiles[i]
         if v is None or p is None or p < PEAK_MIN_PERCENTILE:
             continue
-        near = [x for x in values[max(0, i - PEAK_HALF_WIDTH):i + PEAK_HALF_WIDTH + 1] if x is not None]
-        if max(near) == v and near.count(v) == 1:
+        around = [x for x in values[i - h:i] + values[i + 1:i + h + 1] if x is not None]
+        if len(around) >= PEAK_MIN_NEIGHBOURS and all(x < v for x in around):
             out.append(i)
     return out
 
@@ -94,24 +105,28 @@ def _row(store: Store, st: Station, km: float, days: list[date]) -> tuple[Matrix
     if not ref or covered(daily) < MIN_COVERAGE * len(days):
         return None, True
     values = [daily.get(d) for d in days]
-    pcts = [None if v is None else percentile_of(v, ref) for v in values]
+    pcts = [None if v is None else floor_tenth(percentile_of(v, ref)) for v in values]
     return MatrixRow(st.id, st.name, st.represents, km, variable, values, pcts, _peaks(values, pcts)), True
 
 
-def river_matrix(store: Store, catalog: Sequence[Station], end_day: date, days: int = WINDOW_DAYS) -> RiverMatrix:
-    """Station x day percentiles of the main river for the `days` local days ending on `end_day`."""
+def river_matrix(store: Store, catalog: Sequence[Station], end_day: date, days: int = WINDOW_DAYS,
+                 partial_last: bool = False) -> RiverMatrix:
+    """Station x day percentiles of the main river for the `days` local days ending on `end_day`.
+
+    `partial_last` says the last day is still in progress (the build passes True: it ends on today).
+    """
     window = [end_day - timedelta(days=days - 1 - i) for i in range(days)]
     km = river_km(catalog)
     main = [s for s in sorted(catalog, key=lambda s: s.order) if s.id in km]
-    rows, skipped = [], []
+    rows, no_history, gaps = [], [], []
     for st in main:
         row, eligible = _row(store, st, km[st.id], window)
         if row is not None:
             rows.append(row)
-        elif eligible:
-            skipped.append(st.name)
+        else:
+            (gaps if eligible else no_history).append(st.name)
     uy = next((s for s in main if s.represents == UY_CITY), None)
     return RiverMatrix(
-        days=window, rows=rows, skipped=skipped, stations_total=len(main),
-        km_max=max(km.values(), default=0.0), uy_km=km[uy.id] if uy else None,
+        days=window, rows=rows, skipped_history=no_history, skipped_gaps=gaps, stations_total=len(main),
+        km_max=max(km.values(), default=0.0), uy_km=km[uy.id] if uy else None, partial_last=partial_last,
     )

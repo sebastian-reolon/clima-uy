@@ -266,8 +266,11 @@ table.outlook .rest{display:block;font-size:.78rem;color:var(--ink-2)}
 .hov .tick,.hov .lead{stroke:var(--ink);stroke-width:1}
 .hov .uyline{stroke:var(--water);stroke-width:2}
 .hov .cn{font:700 13px var(--sans);fill:var(--ink)}
-.hov .hit{fill:transparent;cursor:pointer}
-.hov .sel{fill:none;stroke:var(--ink);stroke-width:1.5;pointer-events:none}
+.hov .hit{fill:transparent}
+.hov .sel{display:none}
+/* The day selector only works with JavaScript: its script sets .js on <html>. */
+.js .hov .hit{cursor:pointer}
+.js .hov .sel{display:inline;fill:none;stroke:var(--ink);stroke-width:1.5;pointer-events:none}
 .hov.movil{display:none}
 .escala{display:flex;flex-wrap:wrap;gap:var(--s1) 0;margin:var(--s3) 0 0;font-size:.82rem;color:var(--ink-2)}
 .sec p.escala{max-width:none;margin:var(--s3) 0 0}
@@ -281,6 +284,7 @@ table.outlook .rest{display:block;font-size:.78rem;color:var(--ink-2)}
 .perfil-dia .g{stroke:var(--grid-2)}
 .perfil-dia .ax{font:400 12px var(--sans);fill:var(--ink-2)}
 .perfil-dia .pt{fill:var(--paper);stroke:var(--ink);stroke-width:2}
+.perfil-dia .lead{stroke:var(--ink-2);stroke-width:1}
 @media (max-width:40em){
   .hov{display:none}.hov.movil{display:block}
 }

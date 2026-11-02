@@ -974,7 +974,10 @@ def test_crecida_title_block(site):
     out, _ = site
     html = _read(out, "rio/crecida/index.html")
     assert re.search(r'<section class="resp"><h1>La crecida, día por día</h1>', html)
-    assert "Los últimos 60 días del río, de las represas de Brasil a Nueva Palmira." in _flat(html)
+    # Only Monte Caseros is measured in the seed: the lead names it, not the whole river.
+    assert "Los últimos 60 días del río, en Monte Caseros." in _flat(html)
+    assert "Nueva Palmira" not in _flat(re.search(r'<section class="resp">.*?</section>', html, flags=re.S).group(0))
+    assert '<a href="/clima-uy/rio/">El río estación por estación</a>' in html
     caj = re.search(r'<dl class="cajetin">(.*?)</dl>', html, flags=re.S).group(1)
     assert [_flat(x) for x in re.findall(r"<dt>(.*?)</dt>", caj)] == ["Ventana", "Estaciones", "Datos", "Carácter"]
     dds = [_flat(x) for x in re.findall(r"<dd>(.*?)</dd>", caj, flags=re.S)]
@@ -1012,6 +1015,10 @@ def test_crecida_day_data_is_safe_json(site):
     assert "<" not in raw
     data = json.loads(raw)
     assert len(data["days"]) == 60 and data["days"][-1] == "2026-11-01"
+    assert data["partial"] is True and data["partialText"] == " (hoy, parcial)"
+    for r in data["rows"]:
+        for p in r["p"]:
+            assert p is None or p == math.floor(p * 10 + 1e-9) / 10
     assert data["months"][8] == "sep"
     assert [r["city"] for r in data["rows"]] == ["Bella Unión"]
     assert data["rows"][0]["p"][-1] is not None
@@ -1021,8 +1028,10 @@ def test_crecida_notes(site):
     out, _ = site
     notes = _flat(re.search(r'<ol class="notas">.*?</ol>', _read(out, "rio/crecida/index.html"), flags=re.S).group(0))
     assert "Entran las estaciones con 10 años o más de historia y dato en al menos 80% de los días de la ventana." in notes
-    assert "Quedan afuera" not in notes  # the seed has no station with history and too few days
-    assert ("Un pico es un día más alto que los cinco anteriores y los cinco siguientes, con percentil 90 o más."
+    assert "Con huecos en estos días" not in notes  # the seed has no station with history and too few days
+    assert "Sin 10 años de historia: Machadinho jusante, " in notes and "Colón" in notes
+    assert "La última fila es hoy y se completa a medida que llegan datos." in notes
+    assert ("Un pico es un día más alto que los cinco días anteriores y los cinco siguientes, con percentil 90 o más."
             in notes)
 
 
@@ -1038,7 +1047,12 @@ def test_crecida_skipped_note_lists_names(tmp_path):
         build_site(store, load_catalog(), tmp_path / "out", NOW, base_url="/clima-uy")
     html = _read(tmp_path / "out", "rio/crecida/index.html")
     notes = _flat(re.search(r'<ol class="notas">.*?</ol>', html, flags=re.S).group(0))
-    assert "Quedan afuera: Uruguaiana." in notes
+    assert "Con huecos en estos días: Uruguaiana." in notes
+    no_history = re.search(r"Sin 10 años de historia: ([^.]*)\.", notes).group(1).split(", ")
+    assert "Uruguaiana" not in no_history and "Monte Caseros" not in no_history
+    caj = re.search(r'<dl class="cajetin">(.*?)</dl>', html, flags=re.S).group(1)
+    kept, total = map(int, re.search(r"<dd>(\d+) de (\d+)</dd>", caj).groups())
+    assert kept + 1 + len(no_history) == total
 
 
 def test_crecida_csv(site):
@@ -1047,9 +1061,11 @@ def test_crecida_csv(site):
     out, _ = site
     with (out / "data/rio/crecida-60d.csv").open(newline="", encoding="utf-8") as f:
         rows = list(csv.reader(f))
-    assert rows[0] == ["date", "station_id", "station", "km", "variable", "value", "percentile"]
+    assert rows[0] == ["date", "station_id", "station", "km", "variable", "value", "percentile", "partial"]
     body = rows[1:]
     assert len(body) == 60
+    assert [r[7] for r in body] == ["0"] * 59 + ["1"]
+    assert all(re.fullmatch(r"\d+(\.\d)?", r[6]) for r in body)
     assert {r[1] for r in body} == {"ina_74"} and body[0][2] == "Monte Caseros" and body[0][4] == "level"
     assert body[0][0] == "2026-09-03" and body[-1][0] == "2026-11-01"
     for r in body:
@@ -1065,4 +1081,28 @@ def test_links_to_crecida(site):
     assert home.index(link) > home.index('<p class="ley">')
     rio = _read(out, "rio/index.html")
     assert link in rio and rio.index(link) > rio.index('<figure class="profile">')
-    assert 'href="/clima-uy/data/rio/crecida-60d.csv"' in _read(out, "datos/index.html")
+    datos = _read(out, "datos/index.html")
+    assert 'href="/clima-uy/data/rio/crecida-60d.csv"' in datos
+    assert "<code>partial</code>" in datos
+
+
+def test_crecida_sets_js_class_for_the_selector(site):
+    out, _ = site
+    html = _read(out, "rio/crecida/index.html")
+    assert 'document.documentElement.classList.add("js")' in html
+
+
+def test_crecida_stretch_names_the_measured_river():
+    from climauy.analysis.crecida import MatrixRow, RiverMatrix
+    from climauy.site.build import _crecida_stretch
+
+    cat = load_catalog()
+    def m(*ids):
+        rows = [MatrixRow(i, i.upper(), None, 0.0, "level", [], [], []) for i in ids]
+        return RiverMatrix([], rows, [], [], 33, 1152.0, None)
+    from climauy.catalog import river_km
+    main = [s.id for s in cat if s.id in river_km(cat)]
+    assert _crecida_stretch(m(main[0], "x", main[-1]), cat) == "de las represas de Brasil a Nueva Palmira"
+    assert _crecida_stretch(m("ina_60", "ina_84"), cat) == "de INA_60 a INA_84"
+    assert _crecida_stretch(m("ina_74"), cat) == "en INA_74"
+    assert _crecida_stretch(m(), cat) == "sin estaciones con datos"

@@ -93,7 +93,10 @@ red = alert. Everything else is ink.
   are paper dots ringed in `--alert`; the Uruguayan stretch is a 2 px
   `--water` bracket on top. A 360-wide variant on phones. Under it, a
   range input labelled «Día» (rows are clickable too) redraws that day's
-  profile; the diagram reads in full without JavaScript.
+  profile (on phones its city names take one row each above the plot, with
+  leaders); the diagram reads in full without JavaScript, and the selection
+  outline and the row pointer only appear with it. The last row is today,
+  marked «(hoy, parcial)».
 - Notes: ordered list, small, ink-2.
 - Footer: credit «Hecho por Sebastián Reolon», repo link, «Hoja n de N».
 

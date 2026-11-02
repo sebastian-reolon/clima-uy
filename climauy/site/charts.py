@@ -1265,12 +1265,16 @@ def lag_svg(result: LagResult, upstream_name: str, downstream_name: str) -> str:
 HOV_BOUNDS = (50, 75, 90, 95, 99)  # Ruling 4: bands <50, 50-75, 75-90, 90-95, 95-99, >=99
 HOV_MONTHS = [m[:3] for m in MONTHS]  # «sep», «oct»: the week ticks and the day titles
 _HOV_PHONE_ROW = 7.0  # phone: height of one day, in viewBox units
+HOV_LONE_KM = 20.0  # half-width of the column of a station with no kept neighbour
 _HOV_PHONE_CITY_ROW = 18.0  # phone: one city label per row, stepping down to the right
 
 
 def hov_band(p: float) -> int:
     """Colour band 0 to 5 of a percentile (class b0..b5, tokens --hov-0..5)."""
     return sum(1 for b in HOV_BOUNDS if p >= b)
+
+
+HOV_PARTIAL = " (hoy, parcial)"
 
 
 def hov_day(d: date) -> str:
@@ -1306,7 +1310,13 @@ def hovmoller_svg(matrix: RiverMatrix, width: int = 1100, variant: str = "wide")
 
     o: list[str] = []
     xs = [X(r.km) for r in matrix.rows]
-    edges = [float(L)] + [(a + b) / 2 for a, b in zip(xs, xs[1:])] + [float(width - R)]
+    # Inner edges at the midpoints; the outer ones half a gap past the end stations, so no
+    # column paints river nobody measured. A lone station gets HOV_LONE_KM either side.
+    lone = HOV_LONE_KM / k_max * pw
+    head = (xs[1] - xs[0]) / 2 if len(xs) > 1 else lone
+    tail = (xs[-1] - xs[-2]) / 2 if len(xs) > 1 else lone
+    edges = ([max(float(L), xs[0] - head)] + [(a + b) / 2 for a, b in zip(xs, xs[1:])]
+             + [min(float(width - R), xs[-1] + tail)]) if xs else []
     for j, r in enumerate(matrix.rows):
         x0, x1 = edges[j], edges[j + 1]
         for i, p in enumerate(r.percentiles):
@@ -1372,16 +1382,18 @@ def hovmoller_svg(matrix: RiverMatrix, width: int = 1100, variant: str = "wide")
 
     for i, d in enumerate(days):
         o.append(f'<rect x="{L}" y="{_f(Y(i))}" width="{pw}" height="{_f(rowh)}" class="hit" data-i="{i}">'
-                 f"<title>{hov_day(d)}</title></rect>")
+                 f"<title>{hov_day(d)}{HOV_PARTIAL if matrix.partial_last and i == n - 1 else ''}</title></rect>")
     sel_id = f"hov-{variant}-sel"
     o.append(f'<rect id="{sel_id}" x="{L - 2}" y="{_f(Y(max(n - 1, 0)))}" width="{pw + 4}" height="{_f(rowh)}" '
              'class="sel"/>')
 
     title = "La crecida bajando por el río, día por día"
+    rows = matrix.rows
+    stretch = "" if not rows else (f", de {rows[0].name} a {rows[-1].name}" if len(rows) > 1 else f", {rows[0].name}")
     desc = (
-        f"Cada columna es una estación de Brasil a Nueva Palmira; cada fila, un día del {_day_short(days[0])} "
-        f"al {_day_short(days[-1])}. El color dice qué tan alto estaba el río comparado con la historia de esa "
-        "estación. Los anillos rojos marcan los picos de cada estación."
+        f"Cada columna es una estación{stretch}; cada fila, un día del {_day_short(days[0])} "
+        f"al {_day_short(days[-1])}{HOV_PARTIAL if matrix.partial_last else ''}. El color dice qué tan alto estaba "
+        "el río comparado con la historia de esa estación. Los anillos rojos marcan los picos de cada estación."
     ) if days else "Sin días para mostrar."
     cls = "hov" if big else "hov movil"
     tid, did = f"hov-{variant}-titulo", f"hov-{variant}-desc"

@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
-from climauy.analysis.crecida import RiverMatrix, river_matrix
+from climauy.analysis.crecida import RiverMatrix, floor_tenth, river_matrix
 from climauy.catalog import Station, river_km
 from climauy.store import Obs, Store
 
@@ -55,7 +55,8 @@ def test_empty_store(store):
     m = river_matrix(store, cat, END)
     assert isinstance(m, RiverMatrix)
     assert m.days[0] == START and m.days[-1] == END and len(m.days) == 60
-    assert m.rows == [] and m.skipped == []
+    assert m.rows == [] and m.skipped_gaps == []
+    assert m.skipped_history == ["Estación a", "Estación b"]
     assert m.stations_total == 2
     assert m.km_max == pytest.approx(max(river_km(cat).values()))
     assert m.uy_km is None
@@ -103,7 +104,7 @@ def test_percentile_is_the_weak_share_of_past_days(store):
     put_station(store, "a", lambda d: 49)
     row = river_matrix(store, [st("a", 1, -30.0)], END).rows[0]
     past = [history(HIST_START + timedelta(days=i)) for i in range((START - HIST_START).days)]
-    assert row.percentiles[0] == pytest.approx(100.0 * sum(1 for v in past if v <= 49) / len(past))
+    assert row.percentiles[0] == floor_tenth(100.0 * sum(1 for v in past if v <= 49) / len(past))
 
 
 def test_reference_starts_in_1990(store):
@@ -129,14 +130,27 @@ def test_coverage_filter_at_80_percent(store):
     cat = [st("ok", 1, -30.0), st("low", 2, -31.0)]
     m = river_matrix(store, cat, END)
     assert [r.station_id for r in m.rows] == ["ok"]
-    assert m.skipped == ["Estación low"]
+    assert m.skipped_gaps == ["Estación low"] and m.skipped_history == []
 
 
-def test_station_without_ten_years_is_neither_kept_nor_listed(store):
+def test_station_without_ten_years_is_listed_apart(store):
     put(store, "young", START - timedelta(days=9 * 365), END, lambda d: 10)
     m = river_matrix(store, [st("young", 1, -30.0)], END)
-    assert m.rows == [] and m.skipped == []
+    assert m.rows == [] and m.skipped_gaps == []
+    assert m.skipped_history == ["Estación young"]
     assert m.stations_total == 1
+
+
+def test_kept_and_both_skipped_groups_add_up_to_the_total(store):
+    window = [START + timedelta(days=i) for i in range(60)]
+    put_station(store, "ok", lambda d: 10)
+    put_station(store, "gaps", lambda d: 10, skip=set(window[:20]))
+    put(store, "young", START - timedelta(days=365), END, lambda d: 10)
+    cat = [st("ok", 1, -30.0), st("gaps", 2, -31.0), st("young", 3, -32.0), st("none", 4, -33.0, sources={})]
+    m = river_matrix(store, cat, END)
+    assert m.skipped_gaps == ["Estación gaps"]
+    assert m.skipped_history == ["Estación young", "Estación none"]
+    assert len(m.rows) + len(m.skipped_gaps) + len(m.skipped_history) == m.stations_total == 4
 
 
 def test_discharge_wins_a_tie_in_coverage(store):
@@ -201,17 +215,48 @@ def test_tie_outside_five_days_does_not_count(store):
     assert row.peaks == [30, 36]
 
 
-def test_no_peaks_in_the_first_or_last_two_days(store):
-    put_station(store, "a", _spikes({1: 95, 58: 95}))
+def test_peaks_need_five_days_either_side_inside_the_window(store):
+    put_station(store, "a", _spikes({4: 95, 55: 95}))
     row = river_matrix(store, [st("a", 1, -30.0)], END).rows[0]
     assert row.peaks == []
-    store2_days = _spikes({2: 95, 57: 95})
-    put_station(store, "b", store2_days)
+    put_station(store, "b", _spikes({5: 95, 54: 95}))
     row = river_matrix(store, [st("b", 1, -30.0)], END).rows[0]
-    assert row.peaks == [2, 57]
+    assert row.peaks == [5, 54]
+
+
+def test_peak_needs_data_on_eight_of_its_ten_neighbours(store):
+    two = {START + timedelta(days=d) for d in (26, 33)}
+    put_station(store, "a", _spikes({30: 95}), skip=two)
+    assert river_matrix(store, [st("a", 1, -30.0)], END).rows[0].peaks == [30]
+    three = two | {START + timedelta(days=28)}
+    put_station(store, "b", _spikes({30: 95}), skip=three)
+    assert river_matrix(store, [st("b", 1, -30.0)], END).rows[0].peaks == []
 
 
 def test_peak_ignores_missing_neighbours(store):
     put_station(store, "a", _spikes({30: 95}), skip={START + timedelta(days=31)})
     row = river_matrix(store, [st("a", 1, -30.0)], END).rows[0]
     assert row.peaks == [30]
+
+
+def test_floor_tenth_never_rounds_up():
+    assert floor_tenth(89.96) == 89.9
+    assert floor_tenth(100 * 899 / 1000) == 89.9  # an exact tenth survives float noise
+    assert floor_tenth(100 * 2249 / 2500) == 89.9
+    assert floor_tenth(99.99) == 99.9
+    assert floor_tenth(100.0) == 100.0
+    assert floor_tenth(0.0) == 0.0
+
+
+def test_percentiles_are_truncated_to_a_tenth(store):
+    put_station(store, "a", lambda d: 49)
+    row = river_matrix(store, [st("a", 1, -30.0)], END).rows[0]
+    past = [history(HIST_START + timedelta(days=i)) for i in range((START - HIST_START).days)]
+    exact = 100.0 * sum(1 for v in past if v <= 49) / len(past)
+    assert exact != round(exact, 1)
+    assert row.percentiles[0] == floor_tenth(exact)
+
+
+def test_last_day_is_marked_partial_when_asked(store):
+    assert river_matrix(store, [st("a", 1, -30.0)], END).partial_last is False
+    assert river_matrix(store, [st("a", 1, -30.0)], END, partial_last=True).partial_last is True

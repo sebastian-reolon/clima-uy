@@ -26,7 +26,3 @@ Lo que quedó para después, con el motivo.
 - **Artigas:** la cota de seguridad publicada es de 2023 (CECOED de Artigas, en un informe del SINAE). Buscar un valor más nuevo de DINAGUA o del CECOED, y una cota de alerta o de evacuación si la hay.
 - **Ceros de las escalas** de Bella Unión, Salto, Fray Bentos y Artigas: no se encontraron publicados. El de Paysandú es de la escala que lee la CARU y no está confirmado que sea la misma de DINAGUA.
 - **Revisar las cotas** cuando DINAGUA publique un informe nuevo (el último encontrado es el N°13, del 7 de agosto de 2026) y actualizar `content/referencias_uy.json`.
-
-## La crecida, día por día
-
-- **Columnas de los extremos.** Como en el mockup aprobado, la primera y la última columna del diagrama llegan hasta los bordes: El Soberbio pinta del km 0 a unos 230, donde ninguna estación que entra mide, y Boca Gualeguaychú sigue hasta Nueva Palmira. Decidir si se cortan en un margen fijo alrededor de cada estación y queda en blanco lo que no se mide.

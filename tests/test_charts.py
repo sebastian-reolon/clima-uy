@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta, timezone
 
 import pytest
+from pathlib import Path
 
 from climauy.analysis.lag import HoldoutResult, LagResult
 from climauy.analysis.status import StationStatus
@@ -895,13 +896,14 @@ def hov_row(sid, km, city=None, pcts=None, peaks=()):
                      pcts, list(peaks))
 
 
-def hov_matrix(rows=None, skipped=()):
+def hov_matrix(rows=None, partial_last=True, uy_km=728.0):
     if rows is None:
         gappy = [None if i in (3, 4, 50) else 95.0 for i in range(60)]
         rows = [hov_row("a", 0.0), hov_row("b", 250.0, pcts=gappy, peaks=[10, 40]),
                 hov_row("c", 728.0, "Bella Unión", peaks=[30]), hov_row("d", 862.0, "Salto"),
                 hov_row("e", 955.0, "Paysandú", peaks=[31])]
-    return RiverMatrix(days=HOV_DAYS, rows=rows, skipped=list(skipped), stations_total=33, km_max=1152.0, uy_km=728.0)
+    return RiverMatrix(days=HOV_DAYS, rows=rows, skipped_history=[], skipped_gaps=[], stations_total=33,
+                       km_max=1152.0, uy_km=uy_km, partial_last=partial_last)
 
 
 def hov_both(m=None):
@@ -957,7 +959,10 @@ def test_hov_hit_rows_one_per_day_with_date_titles():
         hits = by_class(root, "rect", "hit")
         assert [int(h.get("data-i")) for h in hits] == list(range(60))
         assert hits[0].find("s:title", NS).text == "4 de sep"
-        assert hits[-1].find("s:title", NS).text == "2 de nov"
+        assert hits[-1].find("s:title", NS).text == "2 de nov (hoy, parcial)"
+        assert hits[-2].find("s:title", NS).text == "1 de nov"
+    root = parse(hovmoller_svg(hov_matrix(partial_last=False)))
+    assert by_class(root, "rect", "hit")[-1].find("s:title", NS).text == "2 de nov"
 
 
 def test_hov_selection_starts_on_the_last_day():
@@ -978,6 +983,7 @@ def test_hov_ids_unique_and_aria_points_at_title_and_desc():
         assert root.get("aria-labelledby") == title.get("id")
         assert root.get("aria-describedby") == desc.get("id")
         assert "del 4/9 al 2/11" in desc.text
+        assert "de Estación a a Estación e" in desc.text and "(hoy, parcial)" in desc.text
         ids += [e.get("id") for e in root.iter() if e.get("id")]
     assert len(ids) == len(set(ids)) == 6
 
@@ -1028,9 +1034,7 @@ def test_hov_phone_city_labels_fit_and_do_not_collide():
 
 
 def test_hov_without_bella_union_draws_no_bracket():
-    m = hov_matrix()
-    m = RiverMatrix(m.days, m.rows, [], 33, 1152.0, None)
-    root = parse(hovmoller_svg(m))
+    root = parse(hovmoller_svg(hov_matrix(uy_km=None)))
     assert by_class(root, "line", "uyline") == []
 
 
@@ -1041,5 +1045,25 @@ def test_hov_empty_and_single_station():
     root = parse(hovmoller_svg(hov_matrix(rows=[hov_row("x", 500.0)])))
     cells = by_class(root, "rect", "b1")
     assert len(cells) == 60
-    assert float(cells[0].get("x")) == pytest.approx(64)
-    assert float(cells[0].get("width")) == pytest.approx(1100 - 64 - 24 + 0.4, abs=0.06)
+    # A lone station gets a narrow column around its km, not the whole river.
+    x, w = float(cells[0].get("x")), float(cells[0].get("width"))
+    X = lambda k: 64 + k / 1152 * 1012
+    assert x < X(500) < x + w and w < 60
+
+
+def test_hov_outer_columns_stop_half_a_gap_past_the_end_stations():
+    rows = [hov_row("p", 217.0), hov_row("q", 300.0), hov_row("r", 980.0), hov_row("s", 1056.0)]
+    root = parse(hovmoller_svg(hov_matrix(rows=rows)))
+    cells = [r for r in root.iter(SVG_NS + "rect") if re.fullmatch(r"b\d", r.get("class") or "")]
+    X = lambda k: 64 + k / 1152 * 1012
+    left = min(float(c.get("x")) for c in cells)
+    right = max(float(c.get("x")) + float(c.get("width")) for c in cells)
+    assert left == pytest.approx(X(217) - (X(300) - X(217)) / 2, abs=0.06)
+    assert right == pytest.approx(X(1056) + (X(1056) - X(980)) / 2 + 0.4, abs=0.06)
+
+
+def test_hov_selection_and_pointer_are_for_js_only():
+    css = (Path(__file__).resolve().parents[1] / "climauy/site/static/v2/css/site.css").read_text(encoding="utf-8")
+    assert ".hov .sel{display:none}" in css and ".js .hov .sel{display:inline;" in css
+    assert ".js .hov .hit{cursor:pointer}" in css
+    assert not re.search(r"(?<!\.js )\.hov \.hit\{[^}]*cursor", css)

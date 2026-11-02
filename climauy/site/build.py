@@ -854,16 +854,33 @@ def _crecida_data(matrix: crecida.RiverMatrix) -> Markup:
         "days": [d.isoformat() for d in matrix.days],
         "months": charts.HOV_MONTHS,
         "kmMax": round(matrix.km_max, 1),
+        "partial": matrix.partial_last,
+        "partialText": charts.HOV_PARTIAL,
         "rows": [{"name": r.name, "city": r.city, "km": round(r.km, 1),
-                  "p": [None if p is None else round(p, 1) for p in r.percentiles]} for r in matrix.rows],
+                  "p": [None if p is None else float(f"{p:.1f}") for p in r.percentiles]} for r in matrix.rows],
     }
     text = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     return Markup(text.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026"))
 
 
-def _crecida_view(matrix: crecida.RiverMatrix) -> dict:
+def _crecida_stretch(matrix: crecida.RiverMatrix, catalog: Sequence[Station]) -> str:
+    """The stretch of river the diagram measures, for the lead: the whole river only when it is."""
+    rows = matrix.rows
+    if not rows:
+        return "sin estaciones con datos"
+    km = charts.river_km(catalog)
+    main = [s.id for s in sorted(catalog, key=lambda s: s.order) if s.id in km]
+    if rows[0].station_id == main[0] and rows[-1].station_id == main[-1]:
+        return "de las represas de Brasil a Nueva Palmira"
+    if len(rows) == 1:
+        return f"en {rows[0].name}"
+    return f"de {rows[0].name} a {rows[-1].name}"
+
+
+def _crecida_view(matrix: crecida.RiverMatrix, catalog: Sequence[Station]) -> dict:
     first, last = matrix.days[0], matrix.days[-1]
     return {
+        "stretch": _crecida_stretch(matrix, catalog),
         "window_days": len(matrix.days),
         "cajetin": [
             ("Ventana", f"{first:%d/%m/%Y} al {last:%d/%m/%Y}"),
@@ -875,7 +892,9 @@ def _crecida_view(matrix: crecida.RiverMatrix) -> dict:
         "hov_phone": Markup(charts.hovmoller_svg(matrix, width=360, variant="movil")),
         "bands": ["menos de 50", "50 a 75", "75 a 90", "90 a 95", "95 a 99", "99 o más"],
         "data": _crecida_data(matrix),
-        "skipped": ", ".join(matrix.skipped),
+        "skipped_history": ", ".join(matrix.skipped_history),
+        "skipped_gaps": ", ".join(matrix.skipped_gaps),
+        "partial": matrix.partial_last,
         "min_years": int(MIN_HISTORY_YEARS),
         "min_coverage": int(round(crecida.MIN_COVERAGE * 100)),
         "peak_days": NUMBER_WORDS.get(crecida.PEAK_HALF_WIDTH, str(crecida.PEAK_HALF_WIDTH)),
@@ -962,7 +981,7 @@ def build_site(
     all_rows = _all_rows(statuses, catalog, store)
     fc_views, ver_views = _forecast_views(store, by_id, verify_production(store, catalog))
     lag_results = run_production_lags(store, catalog)
-    matrix = crecida.river_matrix(store, catalog, today)
+    matrix = crecida.river_matrix(store, catalog, today, partial_last=True)  # ends on today, in progress
     publish.write_crecida_csv(out_dir, matrix, catalog)
 
     common = {
@@ -1013,7 +1032,7 @@ def build_site(
         "rio/crecida/index.html": ("crecida.html.j2", {
             "nav": "rio",
             "sheet": 3,
-            **_crecida_view(matrix),
+            **_crecida_view(matrix, catalog),
         }),
         "nino/index.html": ("nino.html.j2", {
             "nav": "nino",

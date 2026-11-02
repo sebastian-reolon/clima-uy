@@ -46,7 +46,7 @@ Qué dice:
 - El catálogo de redes de la API (<https://alerta.ina.gob.ar/a5/obs/puntual/fuentes>) marca la red «escalas Prefectura Nacional» con `"public": true`. Eso indica que los datos son de acceso público en el sistema, no es una licencia.
 - La página de Prefectura con las alturas de los ríos (<https://contenidosweb.prefecturanaval.gob.ar/alturas/>) no publica términos.
 - La página institucional del INA en argentina.gob.ar (<https://www.argentina.gob.ar/ina>) dice que «los contenidos de Argentina.gob.ar están licenciados bajo Creative Commons Atribución 4.0 Internacional». Eso cubre los contenidos de ese sitio, no el sistema de datos de `alerta.ina.gob.ar`.
-- En el portal nacional de datos abiertos (<https://datos.gob.ar/>) no aparece ningún conjunto de datos hidrométricos del INA ni de Prefectura: se buscó por «Instituto Nacional del Agua», «hidrométrica», «alturas ríos» y «prefectura».
+- En el portal nacional de datos abiertos (<https://datos.gob.ar/>) no aparece ningún conjunto de datos hidrométricos del INA ni de Prefectura: se buscó por «Instituto Nacional del Agua», «hidrométrica», «alturas ríos» y «prefectura», y ninguna de las 45 organizaciones que publican en el portal es el INA ni Prefectura.
 
 No queda claro. Es probable que el INA no tenga problema en que se republiquen sus series citándolo, porque las ofrece en una API pública, pero no lo dice por escrito.
 

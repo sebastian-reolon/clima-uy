@@ -52,7 +52,7 @@ Cero de la escala: no encontrado.
 
 Conflicto: el texto del informe del SINAE de enero de 2024 y los de noviembre de 2023 (CECOED Paysandú) dicen 6,50 m de cota de seguridad. DINAGUA y el cuadro del SINAE dicen 6,00 m. Se cita **6,00 m, cota de seguridad (DINAGUA)**, y la alerta y la evacuación de la CARU (4,39 m y 6,89 m). La alerta de la CARU es el mismo valor que el aviso del SINAE, y la evacuación de la CARU es el mismo valor que la afectación sensible del SINAE.
 
-Cero de la escala: la campaña topográfica INA y CARU del 25 y 26 de septiembre de 2019 midió el cero de la escala de Paysandú en **0,04 m referido al cero IGN** de Argentina (antes se usaba 0,33 m). Fuente: INA, informe LHA 05-373-20, febrero de 2020.
+Cero de la escala: la campaña topográfica INA y CARU del 25 y 26 de septiembre de 2019 midió el cero de la escala de Paysandú en **0,04 m referido al cero IGN** de Argentina (antes se usaba 0,33 m). Fuente: INA, informe LHA 05-373-20, febrero de 2020. La escala relevada es la que lee la CARU; no está confirmado que sea la misma escala sobre la que DINAGUA y el SINAE dan sus cotas, así que este cero se cita pero no se usa para convertir nada.
 
 ### Fray Bentos (río Uruguay)
 

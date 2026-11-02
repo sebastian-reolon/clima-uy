@@ -1,4 +1,5 @@
 import gzip
+import json
 import logging
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -6,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from climauy.parsers import cpc, ctm, glofas
+from climauy.timeutil import local_day
 
 FIX = Path(__file__).parent / "fixtures"
 UTC = timezone.utc
@@ -55,8 +57,8 @@ def _glofas(name):
 def test_glofas_salto_forecast():
     fetched = datetime(2026, 11, 1, 21, 26, 40, tzinfo=UTC)
     fc = glofas.parse(_glofas("salto"), "ina_79", fetched)
-    issued = datetime(2026, 11, 1, tzinfo=UTC)
-    assert fc and all(f.valid_utc > issued and f.issued_utc == issued for f in fc)
+    # The issue stamp is the fetch time: GloFAS gives no run time.
+    assert fc and all(f.issued_utc == fetched and f.valid_utc > fetched for f in fc)
     assert {f.qualifier for f in fc} == {"median", "p25", "p75", "min", "max"}
     assert all(f.issuer == "glofas" and f.station_id == "ina_79" and f.variable == "discharge" for f in fc)
     by_day = {}
@@ -64,12 +66,31 @@ def test_glofas_salto_forecast():
         by_day.setdefault(f.valid_utc, {})[f.qualifier] = f.value
     for q in by_day.values():
         assert q["min"] <= q["p25"] <= q["median"] <= q["p75"] <= q["max"]
-    assert min(by_day) == datetime(2026, 11, 2, tzinfo=UTC)
+    # Daily values are stamped at local midnight (03:00Z), like INA.
+    assert min(by_day) == datetime(2026, 11, 2, 3, tzinfo=UTC)
 
 
-def test_glofas_uruguaiana_skips_issue_day():
-    fc = glofas.parse(_glofas("uruguaiana"), "ana_77150000", datetime(2026, 11, 3, 0, 5, tzinfo=UTC))
-    assert min(f.valid_utc for f in fc) == datetime(2026, 11, 4, tzinfo=UTC)
+def test_glofas_valid_local_day_is_the_api_day():
+    raw = json.loads(_glofas("salto"))
+    fc = glofas.parse(_glofas("salto"), "ina_79", datetime(2026, 11, 1, 21, 26, 40, tzinfo=UTC))
+    api_days = set(raw["daily"]["time"])
+    assert fc
+    for f in fc:
+        assert local_day(f.valid_utc).isoformat() in api_days
+    medians = {local_day(f.valid_utc).isoformat(): f.value for f in fc if f.qualifier == "median"}
+    for i, day in enumerate(raw["daily"]["time"]):
+        if day in medians:
+            assert medians[day] == raw["daily"]["river_discharge_median"][i]
+
+
+def test_glofas_keeps_days_after_the_local_day_of_the_fetch():
+    js = _glofas("uruguaiana")
+    # 02:59Z on 4/11 is still 3/11 in Montevideo: 4/11 is a forecast day.
+    before = glofas.parse(js, "ana_77150000", datetime(2026, 11, 4, 2, 59, tzinfo=UTC))
+    assert min(local_day(f.valid_utc) for f in before) == date(2026, 11, 4)
+    # 03:00Z on 4/11 is local midnight: 4/11 is the issue day and is dropped.
+    at = glofas.parse(js, "ana_77150000", datetime(2026, 11, 4, 3, 0, tzinfo=UTC))
+    assert min(local_day(f.valid_utc) for f in at) == date(2026, 11, 5)
 
 
 def test_glofas_naive_fetched_is_taken_as_utc():

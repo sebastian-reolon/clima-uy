@@ -2,7 +2,7 @@ import dataclasses
 import gzip
 import json
 import shutil
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -149,8 +149,8 @@ def test_fetched_utc_comes_from_filename(tmp_path, store, catalog):
     _put(root, "glofas", "salto.json", raw, day="2026-11-01", hms="235900")
     _put(root, "glofas", "salto.json", raw, day="2026-11-02", hms="000100")
     ingest_archive(root, store, catalog)
-    issued = {f.issued_utc.date().isoformat() for f in store.forecasts("glofas")}
-    assert issued == {"2026-11-01", "2026-11-02"}
+    issued = {f.issued_utc for f in store.forecasts("glofas")}
+    assert issued == {datetime(2026, 11, 1, 23, 59, tzinfo=timezone.utc), datetime(2026, 11, 2, 0, 1, tzinfo=timezone.utc)}
 
 
 def _series(values, start=datetime(2026, 10, 1), step=30, first=0) -> bytes:

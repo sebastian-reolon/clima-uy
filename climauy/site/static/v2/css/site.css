@@ -41,7 +41,7 @@ body{margin:0;font-variant-numeric:tabular-nums;color:var(--ink);font-family:var
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:16px 16px}
 a{color:inherit;text-underline-offset:3px;text-decoration-thickness:1px}
-a:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
 .hoja{max-width:76rem;margin:var(--s5) auto;padding:0 var(--s4)}
 .marco{border:2px solid var(--line);background:var(--paper)}
 .top{display:flex;justify-content:space-between;align-items:center;padding:var(--s2) var(--s4);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:.85rem}

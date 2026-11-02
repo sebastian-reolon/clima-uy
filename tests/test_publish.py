@@ -216,11 +216,11 @@ def _targets(page: Path, out: Path) -> list[str]:
 
 # Linked from the nav before the page exists (the El Niño page comes in a later
 # step of the redesign). Remove once the page is built and snapshotted.
-_PENDING = ("nino/",)
+_PENDING = re.compile(r"(?:snapshots/\d{4}-\d{2}-\d{2}/)?nino/")
 
 
 def _resolves(out: Path, rel: str) -> bool:
-    if rel.endswith(_PENDING):
+    if _PENDING.fullmatch(rel):
         return True
     target = out / rel
     return (target / "index.html").is_file() if rel == "" or rel.endswith("/") else target.is_file()

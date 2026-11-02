@@ -449,7 +449,26 @@ def test_datos_explains_partial_day_and_latest_fields(site):
 
 # ---------------------------------------------------------------- drawing-sheet base
 
-SITE_STATIC = Path(__file__).resolve().parents[1] / "climauy" / "site" / "static"
+REPO = Path(__file__).resolve().parents[1]
+SITE_STATIC = REPO / "climauy" / "site" / "static"
+
+
+def test_pending_pages_are_still_missing(site):
+    out, _ = site
+    for rel in PENDING_PAGES:
+        assert not (out / rel / "index.html").exists(), f"{rel} exists now: remove it from PENDING_PAGES"
+
+
+def test_sheet_css_and_base_keep_the_global_rules():
+    css = (SITE_STATIC / "v2/css/site.css").read_text(encoding="utf-8")
+    base = (REPO / "climauy/site/templates/base.html.j2").read_text(encoding="utf-8")
+    assert "html,body{overflow-x:clip}" in css
+    assert ":focus-visible{outline:2px solid var(--focus)" in css
+    for text in (css.split("*/", 1)[1], base):  # the Hallmark header line uses middle dots on purpose
+        for bad in ("—", " -- ", " · ", "&mdash;"):
+            assert bad not in text, bad
+        assert not re.search(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])", text)
+        assert "@" not in text.replace("@font-face", "").replace("@media", "")
 
 
 def test_every_page_links_the_sheet_stylesheet(site, tmp_path):
@@ -475,9 +494,29 @@ def test_sheet_assets_copied_and_old_ones_untouched(site):
     # A Spanish page only downloads the latin subsets (latin-ext loads on demand).
     latin = list((out / "static/v2/fonts").glob("*-latin.woff2"))
     assert latin and sum(f.stat().st_size for f in latin) < 160_000
-    # Frozen snapshots link the old stylesheet and fonts: they are still published as they were.
-    for rel in ["css/site.css", *(f"fonts/{f.name}" for f in (SITE_STATIC / "fonts").iterdir())]:
-        assert (out / "static" / rel).read_bytes() == (SITE_STATIC / rel).read_bytes(), rel
+    # Frozen snapshots link the old stylesheet and fonts: they are published byte for byte as on main.
+    frozen = _main_files("climauy/site/static/css", "climauy/site/static/fonts")
+    assert "climauy/site/static/css/site.css" in frozen
+    on_disk = {str(p.relative_to(REPO)) for d in ("css", "fonts") for p in (SITE_STATIC / d).iterdir()}
+    assert on_disk == set(frozen)
+    for path, data in frozen.items():
+        rel = path.removeprefix("climauy/site/static/")
+        assert (SITE_STATIC / rel).read_bytes() == data, path
+        assert (out / "static" / rel).read_bytes() == data, path
+
+
+def _main_files(*dirs: str) -> dict[str, bytes]:
+    """Bytes of every file under the given repo dirs as committed on main; skips without git or main."""
+    import shutil
+    import subprocess
+
+    if not shutil.which("git"):
+        pytest.skip("git is not available to read the frozen assets from main")
+    git = lambda *a, **kw: subprocess.run(["git", "-C", str(REPO), *a], capture_output=True, **kw)
+    if git("rev-parse", "--verify", "--quiet", "main^{commit}").returncode != 0:
+        pytest.skip("no main branch to compare the frozen assets with")
+    paths = git("ls-tree", "-r", "--name-only", "main", "--", *dirs, check=True, text=True).stdout.split()
+    return {p: git("show", f"main:{p}", check=True).stdout for p in paths}
 
 
 def test_credit_and_disclaimer_on_every_sheet(site, tmp_path):

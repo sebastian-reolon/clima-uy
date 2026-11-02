@@ -69,8 +69,10 @@ def test_backfill_resumes(store):
     backfill(store, cat, Fake(), today=TODAY)
     again = Fake()
     backfill(store, cat, again, today=TODAY)
-    # only the current (open) chunk is fetched again, for both variables
-    assert len(again.calls) == 2 and all("dataInicio=01/01/2025" in u for u in again.calls)
+    # Chunks ending less than 2 years ago are fetched again (ANA keeps consolidating them):
+    # 2020-2024 ends 31/12/2024, under 2 years before 1/11/2026; plus the open 2025 chunk.
+    assert len(again.calls) == 4
+    assert sorted({u.split("dataInicio=")[1][:10] for u in again.calls}) == ["01/01/2020", "01/01/2025"]
 
 
 def test_ina_series_always_refetched(store):
@@ -90,3 +92,21 @@ def test_failures_are_counted_not_fatal(store):
     # failed chunks are not marked complete
     assert not store.chunk_done("ana", "123", "level", date(1990, 1, 1))
     assert store.chunk_done("ana", "123", "discharge", date(1990, 1, 1))
+
+
+def test_chunk_freezes_only_two_years_after_it_ends(store):
+    cat = [_station("ana_1", ana="123")]
+    # 31/12/2024 + 2 years = 31/12/2026: still open that day, frozen the day after.
+    backfill(store, cat, Fake(), today=date(2026, 12, 31))
+    assert not store.chunk_done("ana", "123", "discharge", date(2020, 1, 1))
+    assert store.chunk_done("ana", "123", "discharge", date(2015, 1, 1))
+    backfill(store, cat, Fake(), today=date(2027, 1, 1))
+    assert store.chunk_done("ana", "123", "discharge", date(2020, 1, 1))
+
+
+def test_old_mark_on_a_recent_chunk_is_ignored(store):
+    # A chunk marked complete under the old rule (ended in the past) is fetched until it is 2 years old.
+    store.chunk_mark("ana", "123", "discharge", date(2020, 1, 1))
+    again = Fake()
+    backfill(store, [_station("ana_1", ana="123")], again, today=TODAY)
+    assert any("tipoDados=3" in u and "dataInicio=01/01/2020" in u for u in again.calls)

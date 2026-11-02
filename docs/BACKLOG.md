@@ -8,6 +8,14 @@ Lo que quedó para después, con el motivo.
 - **Historia de las medias diarias.** Cada exportación completa reescribe las medias diarias (unos 5 MB). Git guarda solo las líneas que cambian, pero la historia de `gh-pages` crece todos los días. Revisar el tamaño del repositorio a los tres meses.
 - **Costo del control de datos de infraestructura.** Antes de cada commit se revisa todo el árbol publicado, fotos incluidas, así que el tiempo crece con las fotos. Si se vuelve lento, revisar solo los archivos que cambiaron en la corrida (los que `git add -A` deja listos) más un control completo una vez por semana.
 
+- **Las fotos viejas comparten `/static`.** Cada foto usa el CSS y los scripts del sitio en vivo, así que un cambio de estilo también cambia cómo se ven las fotos viejas (los datos y el texto no cambian). Si importa, copiar `static/` dentro de cada foto o versionarlo por fecha.
+- **Peso de la página del río.** Con los gráficos en línea, `rio/index.html` pesa unos 335 KB. No es «poco» para un celular con datos; revisar qué gráficos se pueden simplificar o cargar más abajo.
+
+## Datos
+
+- **DINAGUA vuelve:** sus archivos del archivo crudo están marcados como `ignored` en el registro de ingesta (no había parser). Cuando se escriba el parser, borrar esas filas del registro (`file_ledger` con `path` que empieza por `dinagua/`) para que se lean de nuevo, igual que hace `python -m climauy reingest` con GloFAS.
+- **Kilómetro de río (`river_km`)** está vacío en todas las estaciones. El perfil las pone a la misma distancia; con los kilómetros se podría dibujar a escala.
+
 ## Licencias
 
 - **INA, Prefectura y CTM** no publican condiciones de reutilización. Sus datos se republican con la cita por decisión del proyecto (1 de noviembre de 2026). Si alguna pide retirarlos, sacar su clave de `FULL_SERIES_SOURCES` / `FULL_FORECAST_ISSUERS` en `climauy/publish.py` y borrar a mano los meses cerrados que la incluyen. Conviene igual escribirles para avisar y, si responden, anotar su respuesta en `docs/licencias.md`.

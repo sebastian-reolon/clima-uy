@@ -263,3 +263,34 @@ def test_holdout_persistence_on_same_scored_days():
     assert abs(res.mae_persistence - 5.0) < 1e-9
     assert res.predicted_peak == res.observed_peak == day(14)
     assert res.peak_error_days == 0
+
+
+def test_flood_still_running_at_the_end_of_data_is_left_out():
+    # A flood whose downstream episode ends within 15 days of the last data day may still
+    # change (peak not reached, or the episode not over): it is not used until it settles.
+    peaks = UPSTREAM_PEAKS + [date(2025, 12, 20)]
+    up = flood_series(peaks, end=date(2025, 12, 31))
+    down = shifted(up, 3)
+    r = analyze_lag(up, down, HELD_OUT_WINDOWS)
+    assert "2025-12-23" not in r.per_event
+    assert len(r.per_event) == len(UPSTREAM_PEAKS)
+    assert r.events_skipped == 0
+    # Two months later the same flood is over and counts.
+    up = flood_series(peaks, end=date(2026, 2, 28))
+    r = analyze_lag(up, shifted(up, 3), HELD_OUT_WINDOWS)
+    assert "2025-12-23" in r.per_event
+
+
+def test_find_flood_events_settle_days():
+    d0 = date(2026, 1, 1)
+    s = {d0 + timedelta(days=i): 1.0 for i in range(400)}
+    for i in range(300, 305):  # episode peaks on day 302 and ends on day 304
+        s[d0 + timedelta(days=i)] = 10.0 + (2 if i == 302 else 0)
+    for i in range(390, 400):  # still above at the last day
+        s[d0 + timedelta(days=i)] = 12.0
+    last, end = d0 + timedelta(days=399), d0 + timedelta(days=304)
+    assert len(find_flood_events(s)) == 2
+    assert find_flood_events(s, settle_days=15) == [d0 + timedelta(days=302)]
+    # An episode that ends exactly settle_days before the last day is still too recent.
+    assert find_flood_events(s, settle_days=(last - end).days) == []
+    assert find_flood_events(s, settle_days=(last - end).days - 1) == [d0 + timedelta(days=302)]

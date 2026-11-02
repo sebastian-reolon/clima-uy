@@ -2,7 +2,8 @@
 
 Method:
 1. Flood events are the peaks of the downstream series above its 95th
-   percentile. For each one, the upstream peak is searched in the 15 days up
+   percentile, leaving out an episode that ends within 15 days of the last
+   data day (a flood still running would change the result every run). For each one, the upstream peak is searched in the 15 days up
    to and including the downstream peak day. It is accepted only when it is
    a local maximum strictly inside that window (lag 1 to 14 days): a maximum
    on the edge means upstream was still rising at the downstream peak, or
@@ -77,35 +78,41 @@ class LagResult:
 
 
 def find_flood_events(
-    series: dict[date, float], quantile: float = 0.95, min_separation_days: int = 30
+    series: dict[date, float], quantile: float = 0.95, min_separation_days: int = 30, settle_days: int = 0
 ) -> list[date]:
     """Peak days of the episodes above the series' quantile, at least min_separation_days apart.
 
     Consecutive days strictly above the threshold form one episode (a missing
     day ends it) and the episode's event day is its maximum. When two events
-    are closer than the separation, the larger peak is kept.
+    are closer than the separation, the larger peak is kept. With settle_days,
+    kept events whose episode ends within that many days of the last data day
+    (an ongoing flood) are then dropped, so a running flood never moves the result.
     """
     if not series:
         return []
     threshold = float(np.quantile(list(series.values()), quantile))
-    peaks: list[date] = []
+    episodes: list[list[date]] = []
     episode: list[date] = []
     for d in sorted(series):
         if series[d] > threshold:
             if episode and (d - episode[-1]).days != 1:
-                peaks.append(max(episode, key=lambda x: series[x]))
+                episodes.append(episode)
                 episode = []
             episode.append(d)
         elif episode:
-            peaks.append(max(episode, key=lambda x: series[x]))
+            episodes.append(episode)
             episode = []
     if episode:
-        peaks.append(max(episode, key=lambda x: series[x]))
+        episodes.append(episode)
+    ends = {max(ep, key=lambda x: series[x]): ep[-1] for ep in episodes}
 
     kept: list[date] = []
-    for p in sorted(peaks, key=lambda x: (-series[x], x)):  # largest first, earlier wins ties
+    for p in sorted(ends, key=lambda x: (-series[x], x)):  # largest first, earlier wins ties
         if all(abs((p - k).days) >= min_separation_days for k in kept):
             kept.append(p)
+    if settle_days:
+        last = max(series)
+        kept = [p for p in kept if (last - ends[p]).days > settle_days]
     return sorted(kept)
 
 
@@ -113,7 +120,7 @@ def _event_lags(up: dict[date, float], down: dict[date, float]) -> tuple[dict[da
     """Lag per downstream peak, plus how many peaks were skipped."""
     lags: dict[date, int] = {}
     skipped = 0
-    for peak in find_flood_events(down):
+    for peak in find_flood_events(down, settle_days=SEARCH_DAYS):
         window = [peak - timedelta(days=k) for k in range(SEARCH_DAYS + 1)]
         present = [d for d in window if d in up]
         if not present:

@@ -5,7 +5,7 @@ from typing import Sequence
 
 from .analysis.status import StationStatus
 from .catalog import Station
-from .fmt import is_season, pct, season_key, season_label, signed
+from .fmt import RECORD_TEXT, is_record, is_season, pct, season_key, season_label, signed
 from .store import IndexValue
 
 HIGH_PERCENTILE = 90
@@ -45,9 +45,8 @@ def river_summary(statuses: Sequence[StationStatus], catalog: Sequence[Station])
         top_st, top_ss = max(ranked, key=lambda r: r[1].percentile_today)
         top_pct = top_ss.percentile_today
         if top_pct >= HIGH_PERCENTILE:
-            parts.append(
-                f"El río está más alto en {_display(top_st)}: más que el {pct(top_pct)}% de los días desde 1990."
-            )
+            how_high = RECORD_TEXT if is_record(top_pct) else f"más que el {pct(top_pct)}% de los días desde 1990"
+            parts.append(f"El río está más alto en {_display(top_st)}: {how_high}.")
         else:
             parts.append("El río está dentro de valores habituales en todo el recorrido.")
 

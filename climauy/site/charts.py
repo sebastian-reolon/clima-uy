@@ -22,6 +22,7 @@ from ..analysis.lag import LagResult
 from ..analysis.status import StationStatus
 from ..catalog import Station
 from ..fmt import day_numeric as _day, day_short as _day_short, days as _days
+from ..fmt import RECORD_TEXT, is_record
 from ..fmt import meters as _m, num as _num, pct as _pct
 from ..store import Forecast
 from ..timeutil import local_day
@@ -426,7 +427,7 @@ def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -
     if ranked:
         p, i = max(ranked, key=lambda t: (t[0], -t[1]))
         line1 = f"pico hoy: {_station_display(rows[i][0])}"
-        line2 = f"más alto que el {_pct(p)}% de los días"
+        line2 = RECORD_TEXT if is_record(p) else f"más alto que el {_pct(p)}% de los días"
         w = max(_text_width(line1, WIDE_FONT), _text_width(line2, WIDE_FONT))
         cx = min(max(x(i), w / 2), WIDE_W - w / 2)
         body.append(_line(x(i), 136, x(i), profile_y(max(p, 50)) - 6, INK, 1, cls="crest-leader"))

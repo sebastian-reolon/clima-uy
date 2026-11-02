@@ -23,7 +23,8 @@ from ..analysis.status import MIN_HISTORY_YEARS, StationStatus, compute_status
 from ..analysis.verify import VERIFICATION_TARGETS, verify_production
 from ..catalog import Station
 from ..fmt import (
-    MONTHS, day_long, day_numeric, day_short, days, hour_local, is_season, meters, num, pct, season_key, season_label, signed,
+    MONTHS, RECORD_TEXT, day_long, day_numeric, day_short, days, hour_local, is_record, is_season, meters, num, pct,
+    season_key, season_label, signed,
 )
 from ..narrative import enso_summary, river_summary
 from ..store import Store
@@ -155,7 +156,8 @@ def _station_view(st: Station, ss: StationStatus, store: Store, today: date) -> 
         reading = ", ".join(parts)
         change = _change(ss)
         if ss.percentile_today is not None:
-            percentile = f"más alto que el {pct(ss.percentile_today)}% de los días desde 1990"
+            percentile = (RECORD_TEXT if is_record(ss.percentile_today)
+                          else f"más alto que el {pct(ss.percentile_today)}% de los días desde 1990")
         elif ss.history_years < MIN_HISTORY_YEARS:
             percentile = f"sin percentil (tiene {_years(ss.history_years)} de historia, hacen falta 10)"
     gauge = None if no_data else Markup(charts.gauge_svg(ss, st))
@@ -218,8 +220,12 @@ def _runs_archived(store: Store, issuer: str, station_id: str, variable: str) ->
     return len({f.issued_utc for f in store.forecasts(issuer, station_id) if f.variable == variable})
 
 
-def _corridas(n: int) -> str:
-    return "1 corrida" if n == 1 else f"{n} corridas"
+def _saved(n: int) -> str:
+    return "1 pronóstico guardado" if n == 1 else f"{n} pronósticos guardados"
+
+
+def _verified(n: int) -> str:
+    return "1 corrida verificada" if n == 1 else f"{n} corridas verificadas"
 
 
 def _forecast_views(store: Store, by_id: dict[str, Station], verify: dict) -> tuple[list[dict], list[dict]]:
@@ -265,8 +271,10 @@ def _forecast_views(store: Store, by_id: dict[str, Station], verify: dict) -> tu
                 })
         ver_views.append({
             "label": ("INA" if issuer == "ina" else "GloFAS") + f", {name}",
-            "status": "" if res.enough else
-            f"acumulando datos desde el {day_long(VERIFY_SINCE)}: {_corridas(archived)}",
+            # Until verification is possible the count is of archived runs, said as such;
+            # afterwards it is VerifyResult.n_runs (runs with at least one observed day).
+            "status": _verified(res.n_runs) if res.enough else
+            f"acumulando datos desde el {day_long(VERIFY_SINCE)}: {_saved(archived)}",
             "rows": rows,
         })
     return fc_views, ver_views

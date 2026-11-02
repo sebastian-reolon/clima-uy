@@ -143,8 +143,10 @@ def test_unvalidated_lag_title(site):
 def test_forecast_status_and_glofas_label(site):
     out, _ = site
     flat = _flat(_read(out, "rio/index.html"))
-    assert "acumulando datos desde el 1 de noviembre de 2026: 1 corrida" in flat
-    assert "acumulando datos desde el 1 de noviembre de 2026: 0 corridas" in flat
+    assert "acumulando datos desde el 1 de noviembre de 2026: 1 pronóstico guardado" in flat
+    assert "acumulando datos desde el 1 de noviembre de 2026: 0 pronósticos guardados" in flat
+    listing = re.search(r'<ul class="verification">.*?</ul>', _read(out, "rio/index.html"), flags=re.S).group(0)
+    assert "corrida" not in listing
     assert flat.count("Modelo global (GloFAS), sin corregir para este río") >= 2
 
 
@@ -288,3 +290,12 @@ def test_datos_page_months_and_cite(site):
     flat = _flat(html)
     assert "Lecturas de noviembre de 2026 (CSV)" in flat
     assert "https://sebastian-reolon.github.io/clima-uy/snapshots/2026-11-01/" in flat
+
+
+def test_record_station_meta(site):
+    # Monte Caseros today is above every day of its seeded history.
+    out, _ = site
+    html = _read(out, "rio/index.html")
+    block = _flat(re.search(r'<li[^>]*id="estacion-ina_74".*?</li>', html, flags=re.S).group(0))
+    assert "el valor más alto desde 1990" in block
+    assert "100%" not in _text(html.split("<svg")[0]) and "más que el 100%" not in _flat(html)

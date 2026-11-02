@@ -356,7 +356,7 @@ def test_lag_uses_given_names():
     assert "de Paso de los Libres a Concordia" in root.find("s:desc", NS).text
 
 
-@pytest.mark.parametrize("p, text", [(99.5, "99,5%"), (99.99, "99,9%"), (100.0, "100%"), (94.7, "94%"), (99.0, "99,0%")])
+@pytest.mark.parametrize("p, text", [(99.5, "99,5%"), (99.99, "99,9%"), (94.7, "94%"), (99.0, "99,0%")])
 def test_crest_percentile_never_rounds_up(p, text):
     texts = texts_of(profile_svg([status("a", p), status("b", 50.0)], CATALOG))
     assert f"pico hoy: Santo Tomémás alto que el {text} de los días" in texts
@@ -410,3 +410,11 @@ def test_tick_labels_keep_decimals_for_fractional_steps():
 def test_profile_axis_caption_has_no_placeholder():
     svg = profile_svg([status("a", 80.0)], CATALOG)
     assert "X%" not in svg
+
+
+def test_profile_crest_record_wording():
+    svg = profile_svg([status("a", 100.0), status("b", 80.0)], CATALOG)
+    texts = texts_of(svg)
+    assert "pico hoy: Santo Tomémás alto que el" not in "".join(texts)
+    assert "pico hoy: Santo Toméel valor más alto desde 1990" in texts
+    assert not any("100%" in t for t in texts)

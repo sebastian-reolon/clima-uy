@@ -41,6 +41,14 @@ def pct(p: float) -> str:
     return str(math.floor(p + 1e-9))
 
 
+RECORD_TEXT = "el valor más alto desde 1990"
+
+
+def is_record(p: float) -> bool:
+    """Percentile 100: higher than or equal to every day since 1990. Sentences then say RECORD_TEXT."""
+    return p >= 100.0
+
+
 def num(v: float, decimals: int | None = None) -> str:
     """Uruguayan number: decimal comma, dot for thousands (2 decimals under 100 by default)."""
     if decimals is None:

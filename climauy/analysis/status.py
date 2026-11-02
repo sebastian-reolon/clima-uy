@@ -3,14 +3,20 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
+from statistics import median
 from typing import Literal, Sequence
 
 from ..catalog import Station
-from ..store import Store
+from ..store import Obs, Store
 from ..timeutil import local_day
 from .daily import BASELINE_START, family_daily, family_for, history_years, percentile_of, station_readings
 
 STALE_AFTER = timedelta(hours=36)
+# Gauges read once a day (INA/Prefectura) get more room, or they would turn
+# stale every afternoon until the next reading.
+STALE_AFTER_DAILY = timedelta(hours=48)
+DAILY_SPACING = timedelta(hours=20)  # median spacing at or above this is a daily series
+SPACING_READINGS = 30  # the resolution is judged on the most recent readings only
 MIN_HISTORY_YEARS = 10.0
 LEVEL_STABLE_M = 0.10
 DISCHARGE_STABLE_FRAC = 0.05
@@ -22,6 +28,7 @@ class StationStatus:
     variable_used: Literal["discharge", "level"]
     latest_value: float | None
     latest_time_utc: datetime | None
+    latest_source: str | None  # source of latest_value ("ina", "ctm", "ana", ...)
     stale: bool
     stale_since: date | None
     # Latest local day mean minus the mean 3 days earlier; None if stale or a day is missing.
@@ -36,10 +43,19 @@ class StationStatus:
     above_alert: bool | None
     above_evac: bool | None
     history_years: float
+    # First year with a daily value since 1990 in the series used; None without data.
+    history_start_year: int | None
 
 
-def _is_stale(latest: datetime | None, now_utc: datetime) -> bool:
-    return latest is None or now_utc - latest > STALE_AFTER
+def stale_after(readings: Sequence[Obs]) -> timedelta:
+    """48 h for a daily-resolution series (median spacing of recent readings >= 20 h), else 36 h."""
+    times = sorted({o.time_utc for o in readings[-SPACING_READINGS:]})
+    gaps = [b - a for a, b in zip(times, times[1:])]
+    return STALE_AFTER_DAILY if gaps and median(gaps) >= DAILY_SPACING else STALE_AFTER
+
+
+def _is_stale(readings: Sequence[Obs], now_utc: datetime) -> bool:
+    return not readings or now_utc - readings[-1].time_utc > stale_after(readings)
 
 
 def _percentiles(daily: dict[date, float], latest_day: date) -> tuple[float | None, float | None]:
@@ -91,8 +107,8 @@ def _station_status(store: Store, station: Station, now_utc: datetime) -> Statio
 
     q_latest = q_reads[-1] if q_reads else None
     l_latest = l_reads[-1] if l_reads else None
-    q_stale = _is_stale(q_latest.time_utc if q_latest else None, now_utc)
-    l_stale = _is_stale(l_latest.time_utc if l_latest else None, now_utc)
+    q_stale = _is_stale(q_reads, now_utc)
+    l_stale = _is_stale(l_reads, now_utc)
 
     use_q = history_years(discharge_daily) >= MIN_HISTORY_YEARS
     if use_q and q_stale and not l_stale and history_years(level_daily) >= MIN_HISTORY_YEARS:
@@ -105,6 +121,7 @@ def _station_status(store: Store, station: Station, now_utc: datetime) -> Statio
     stale = q_stale if use_q else l_stale
     latest_time = latest.time_utc if latest else None
     years = history_years(daily)
+    first = min((d for d in daily if d >= BASELINE_START), default=None)
 
     p_today = p_ago = None
     if latest is not None and not stale and years >= MIN_HISTORY_YEARS:
@@ -138,6 +155,7 @@ def _station_status(store: Store, station: Station, now_utc: datetime) -> Statio
         variable_used=variable,
         latest_value=latest.value if latest else None,
         latest_time_utc=latest_time,
+        latest_source=latest.source if latest else None,
         stale=stale,
         stale_since=local_day(latest_time) if (stale and latest_time) else None,
         level_change_3d_m=level_change,
@@ -151,6 +169,7 @@ def _station_status(store: Store, station: Station, now_utc: datetime) -> Statio
         above_alert=above_alert,
         above_evac=above_evac,
         history_years=years,
+        history_start_year=first.year if first else None,
     )
 
 

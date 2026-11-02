@@ -34,15 +34,16 @@ def station(sid, name, order, represents=None, tributary_of=None, alert_m=None, 
     )
 
 
-def status(sid, pct=50.0, pct3=None, stale=False, alert_pct=None, level=None):
+def status(sid, pct=50.0, pct3=None, stale=False, alert_pct=None, level=None, variable="level",
+           years=30.0, since=1990):
     return StationStatus(
-        station_id=sid, variable_used="level", latest_value=level,
-        latest_time_utc=datetime(2026, 11, 1, tzinfo=timezone.utc), stale=stale,
+        station_id=sid, variable_used=variable, latest_value=level,
+        latest_time_utc=datetime(2026, 11, 1, tzinfo=timezone.utc), latest_source="ina", stale=stale,
         stale_since=date(2026, 10, 29) if stale else None,
         level_change_3d_m=None, discharge_change_3d_pct=None, trend=None, trend_basis=None,
         percentile_today=None if stale else pct, percentile_3d_ago=None if stale else pct3,
         alert_percentile=alert_pct, level_m=None if stale else level,
-        above_alert=None, above_evac=None, history_years=30.0,
+        above_alert=None, above_evac=None, history_years=years, history_start_year=since,
     )
 
 
@@ -302,10 +303,11 @@ def test_profile_city_label_without_percentile_names_station():
 def test_profile_city_without_station_data():
     cat = CATALOG + [station("fb", "Fray Bentos", 7, represents="Fray Bentos")]
     fb = StationStatus(
-        station_id="fb", variable_used="level", latest_value=None, latest_time_utc=None, stale=True,
+        station_id="fb", variable_used="level", latest_value=None, latest_time_utc=None, latest_source=None,
+        stale=True,
         stale_since=None, level_change_3d_m=None, discharge_change_3d_pct=None, trend=None, trend_basis=None,
         percentile_today=None, percentile_3d_ago=None, alert_percentile=None, level_m=None, above_alert=None,
-        above_evac=None, history_years=0.0,
+        above_evac=None, history_years=0.0, history_start_year=None,
     )
     texts = texts_of(profile_svg([status(s.id, 80.0) for s in CATALOG] + [fb], cat))
     assert "Fray Bentos:" in texts

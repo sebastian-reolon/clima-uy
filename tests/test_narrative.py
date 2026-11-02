@@ -14,13 +14,15 @@ def station(sid, name, order, represents=None):
     )
 
 
-def status(sid, pct=50.0, trend=None, stale=False, above_alert=None):
+def status(sid, pct=50.0, trend=None, stale=False, above_alert=None, years=30.0, since=1990):
     return StationStatus(
         station_id=sid, variable_used="level", latest_value=1.0,
-        latest_time_utc=datetime(2026, 11, 1, tzinfo=timezone.utc), stale=stale, stale_since=None,
+        latest_time_utc=datetime(2026, 11, 1, tzinfo=timezone.utc), latest_source="ina",
+        stale=stale, stale_since=None,
         level_change_3d_m=None, discharge_change_3d_pct=None, trend=trend,
         trend_basis="level" if trend else None, percentile_today=pct, percentile_3d_ago=None,
-        alert_percentile=None, level_m=None, above_alert=above_alert, above_evac=None, history_years=30.0,
+        alert_percentile=None, level_m=None, above_alert=above_alert, above_evac=None,
+        history_years=years, history_start_year=since,
     )
 
 

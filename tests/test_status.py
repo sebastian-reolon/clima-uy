@@ -262,3 +262,55 @@ def test_trend_falls_back_to_discharge_when_level_day_missing(store):
     assert r.level_m == 5.0 and r.level_change_3d_m is None
     assert r.trend == "sube" and r.trend_basis == "discharge"
     assert r.discharge_change_3d_pct == pytest.approx(20.0)
+
+
+# --- stale threshold by resolution, provenance, coverage start
+
+
+@pytest.mark.parametrize("age_h, stale", [(40, False), (47.9, False), (48.1, True)])
+def test_daily_gauge_stale_after_48h(store, age_h, stale):
+    last = NOW - timedelta(hours=age_h)
+    store.upsert_obs([ob(last - timedelta(days=i), 3.0) for i in range(10)])
+    [r] = compute_status(store, [st()], NOW)
+    assert r.stale is stale
+
+
+@pytest.mark.parametrize("age_h, stale", [(35.9, False), (36.1, True), (40, True)])
+def test_subdaily_gauge_stale_after_36h(store, age_h, stale):
+    last = NOW - timedelta(hours=age_h)
+    store.upsert_obs([ob(last - timedelta(hours=3 * i), 3.0) for i in range(20)])
+    [r] = compute_status(store, [st()], NOW)
+    assert r.stale is stale
+
+
+def test_resolution_is_judged_on_recent_readings(store):
+    # Years of daily history, then hourly telemetry: the recent hourly spacing decides (36 h).
+    s = st(sources={"ana": "x"})
+    put_daily(store, date(2020, 1, 1), 2000, lambda i: 3.0, source="ana_hist")
+    last = NOW - timedelta(hours=40)
+    store.upsert_obs([ob(last - timedelta(hours=i), 3.0, "ana") for i in range(40)])
+    [r] = compute_status(store, [s], NOW)
+    assert r.stale is True
+
+
+def test_latest_source_is_the_latest_readings_source(store):
+    store.upsert_obs([ob(utc(2026, 11, 1, 10), 5.0, "ina"), ob(utc(2026, 11, 1, 12), 5.1, "ctm")])
+    [r] = compute_status(store, [st()], NOW)
+    assert r.latest_time_utc == utc(2026, 11, 1, 12) and r.latest_source == "ctm"
+
+
+def test_latest_source_none_without_data(store):
+    [r] = compute_status(store, [st()], NOW)
+    assert r.latest_source is None
+
+
+def test_history_start_year_is_first_day_since_1990(store):
+    put_daily(store, date(1985, 6, 1), 30, lambda i: 1.0)
+    put_daily(store, date(2014, 3, 1), 30, lambda i: 1.0)
+    [r] = compute_status(store, [st()], NOW)
+    assert r.history_start_year == 2014
+
+
+def test_history_start_year_none_without_data(store):
+    [r] = compute_status(store, [st()], NOW)
+    assert r.history_start_year is None

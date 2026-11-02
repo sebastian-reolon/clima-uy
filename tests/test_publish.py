@@ -49,6 +49,22 @@ def _seed(store: Store) -> None:
 
 
 @pytest.fixture
+def all_sources(monkeypatch):
+    """Republish every source in full (the default is the conservative licence setting)."""
+    from climauy import publish
+
+    monkeypatch.setattr(publish, "FULL_SERIES_SOURCES", frozenset({"ana", "ana_hist", "ina", "ctm"}))
+    monkeypatch.setattr(publish, "FULL_FORECAST_ISSUERS", frozenset({"ina", "glofas"}))
+
+
+def test_default_licence_setting_is_conservative():
+    from climauy import publish
+
+    assert publish.FULL_SERIES_SOURCES == {"ana", "ana_hist"}
+    assert publish.FULL_FORECAST_ISSUERS == {"glofas"}
+
+
+@pytest.fixture
 def seeded(tmp_path):
     store = Store(tmp_path / "t.sqlite")
     _seed(store)
@@ -61,7 +77,7 @@ def _rows(path: Path) -> list[list[str]]:
         return list(csv.reader(f))
 
 
-def test_export_csv_headers(seeded):
+def test_export_csv_headers(seeded, all_sources):
     store, out = seeded
     written = export_data(store, load_catalog(), out, NOW, full=True)
     data = out / "data"
@@ -104,20 +120,37 @@ def test_light_export_skips_full_files(seeded):
     assert not (out / "data/rio/raw").exists()
 
 
-def test_raw_monthly_append_only(seeded):
+def test_raw_monthly_append_only(seeded, all_sources):
     store, out = seeded
-    export_data(store, load_catalog(), out, NOW, full=True)
-    nov, dec = out / "data/rio/raw/2026-11.csv", out / "data/rio/raw/2026-12.csv"
-    fc_nov = out / "data/rio/forecasts/2026-11.csv"
-    before = {p: p.read_bytes() for p in (nov, fc_nov)}
-    # A late November reading and a new December one arrive.
-    store.upsert_obs([Obs("ina_74", "level", datetime(2026, 11, 30, 20, tzinfo=UTC), 6.0, "ina"),
-                      Obs("ina_74", "level", datetime(2026, 12, 2, 11, tzinfo=UTC), 6.1, "ina")])
-    written = export_data(store, load_catalog(), out, NOW + timedelta(hours=1), full=True)
+    nov, fc_nov = out / "data/rio/raw/2026-11.csv", out / "data/rio/forecasts/2026-11.csv"
+    late = lambda day, hour, v: Obs("ina_74", "level", datetime(2026, 11, day, hour, tzinfo=UTC), v, "ina")
+    # 29/11 at 09:00 in Montevideo: November is the current month, rewritten on every run.
+    nov_29 = datetime(2026, 11, 29, 12, tzinfo=UTC)
+    export_data(store, load_catalog(), out, nov_29, full=True)
+    store.upsert_obs([late(30, 20, 6.0)])
+    # 1/12 at 00:40: first run after November closed, one final rewrite with the late reading.
+    dec_1 = datetime(2026, 12, 1, 3, 40, tzinfo=UTC)
+    written = export_data(store, load_catalog(), out, dec_1, full=True)
+    assert nov in written and fc_nov in written
+    assert any(r[2] == "2026-11-30T20:00:00Z" for r in _rows(nov))
+    frozen = {p: p.read_bytes() for p in (nov, fc_nov)}
+    # Anything after that never touches November again.
+    store.upsert_obs([late(30, 22, 6.2), Obs("ina_74", "level", datetime(2026, 12, 2, 11, tzinfo=UTC), 6.1, "ina")])
+    written = export_data(store, load_catalog(), out, NOW, full=True)
     assert nov not in written and fc_nov not in written
-    assert {p: p.read_bytes() for p in (nov, fc_nov)} == before
-    assert dec in written
-    assert any(r[2] == "2026-12-02T11:00:00Z" for r in _rows(dec))
+    assert {p: p.read_bytes() for p in (nov, fc_nov)} == frozen
+    dec = out / "data/rio/raw/2026-12.csv"
+    assert dec in written and any(r[2] == "2026-12-02T11:00:00Z" for r in _rows(dec))
+
+
+def test_closed_month_written_once_when_first_seen(seeded, all_sources):
+    store, out = seeded
+    nov = out / "data/rio/raw/2026-11.csv"
+    assert nov in export_data(store, load_catalog(), out, NOW, full=True)
+    first = nov.read_bytes()
+    store.upsert_obs([Obs("ina_74", "level", datetime(2026, 11, 30, 22, tzinfo=UTC), 6.2, "ina")])
+    assert nov not in export_data(store, load_catalog(), out, NOW + timedelta(days=1), full=True)
+    assert nov.read_bytes() == first
 
 
 def test_full_export_due_once_per_day_after_0030(tmp_path):
@@ -321,16 +354,16 @@ def test_cli_all_fails_when_push_fails(tmp_path, monkeypatch):
     assert cli.main(["all"]) != 0
 
 
-DERIVED_SENTENCE = "se publica solo lo derivado"
+DERIVED_SENTENCE = "Se publica solo lo derivado"
 
 
 @pytest.mark.parametrize("restricted", [False, True])
 def test_licence_switch_drops_series_files_and_says_so(seeded, monkeypatch, restricted):
     from climauy import publish
 
-    if restricted:
-        monkeypatch.setattr(publish, "FULL_SERIES_SOURCES", frozenset({"ana", "ana_hist"}))
-        monkeypatch.setattr(publish, "FULL_FORECAST_ISSUERS", frozenset({"glofas"}))
+    if not restricted:
+        monkeypatch.setattr(publish, "FULL_SERIES_SOURCES", frozenset({"ana", "ana_hist", "ina", "ctm"}))
+        monkeypatch.setattr(publish, "FULL_FORECAST_ISSUERS", frozenset({"ina", "glofas"}))
     store, out = seeded
     build_site(store, load_catalog(), out, NOW, base_url=BASE)
     export_data(store, load_catalog(), out, NOW, full=True)
@@ -342,7 +375,7 @@ def test_licence_switch_drops_series_files_and_says_so(seeded, monkeypatch, rest
     assert (out / "data/rio/daily/ana_77150000_discharge.csv").is_file()
     if restricted:
         assert DERIVED_SENTENCE in datos and "INA y Prefectura Naval Argentina" in datos
-        assert "los pronósticos del INA" in datos
+        assert "pronósticos del INA se ven en la página del río pero no se ofrecen para descargar" in datos
         assert not (out / "data/rio/daily/ina_74_level.csv").exists()
         assert "ina_74_level.csv" not in datos
         assert nov_raw and {r[4] for r in nov_raw} == {"ana"}

@@ -76,6 +76,10 @@ No se encontró cota de alerta ni de evacuación. Los informes de DINAGUA de 202
 
 Cero de la escala: no encontrado.
 
+## Qué muestra el sitio
+
+En el texto de cada ciudad, la cota de seguridad de DINAGUA de agosto de 2026 (para Artigas, la del CECOED de 2023), con su link y su fecha, y la aclaración de que es otra regla que la de la estación desde la que se mide. En Bella Unión, Salto y Paysandú, donde el SINAE publicó otro valor, se agrega «El SINAE publicó otro valor» con el link a su informe. Los valores están en `content/referencias_uy.json`.
+
 ## Equivalencias con las estaciones de enfrente
 
 No se encontró ningún documento oficial que traduzca las cotas de una ciudad uruguaya a la escala de la estación de enfrente (por ejemplo, de Bella Unión a Monte Caseros o de Salto a Concordia). Por eso no se calcula ninguna equivalencia y no se dibuja ninguna línea uruguaya sobre esas estaciones. Las líneas que sí se dibujan en las estaciones argentinas son las cotas del INA y de Prefectura de esas mismas estaciones.

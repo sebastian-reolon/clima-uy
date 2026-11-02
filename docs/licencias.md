@@ -11,12 +11,12 @@ Mostrar en una página el último valor de una estación con su fuente y su link
 | Fuente | Qué dice | Qué publica el sitio |
 |---|---|---|
 | ANA (Brasil) | Permite reproducir los datos citando la fuente | Series completas, con la cita |
-| INA y Prefectura Naval Argentina | El sistema de datos no publica términos | Recomendado: solo lo derivado y el link |
-| CTM Salto Grande | No publica términos de reutilización | Recomendado: solo lo derivado y el link |
+| INA y Prefectura Naval Argentina | El sistema de datos no publica términos | Solo lo derivado y el link |
+| CTM Salto Grande | No publica términos de reutilización | Solo lo derivado y el link |
 | GloFAS vía Open-Meteo | CC BY 4.0 (Open-Meteo) y licencia CEMS-FLOODS (Copernicus), con aviso obligatorio | Series completas, con los dos avisos |
 | NOAA CPC | Dominio público | Series completas, con la cita |
 
-La decisión final se toma antes de publicar el repositorio. En el código son dos listas en `climauy/publish.py`: `FULL_SERIES_SOURCES` (fuentes de lecturas) y `FULL_FORECAST_ISSUERS` (fuentes de pronósticos). Hoy las dos incluyen todo. Para aplicar la recomendación de este documento quedan así: `FULL_SERIES_SOURCES = {"ana", "ana_hist"}` y `FULL_FORECAST_ISSUERS = {"glofas"}`. Con eso la página de datos lista solo las series que se descargan y dice qué fuentes van solo como derivado.
+En el código son dos listas en `climauy/publish.py`: `FULL_SERIES_SOURCES = {"ana", "ana_hist"}` (fuentes de lecturas) y `FULL_FORECAST_ISSUERS = {"glofas"}` (fuentes de pronósticos). Los índices del CPC se publican siempre completos. La página de datos lista solo las series que se descargan y explica, fuente por fuente, qué se publica y por qué. Si el INA o la CTM confirman por escrito que se pueden republicar sus series, se agrega `"ina"` o `"ctm"` a la lista que corresponda.
 
 Como no todas las fuentes permiten republicar, no se arma el archivo mensual comprimido en GitHub Releases que preveía el plan. Las lecturas por mes de las fuentes permitidas ya quedan en `data/rio/raw/`.
 
@@ -50,9 +50,9 @@ Qué dice:
 
 No queda claro. Es probable que el INA no tenga problema en que se republiquen sus series citándolo, porque las ofrece en una API pública, pero no lo dice por escrito.
 
-Recomendación: publicar solo lo derivado y el link al sistema del INA, y pedirle al INA por escrito permiso para republicar las series con atribución. Con esa respuesta se agrega `"ina"` a `FULL_SERIES_SOURCES` y a `FULL_FORECAST_ISSUERS`.
+Qué publica el sitio: solo lo derivado y el link al sistema del INA. Queda pendiente pedirle al INA por escrito permiso para republicar las series con atribución; con esa respuesta se agrega `"ina"` a `FULL_SERIES_SOURCES` y a `FULL_FORECAST_ISSUERS`.
 
-Qué implica la recomendación: no se ofrecen para descargar las medias diarias de las estaciones del INA, las lecturas crudas del INA ni los pronósticos del INA. Las páginas siguen mostrando el estado de cada estación, su último valor con la fuente, el percentil y la banda del pronóstico.
+Qué implica: no se ofrecen para descargar las medias diarias de las estaciones del INA, las lecturas crudas del INA ni los pronósticos del INA. Las páginas siguen mostrando el estado de cada estación, su último valor con la fuente, el percentil y la banda del pronóstico.
 
 ## CTM Salto Grande (Comisión Técnica Mixta de Salto Grande)
 
@@ -62,7 +62,7 @@ Qué dice: el sitio (<https://www.saltogrande.org/>) solo muestra «© 2013 Comi
 
 No queda claro.
 
-Recomendación: solo lo derivado y el link al parte diario. Qué implica: las lecturas de la CTM no van en los archivos de lecturas crudas, y los días que la CTM completaba en las series del INA no van en las medias diarias. La página del río sigue mostrando los datos de la represa del día, con el link al parte.
+Qué publica el sitio: solo lo derivado y el link al parte diario. Qué implica: las lecturas de la CTM no van en los archivos de lecturas crudas, y los días que la CTM completaba en las series del INA no van en las medias diarias. La página del río sigue mostrando los datos de la represa del día, con el link al parte.
 
 ## GloFAS vía Open-Meteo
 
@@ -74,7 +74,7 @@ Qué dice Copernicus: Open-Meteo enlaza para GloFAS a la licencia CEMS-FLOODS (<
 
 Qué publica el sitio: los pronósticos completos por mes, con los dos avisos.
 
-Pendiente antes de publicar: el pie de foto del pronóstico de GloFAS en la página del río y la sección de pronósticos de la página de datos tienen que llevar el link a Open-Meteo y el aviso «Contains modified Copernicus Emergency Management Service information 2026». Hoy la fuente figura solo en el pie de la página.
+Cada pie de foto de los pronósticos de GloFAS en la página del río y la sección de licencias de la página de datos llevan el link «Weather data by Open-Meteo.com» a <https://open-meteo.com/> y el aviso «Contains modified Copernicus Emergency Management Service information» con el año.
 
 ## NOAA CPC (Climate Prediction Center)
 

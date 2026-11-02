@@ -27,7 +27,8 @@ from ..fmt import (
     season_key, season_label, signed,
 )
 from ..narrative import enso_summary, river_summary
-from ..publish import derived_only_labels, series_exported
+from .. import publish
+from ..publish import series_exported
 from ..store import Store
 from ..timeutil import local_day
 from . import charts
@@ -37,6 +38,15 @@ SITE_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SITE_DIR.parents[1]
 OUTLOOK_PATH = REPO_ROOT / "content" / "enso_outlook.json"
 METHOD_PATH = REPO_ROOT / "docs" / "metodologia.md"
+REFS_PATH = REPO_ROOT / "content" / "referencias_uy.json"
+OPEN_METEO_URL = "https://open-meteo.com/"
+OPEN_METEO_TEXT = "Weather data by Open-Meteo.com"  # wording asked by the Open-Meteo licence
+LICENCES_DOC = "docs/licencias.md"
+
+
+def copernicus_notice(year: int) -> str:
+    """Notice required by the CEMS-FLOODS licence for modified (aggregated) GloFAS data."""
+    return f"Contains modified Copernicus Emergency Management Service information {year}"
 
 FOOTER_TEXT = "Esto no es una alerta oficial. Para alertas y evacuaciones: SINAE y el CECOED de tu departamento."
 SINAE_URL = "https://www.gub.uy/sistema-nacional-emergencias/"
@@ -85,6 +95,7 @@ class StationView:
     when: str
     meta: str  # percentile and reading time, joined
     branches: list["Branch"] = field(default_factory=list)
+    ref: dict | None = None  # official level of a Uruguayan city, on its own gauge
 
 
 @dataclass
@@ -174,6 +185,33 @@ def _station_view(st: Station, ss: StationStatus, store: Store, today: date) -> 
     return StationView(st, ss, title, how, sub, gauge, spark, reading, change_long, change, percentile, when, meta)
 
 
+def _cota_m(v: float) -> str:
+    """Official levels are written with two decimals, as their sources publish them (11,40 m)."""
+    return f"{v:.2f}".replace(".", ",") + " m"
+
+
+def _city_refs(path: Path, catalog: Sequence[Station]) -> dict[str, dict]:
+    """Per station id, the official level of the city it represents, ready for the template."""
+    cities = json.loads(path.read_text(encoding="utf-8"))["cities"]
+    out = {}
+    for st in catalog:
+        r = cities.get(st.represents or "")
+        if r is None:
+            continue
+        other = r.get("other")
+        out[st.id] = {
+            "city": st.represents, "kind": r["kind"], "value": _cota_m(r["value_m"]),
+            "source": r["source"], "url": r["url"], "date": day_long(date.fromisoformat(r["date"])),
+            # Only a station across the river or upstream needs the warning.
+            "station": st.name if st.sources and st.name != st.represents else None,
+            "other": None if not other else {
+                "source": other["source"], "url": other["url"],
+                "date": day_long(date.fromisoformat(other["date"])),
+            },
+        }
+    return out
+
+
 def _column(views: dict[str, StationView], catalog: Sequence[Station]) -> list[StationView]:
     """Main-stem stations downstream, each carrying the tributaries that join just above it."""
     children: dict[str, list[Station]] = {}
@@ -255,7 +293,7 @@ def _forecast_views(store: Store, by_id: dict[str, Station], verify: dict) -> tu
             issued = max(f.issued_utc for f in fc)
             run = f"Corrida del {day_long(local_day(issued))} a las {hour_local(issued)}, hora de Montevideo."
         fc_views.append({
-            "issuer": issuer, "name": name, "caption": caption, "run": run,
+            "issuer": issuer, "name": name, "caption": caption, "run": run, "glofas": issuer == "glofas",
             "svg": Markup(charts.forecast_band_svg(station_daily(store, obs_st, variable), fc)) if fc else None,
         })
         res = verify[(issuer, sid, variable)]
@@ -400,13 +438,40 @@ def _downloads(store: Store, catalog: Sequence[Station], now_utc: datetime) -> d
     while m <= today:
         months.append({"key": f"{m.year}-{m.month:02d}", "label": f"{MONTHS[m.month - 1]} de {m.year}"})
         m = (m + timedelta(days=32)).replace(day=1)
-    labels = derived_only_labels()
-    derived = ""
-    if labels:
-        who = labels[0] if len(labels) == 1 else ", ".join(labels[:-1]) + " y " + labels[-1]
-        derived = (f"De {who} se publica solo lo derivado (estados, percentiles y la frase del día) con el link "
-                   "a la fuente, porque sus condiciones no aclaran si se pueden republicar las series completas.")
-    return {"series": series, "months": months, "derived": derived}
+    return {"series": series, "months": months}
+
+
+_DERIVED = "Se publica solo lo derivado (estados, percentiles y cambios en 3 días) con el link a la fuente"
+
+
+def _source_terms() -> list[dict]:
+    """What the Datos page says about each source, following the licence switch in publish."""
+    full, issuers = publish.FULL_SERIES_SOURCES, publish.FULL_FORECAST_ISSUERS
+    ana = ("Se pueden descargar sus series completas: la ANA permite reproducir sus datos citando la fuente."
+           if "ana" in full else _DERIVED + ".")
+    if "ina" in full:
+        ina = "Se pueden descargar sus series completas, citando la fuente."
+    else:
+        ina = (_DERIVED + ", porque el sistema de datos del INA no dice si se pueden republicar las series "
+               "completas. Sus lecturas y sus medias diarias no se ofrecen para descargar.")
+    ina += (" Los pronósticos del INA también se pueden descargar." if "ina" in issuers else
+            " Los pronósticos del INA se ven en la página del río pero no se ofrecen para descargar.")
+    ctm = ("Se pueden descargar sus lecturas, citando la fuente." if "ctm" in full else
+           _DERIVED + ", porque su sitio no publica condiciones de reutilización. Los datos del día de la "
+           "represa se ven en la página del río.")
+    glofas = ("Se pueden descargar los pronósticos completos. Open-Meteo los publica con licencia CC BY 4.0 y la "
+              "licencia de Copernicus pide este aviso:" if "glofas" in issuers else
+              _DERIVED + ". Aviso de Copernicus:")
+    rows = [
+        ("ANA (Brasil)", SOURCES[0][1], ana),
+        ("INA y Prefectura Naval Argentina", SOURCES[1][1], ina),
+        ("CTM Salto Grande", SOURCES[2][1], ctm),
+        ("GloFAS vía Open-Meteo", SOURCES[3][1], glofas),
+        ("NOAA CPC", SOURCES[4][1], "Se pueden descargar los índices completos: son de dominio público en Estados Unidos."),
+        ("INUMET", SOURCES[5][1],
+         "Se citan en la portada sus probabilidades para los próximos meses, con su link; no hay descarga."),
+    ]
+    return [{"name": n, "url": u, "text": t, "glofas": n.startswith("GloFAS")} for n, u, t in rows]
 
 
 def _catalog_rows(catalog: Sequence[Station]) -> list[dict]:
@@ -477,6 +542,7 @@ def build_site(
     base_url: str = "/clima-uy",
     outlook_path: Path = OUTLOOK_PATH,
     method_path: Path = METHOD_PATH,
+    refs_path: Path = REFS_PATH,
 ) -> list[Path]:
     """Write the four pages and the static assets into out_dir; returns the pages written."""
     base = base_url.rstrip("/")
@@ -491,6 +557,8 @@ def build_site(
     by_status = {s.station_id: s for s in statuses}
     today = local_day(now_utc)
     views = {st.id: _station_view(st, by_status[st.id], store, today) for st in catalog}
+    for sid, ref in _city_refs(refs_path, catalog).items():
+        views[sid].ref = ref
     river_text = river_summary(statuses, catalog)
     fresh = [s.latest_time_utc for s in statuses if not s.stale and s.latest_time_utc is not None]
     last_data = max(fresh) if fresh else None
@@ -502,6 +570,9 @@ def build_site(
         **_common(base),
         "generated": f"Página generada el {day_long(today)} a las {hour_local(now_utc)}, hora de Montevideo.",
         "disclaimer": DISCLAIMER_SHORT,
+        "open_meteo_url": OPEN_METEO_URL,
+        "open_meteo_text": OPEN_METEO_TEXT,
+        "copernicus": copernicus_notice(today.year),
     }
     pages = {
         "index.html": ("index.html.j2", {
@@ -536,6 +607,8 @@ def build_site(
         "datos/index.html": ("datos.html.j2", {
             "nav": "datos",
             "downloads": _downloads(store, catalog, now_utc),
+            "source_terms": _source_terms(),
+            "licences_url": f"{REPO_URL}/blob/main/{LICENCES_DOC}",
             "catalog_rows": _catalog_rows(catalog),
             "cota_sources": ", ".join(sorted({s.cota_source for s in catalog if s.cota_source})) or "ninguna",
             "cite_url": f"{SITE_ORIGIN}{base}/snapshots/{today.isoformat()}/",

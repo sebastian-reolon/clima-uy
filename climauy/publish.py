@@ -29,14 +29,14 @@ ARCHIVE_START = date(2026, 11, 1)
 FULL_EXPORT_AFTER = time(0, 30)
 _FULL_KEY = "last_full_export_day"
 # Sources whose readings, and issuers whose forecasts, are republished in full
-# (daily, raw and forecast files). The licence review (docs/licencias.md)
-# decides these sets; a source left out still feeds the derived states in
-# latest.json and the pages, and the Datos page says so.
-FULL_SERIES_SOURCES = frozenset({"ana", "ana_hist", "ina", "ctm"})
-FULL_FORECAST_ISSUERS = frozenset({"ina", "glofas"})
-SOURCE_LABELS = {"ana": "ANA (Brasil)", "ana_hist": "ANA (Brasil)", "ina": "INA y Prefectura Naval Argentina",
-                 "ctm": "CTM Salto Grande"}
-ISSUER_LABELS = {"ina": "los pronósticos del INA", "glofas": "los pronósticos de GloFAS"}
+# (daily, raw and forecast files), per docs/licencias.md: ANA allows
+# reproduction with attribution and GloFAS is CC BY 4.0 plus the CEMS notice.
+# INA, Prefectura and CTM publish no reuse terms, so they feed only the
+# derived states in latest.json and the pages. CPC indices (US public domain)
+# are always exported in full.
+FULL_SERIES_SOURCES = frozenset({"ana", "ana_hist"})
+FULL_FORECAST_ISSUERS = frozenset({"glofas"})
+_FINAL_KEY = "month_final:"  # + "raw:YYYY-MM" / "forecasts:YYYY-MM"
 INDEX_NAMES = ("RONI", "ONI", "NINO34_WEEKLY")
 VARIABLES = ("level", "discharge")
 
@@ -110,16 +110,6 @@ def series_exported(store: Store, station: Station, variable: str) -> bool:
     return bool(sources) and store.has_obs(station.id, variable, sources)
 
 
-def derived_only_labels() -> list[str]:
-    """Names of the sources and forecast issuers published only as derived values."""
-    out = []
-    for key, label in SOURCE_LABELS.items():
-        if key not in FULL_SERIES_SOURCES and label not in out:
-            out.append(label)
-    out += [label for key, label in ISSUER_LABELS.items() if key not in FULL_FORECAST_ISSUERS]
-    return out
-
-
 def _daily_rows(store: Store, station: Station, variable: str) -> list[list]:
     """Per local day the mean and count of the winning source (same choice as family_daily),
     among the sources republished in full."""
@@ -144,6 +134,17 @@ def _month_starts(today: date) -> list[date]:
     return out
 
 
+def _month_due(store: Store, key: str, path: Path, is_current: bool) -> bool:
+    """Whether a monthly file is (re)written now: always for the current month, once more for a closed one."""
+    return is_current or not path.exists() or store.meta_get(_FINAL_KEY + key) is None
+
+
+def _month_written(store: Store, key: str, is_current: bool) -> None:
+    """After a successful write, a closed month is final."""
+    if not is_current:
+        store.meta_set(_FINAL_KEY + key, "1")
+
+
 def _local_midnight_utc(d: date) -> datetime:
     return datetime.combine(d, time(0), MONTEVIDEO).astimezone(timezone.utc)
 
@@ -166,8 +167,9 @@ def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc
 
     Always: data/rio/stations.csv and data/rio/latest.json. With full also the
     daily series, the monthly raw and forecast files and the ENSO indices.
-    Monthly files of months before the current local month are append-only:
-    once written they are never rewritten.
+    Monthly files are rewritten while their month is the current local month
+    and one final time on the first full run after it closes (so the last day
+    is complete); after that they are frozen. A missing file is always written.
     """
     rio = out_dir / "data" / "rio"
     written = [_write_csv(rio / "stations.csv", STATION_COLUMNS, _station_rows(catalog))]
@@ -192,14 +194,16 @@ def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc
         key = f"{m.year}-{m.month:02d}"
         raw, fc = rio / "raw" / f"{key}.csv", rio / "forecasts" / f"{key}.csv"
         start, end = _month_bounds(m)
-        if m == current or not raw.exists():
+        if _month_due(store, f"raw:{key}", raw, m == current):
             obs = [o for o in store.obs_between(start, end) if o.source in FULL_SERIES_SOURCES]
             written.append(_write_csv(raw, RAW_COLUMNS, (
                 [o.station_id, o.variable, _utc(o.time_utc), o.value, o.source, o.quality] for o in obs)))
-        if m == current or not fc.exists():
+            _month_written(store, f"raw:{key}", m == current)
+        if _month_due(store, f"forecasts:{key}", fc, m == current):
             written.append(_write_csv(fc, FORECAST_COLUMNS, (
                 [f.issuer, f.station_id, f.variable, _utc(f.issued_utc), _utc(f.valid_utc), f.qualifier, f.value]
                 for f in store.forecasts_issued_between(start, end) if f.issuer in FULL_FORECAST_ISSUERS)))
+            _month_written(store, f"forecasts:{key}", m == current)
 
     written.append(_write_csv(out_dir / "data" / "enso" / "indices.csv", INDEX_COLUMNS, (
         [i.name, i.period, i.value] for name in INDEX_NAMES for i in store.indices(name))))

@@ -14,6 +14,9 @@
   </p>
   {% endif %}
   {% if v.meta %}<p class="reading-meta">{{ v.meta }}</p>{% endif %}
+  {% if v.ref %}{% set r = v.ref %}
+  <p class="reading-meta city-ref">Cota de {{ r.kind }} oficial en {{ r.city }}: <span class="num">{{ r.value }}</span> en su propia regla, según <a href="{{ r.url }}">{{ r.source }}</a> ({{ r.date }}).{% if r.station %} Es otra regla que la de {{ r.station }}: no se comparan.{% endif %}{% if r.other %} El <a href="{{ r.other.url }}">{{ r.other.source }}</a> publicó otro valor ({{ r.other.date }}).{% endif %}</p>
+  {% endif %}
 </li>
 {% endmacro %}
 {% macro branch_list(branches) %}
@@ -112,7 +115,7 @@
   <figure class="forecast">
     <h3>{% if f.issuer == "glofas" %}GloFAS{% else %}INA{% endif %}: {{ f.name }}</h3>
     {% if f.svg %}{{ f.svg }}{% else %}<p class="muted">Sin pronóstico archivado todavía.</p>{% endif %}
-    <figcaption>{{ f.caption }}{% if f.run %} {{ f.run }}{% endif %}</figcaption>
+    <figcaption>{{ f.caption }}{% if f.run %} {{ f.run }}{% endif %}{% if f.glofas %} Datos: <a href="{{ open_meteo_url }}">{{ open_meteo_text }}</a>. {{ copernicus }}.{% endif %}</figcaption>
   </figure>
   {% endfor %}
   </div>

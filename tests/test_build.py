@@ -299,3 +299,73 @@ def test_record_station_meta(site):
     block = _flat(re.search(r'<li[^>]*id="estacion-ina_74".*?</li>', html, flags=re.S).group(0))
     assert "el valor más alto desde 1990" in block
     assert "100%" not in _text(html.split("<svg")[0]) and "más que el 100%" not in _flat(html)
+
+
+COPERNICUS_NOTICE = "Contains modified Copernicus Emergency Management Service information 2026"
+DINAGUA_URL = ("https://www.gub.uy/ministerio-ambiente/sites/ministerio-ambiente/files/documentos/publicaciones/"
+               "Informe_situacion_pronostico_9.pdf")
+SINAE_2024_URL = ("https://www.gub.uy/sistema-nacional-emergencias/comunicacion/noticias/"
+                  "informe-situacion-inundaciones-fin-emergencia-080124")
+
+
+def test_glofas_figcaptions_carry_attribution(site):
+    out, _ = site
+    html = _read(out, "rio/index.html")
+    figures = re.findall(r'<figure class="forecast">.*?</figure>', html, flags=re.S)
+    glofas = [f for f in figures if "<h3>GloFAS" in f]
+    assert glofas, "no GloFAS figure"
+    for fig in glofas:
+        caption = re.search(r"<figcaption>.*?</figcaption>", fig, flags=re.S).group(0)
+        assert 'href="https://open-meteo.com/"' in caption
+        assert COPERNICUS_NOTICE in _flat(caption)
+    for fig in figures:
+        if "<h3>INA" in fig:
+            assert COPERNICUS_NOTICE not in fig
+    datos = _read(out, "datos/index.html")
+    assert 'href="https://open-meteo.com/"' in datos
+    assert COPERNICUS_NOTICE in _flat(datos)
+
+
+def test_datos_explains_each_source(site):
+    out, _ = site
+    flat = _flat(_read(out, "datos/index.html"))
+    section = flat[flat.index("Licencias y atribución"):flat.index("Cómo citar")]
+    for name in ("ANA (Brasil)", "INA y Prefectura Naval Argentina", "CTM Salto Grande", "GloFAS", "NOAA CPC",
+                 "INUMET"):
+        assert name in section, name
+    assert "se están verificando" not in section
+    assert "solo lo derivado" in section
+    assert "dominio público" in section
+
+
+def _city_block(html: str, station_id: str) -> str:
+    start = html.index(f'id="estacion-{station_id}"')
+    end = html.find('<li class="station', start)
+    return html[start:end if end != -1 else len(html)]
+
+
+@pytest.mark.parametrize("station_id,expected,other_source", [
+    ("ina_79", "Cota de seguridad oficial en Salto: 11,40 m", True),
+    ("ina_74", "Cota de seguridad oficial en Bella Unión: 6,30 m", True),
+    ("ina_80", "Cota de seguridad oficial en Paysandú: 6,00 m", True),
+    ("ana_77500000", "Cota de seguridad oficial en Artigas: 10,20 m", False),
+    ("fray_bentos", "Cota de seguridad oficial en Fray Bentos: 3,90 m", False),
+])
+def test_uy_city_cites_official_cota(site, station_id, expected, other_source):
+    out, _ = site
+    block = _city_block(_read(out, "rio/index.html"), station_id)
+    flat = _flat(block)
+    assert expected in flat
+    assert ("SINAE publicó otro valor" in flat) == other_source
+    if other_source:
+        assert f'href="{SINAE_2024_URL}"' in block
+    if station_id == "ana_77500000":
+        assert "CECOED de Artigas" in flat and "15 de noviembre de 2023" in flat
+    else:
+        assert f'href="{DINAGUA_URL}"' in block and "3 de agosto de 2026" in flat
+    if station_id != "fray_bentos":
+        assert "no se comparan" in flat
+    # Never drawn on the opposite-bank gauge.
+    value = expected.rsplit(": ", 1)[1].replace(" m", "")
+    for svg in re.findall(r"<svg.*?</svg>", block, flags=re.S):
+        assert value not in svg and value.rstrip("0").rstrip(",") + " m" not in _flat(svg)

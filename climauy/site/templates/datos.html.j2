@@ -13,11 +13,8 @@
     <li><a href="{{ base }}/data/rio/stations.csv">Catálogo de estaciones (CSV)</a></li>
     <li><a href="{{ base }}/data/enso/indices.csv">Índices RONI, ONI y Niño 3.4 semanal (CSV)</a></li>
   </ul>
-  {% if downloads.derived %}
-  <p class="prose">{{ downloads.derived }}</p>
-  {% endif %}
   <h3>Lecturas crudas y pronósticos, por mes</h3>
-  <p class="prose">Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo.</p>
+  <p class="prose">Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo. Solo de las fuentes que permiten republicar sus datos: ver <a href="#licencias">licencias</a>. Cada mes se actualiza hasta el primer día del mes siguiente y después queda fijo.</p>
   <ul class="downloads">
   {% for m in downloads.months %}
     <li><a href="{{ base }}/data/rio/raw/{{ m.key }}.csv">Lecturas de {{ m.label }} (CSV)</a></li>
@@ -25,7 +22,7 @@
   {% endfor %}
   </ul>
   <h3>Medias diarias por estación</h3>
-  <p class="prose">Una fila por día, con la media del día y cuántas lecturas la forman.</p>
+  <p class="prose">Una fila por día, con la media del día y cuántas lecturas la forman. Solo de las fuentes que permiten republicar sus datos.</p>
   {% if downloads.series %}
   <ul class="downloads columns">
   {% for s in downloads.series %}
@@ -56,7 +53,12 @@
 
 <section aria-labelledby="licencias">
   <h2 id="licencias">Licencias y atribución</h2>
-  <p class="prose">Los datos son de ANA (Brasil), INA y Prefectura Naval Argentina, CTM Salto Grande, GloFAS vía Open-Meteo, NOAA CPC e INUMET. Las condiciones de reutilización de cada fuente se están verificando y quedan en <a href="{{ repo_url }}/blob/main/docs/licencias.md">el documento de licencias del repositorio</a>. Si usás estos datos, citá siempre también la fuente original.</p>
+  <p class="prose">Qué se puede descargar de cada fuente depende de lo que esa fuente permite. Si usás estos datos, citá siempre también la fuente original. El detalle, con los links a las condiciones de cada una, está en <a href="{{ licences_url }}">el documento de licencias del repositorio</a>.</p>
+  <ul class="source-terms">
+  {% for t in source_terms %}
+    <li><a href="{{ t.url }}">{{ t.name }}</a>. {{ t.text }}{% if t.glofas %} «{{ copernicus }}». Datos: <a href="{{ open_meteo_url }}">{{ open_meteo_text }}</a>.{% endif %}</li>
+  {% endfor %}
+  </ul>
 </section>
 
 <section aria-labelledby="citar">

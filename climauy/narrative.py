@@ -94,7 +94,7 @@ def river_headline(statuses: Sequence[StationStatus], catalog: Sequence[Station]
     by_id = {s.station_id: s for s in statuses}
     main = sorted((st for st in catalog if st.river == "Uruguay"), key=lambda s: s.order)
     fresh = [(st, by_id[st.id]) for st in main if _fresh(by_id.get(st.id))]
-    cities = [(st, ss) for st, ss in fresh if st.represents and st.alert_m is not None]
+    cities = [(st, ss) for st, ss in fresh if st.represents and st.alert_m is not None and ss.above_alert is not None]
     if not cities:
         return _NO_DATA_H1, ""
 
@@ -121,7 +121,13 @@ def river_headline(statuses: Sequence[StationStatus], catalog: Sequence[Station]
     elif falling:
         h1 = f"{river} y baja frente a {_join(falling)}."
     elif any(ss.trend == "estable" for _, ss in cities):
-        h1 = f"{river} y se mantiene estable."
+        steady = [st.represents for st, ss in cities if ss.trend == "estable"]
+        h1 = f"{river} y se mantiene estable frente a {_join(steady)}."
+    elif not height:
+        h1 = (
+            f"El río frente a {_join([st.represents for st, _ in cities])} tiene datos al día, "
+            "pero no alcanzan para compararlos con su historia."
+        )
     else:
         h1 = f"{river}."
 
@@ -144,9 +150,9 @@ def river_headline(statuses: Sequence[StationStatus], catalog: Sequence[Station]
     if len(over) == 1:
         st, ss = over[0]
         side = _COUNTRY_WORD.get(st.country)
-        text = f"La única sobre alerta es {st.name}"
-        if side:
-            text += f", del lado {side}"
+        text = f"La única sobre alerta es {st.name}, del lado {side}" if side else (
+            f"La única sobre alerta es {st.name}, del otro lado"
+        )
         tail = {
             "baja": "también baja" if says_falls else "baja",
             "sube": "sigue subiendo",

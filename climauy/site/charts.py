@@ -544,9 +544,24 @@ def _alert_only(ss: StationStatus, st: Station) -> bool:
     return st.represents is None and bool(ss.above_alert)
 
 
+def _plan_unranked_alerts(statuses: Sequence[StationStatus], catalog: Sequence[Station],
+                          start_km: float = 0.0) -> list[tuple[float, StationStatus, Station]]:
+    """Fresh main-river stations above alert with no percentile (history too short): no y, still an alert."""
+    by_id = {s.station_id: s for s in statuses}
+    stations = {s.id: s for s in catalog}
+    out = []
+    for sid, k in river_km(catalog).items():
+        ss = by_id.get(sid)
+        if (ss is not None and ss.percentile_today is None and ss.above_alert and not ss.stale
+                and k >= start_km):
+            out.append((k, ss, stations[sid]))
+    return out
+
+
 def _label_alerts(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> bool:
     """Whether non-city stations above alert get callouts: judged on the whole river, same for both variants."""
-    return sum(_alert_only(ss, st) for _, ss, st in _plan_points(statuses, catalog)) <= MAX_ALERT_CALLOUTS
+    marks = _plan_points(statuses, catalog) + _plan_unranked_alerts(statuses, catalog)
+    return sum(_alert_only(ss, st) for _, ss, st in marks) <= MAX_ALERT_CALLOUTS
 
 
 def _is_callout(ss: StationStatus, st: Station, label_alerts: bool = True) -> bool:
@@ -557,7 +572,8 @@ def _is_callout(ss: StationStatus, st: Station, label_alerts: bool = True) -> bo
 def phone_start_km(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -> float:
     """Where the phone variant starts: 620 km, or 60 km above the first callout when that is further up."""
     label_alerts = _label_alerts(statuses, catalog)
-    callouts = [k for k, ss, st in _plan_points(statuses, catalog) if _is_callout(ss, st, label_alerts)]
+    marks = sorted(_plan_points(statuses, catalog) + _plan_unranked_alerts(statuses, catalog), key=lambda m: m[0])
+    callouts = [k for k, ss, st in marks if _is_callout(ss, st, label_alerts)]
     start = PHONE_START_KM if not callouts else min(PHONE_START_KM, callouts[0] - PHONE_CALLOUT_LEAD_KM)
     return max(0.0, start)
 
@@ -574,12 +590,15 @@ def _plan_label(ss: StationStatus, st: Station) -> tuple[str, str, bool]:
         reading = f"{_num(ss.latest_value, 0)} m³/s"
     else:
         reading = None
-    if st.represents is not None:
-        tail = f"P{_floor_pct(ss.percentile_today)}"
-        name, alert = st.represents, bool(ss.above_alert)
-    else:
+    alert = bool(ss.above_alert)
+    name = st.represents if st.represents is not None else st.name
+    # Above alert is said in words too, not only in red.
+    if alert or ss.percentile_today is None:
         tail = "sobre alerta"
-        name, alert = st.name, True
+    else:
+        tail = f"P{_floor_pct(ss.percentile_today)}"
+    if ss.percentile_today is None:
+        tail += " · sin historia"
     return name, (f"{reading} · {tail}" if reading else tail), alert
 
 
@@ -727,11 +746,21 @@ def profile_plan_svg(statuses: Sequence[StationStatus], catalog: Sequence[Statio
 
     # Callouts: leaders first, then the paper boxes, then the text, so a box
     # never hides another label's text.
+    if not pts:
+        o.append(f'<text x="{_f(L + pw / 2)}" y="{_f(T + ph / 2)}" class="cv" text-anchor="middle">'
+                 "Sin datos al día del río.</text>")
+
+    # Above alert without a percentile: no point to draw, so its leader starts
+    # at the top grid line (y + 6 below is the leader's start).
+    unranked = [(X(k), T - 6, ss, st) for k, ss, st in _plan_unranked_alerts(statuses, catalog, k0)]
     label_alerts = _label_alerts(statuses, catalog)
-    shown = [(x, y, ss, st) for x, y, ss, st in xy if _is_callout(ss, st, label_alerts)]
+    shown = sorted(((x, y, ss, st) for x, y, ss, st in xy + unranked if _is_callout(ss, st, label_alerts)),
+                   key=lambda m: m[0])
     calls = [(x, y, *_plan_label(ss, st)) for x, y, ss, st in shown]
     is_city = [st.represents is not None for _, _, _, st in shown]
-    unlabelled = 0 if label_alerts else sum(_alert_only(ss, st) for _, _, ss, st in xy)
+    # Every red mark in this variant: alert dots, cities included, and the alerts without a percentile.
+    red = sum(bool(ss.above_alert) for _, _, ss, _ in xy) + len(unranked)
+    unlabelled = 0 if label_alerts else red
     # Per-character widths: 0,55 em of the bold name and 0,5 em of the value at
     # the sizes site.css sets (14 / 12,5 wide, 13 / 11,5 phone), above Barlow's
     # measured 0,45 em, so the paper box always clears the text.
@@ -782,10 +811,11 @@ def profile_plan_svg(statuses: Sequence[StationStatus], catalog: Sequence[Statio
         + "."
     ) if pts else "Ninguna estación del río tiene dato al día."
     cls = "perfil" if big else "perfil movil"
+    tid, did = f"perfil-{variant}-titulo", f"perfil-{variant}-desc"
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" class="{cls}" viewBox="0 0 {width} {total_h}" '
-        f'role="img" aria-label="{escape(title)}" font-family="{FONT}">'
-        f"<title>{escape(title)}</title><desc>{escape(desc)}</desc>"
+        f'role="img" aria-labelledby="{tid}" aria-describedby="{did}" font-family="{FONT}">'
+        f'<title id="{tid}">{escape(title)}</title><desc id="{did}">{escape(desc)}</desc>'
         + "".join(o + leaders + boxes + texts)
         + "</svg>"
     )

@@ -582,7 +582,7 @@ def test_plan_profile_accessible():
     svg = profile_plan_svg(today_statuses(), REAL)
     root = parse(svg)
     assert root.get("role") == "img"
-    assert root.get("aria-label")
+    assert root.get("aria-labelledby") == root.find("s:title", NS).get("id")
     assert "perfil" in root.get("class").split()
     title = root.find("s:title", NS)
     assert title is not None and "río Uruguay" in title.text
@@ -647,7 +647,7 @@ def test_plan_profile_flood_labels_only_cities_and_counts_the_rest():
     root = parse(profile_plan_svg(sts, REAL))
     assert [t.text for t in by_class(root, "text", "cn")] == CITIES
     assert len(by_class(root, "circle", "pa")) == 16  # every alert dot stays
-    assert legend_lines(root) == ["En rojo, 13 estaciones sobre su cota de alerta."]
+    assert legend_lines(root) == ["En rojo, 16 estaciones sobre su cota de alerta."]
     # City callouts stay within two rows on wide.
     assert len({t.get("y") for t in by_class(root, "text", "cn")}) <= 2
 
@@ -730,7 +730,7 @@ def test_plan_profile_phone_flood_labels_only_cities():
     visible = [sid for sid in km if km[sid] >= start and REAL_BY_ID[sid].represents is None
                and REAL_BY_ID[sid].alert_m is not None]
     assert len(by_class(root, "circle", "pa")) == len(visible) + 3
-    assert legend_lines(root) == [f"En rojo, {len(visible)} estaciones sobre su cota de alerta."]
+    assert legend_lines(root) == [f"En rojo, {len(visible) + 3} estaciones sobre su cota de alerta."]
 
 
 def test_plan_profile_labels_clear_the_km_caption():
@@ -755,3 +755,103 @@ def test_plan_profile_flood_legend_line_clear_of_labels(variant):
     box = (float(line.get("x")), float(line.get("y")) - 10, len(line.text) * 6.0, 14)
     assert not any(overlaps(box, b) for b in label_boxes(svg))
     assert box[0] + box[2] <= float(root.get("viewBox").split()[2]) + 20
+
+
+# ---------------------------------------------------------------- review follow-ups
+
+def phone(sts):
+    return profile_plan_svg(sts, REAL, width=340, height=560, start_km=phone_start_km(sts, REAL), variant="movil")
+
+
+def replace_status(sts, new):
+    return [new if s.station_id == new.station_id else s for s in sts]
+
+
+def test_plan_profile_city_above_alert_says_so_in_text():
+    sts = replace_status(today_statuses(), pstatus("ina_79", 99.2, 98.0, 11.4, True))
+    root = parse(profile_plan_svg(sts, REAL))
+    assert [t.text for t in by_class(root, "text", "ca")] == ["Paso de los Libres", "Salto"]
+    values = [t.text for t in by_class(root, "text", "cv")]
+    assert values[2] == "11,40 m · sobre alerta"
+    assert values[1] == "6,05 m · P95"  # Bella Unión, below alert, keeps its percentile
+
+
+def test_plan_profile_flood_legend_counts_every_red_dot():
+    sts = flood_statuses()
+    wide = parse(profile_plan_svg(sts, REAL))
+    assert legend_lines(wide) == [f"En rojo, {len(by_class(wide, 'circle', 'pa'))} estaciones sobre su cota de alerta."]
+    assert legend_lines(wide) == ["En rojo, 16 estaciones sobre su cota de alerta."]
+    small = parse(phone(sts))
+    assert legend_lines(small) == [f"En rojo, {len(by_class(small, 'circle', 'pa'))} estaciones sobre su cota de alerta."]
+
+
+def test_plan_profile_alert_without_percentile_gets_callout_at_top():
+    # Mocoretá fresh and above alert, but with too short a history for a percentile.
+    sts = replace_status(today_statuses(), pstatus("ina_75", None, None, 11.0, True))
+    root = parse(profile_plan_svg(sts, REAL))
+    names = [t.text for t in by_class(root, "text", "cn")]
+    assert names == ["Paso de los Libres", "Bella Unión", "Mocoretá", "Salto", "Paysandú"]
+    values = [t.text for t in by_class(root, "text", "cv")]
+    assert values[2] == "11,00 m · sobre alerta · sin historia"
+    top = min(float(l.get("y1")) for l in by_class(root, "line", "g"))
+    leads = by_class(root, "line", "lead")
+    assert float(leads[2].get("y1")) == top
+    for i, a in enumerate(label_boxes(ET.tostring(root, encoding="unicode"))):
+        for b in label_boxes(ET.tostring(root, encoding="unicode"))[i + 1:]:
+            assert not overlaps(a, b)
+
+
+def test_plan_profile_alert_without_percentile_counted_in_flood_legend():
+    sts = replace_status(flood_statuses(), pstatus("ina_75", None, None, 11.0, True))
+    root = parse(profile_plan_svg(sts, REAL))
+    assert len(by_class(root, "circle", "pa")) == 15
+    assert legend_lines(root) == ["En rojo, 16 estaciones sobre su cota de alerta."]
+    assert "Mocoretá" not in [t.text for t in by_class(root, "text", "cn")]
+
+
+@pytest.mark.parametrize("render", [lambda s: profile_plan_svg(s, REAL), phone])
+def test_plan_profile_without_data_says_so(render):
+    for sts in ([], [pstatus(sid, None, None, None) for sid, *_ in TODAY]):
+        root = parse(render(sts))
+        texts = [t.text for t in root.iter(SVG_NS + "text")]
+        assert "Sin datos al día del río." in texts
+        assert not list(root.iter(SVG_NS + "circle"))
+        assert not by_class(root, "text", "cn")
+
+
+def test_plan_profile_stale_or_missing_city_has_no_callout():
+    stale = replace_status(today_statuses(), pstatus("ina_79", None, None, None, None))
+    missing = [s for s in today_statuses() if s.station_id != "ina_79"]
+    for sts in (stale, missing):
+        root = parse(profile_plan_svg(sts, REAL))
+        assert [t.text for t in by_class(root, "text", "cn")] == ["Paso de los Libres", "Bella Unión", "Paysandú"]
+        assert len(by_class(root, "circle", "pc")) == 2
+
+
+def test_plan_profile_shading_starts_14_units_before_bella_union_on_wide():
+    km = river_km(REAL)
+    k_max = max(km.values())
+    root = parse(profile_plan_svg(today_statuses(), REAL))
+    uy = by_class(root, "rect", "uy")[0]
+    x_bu = 64 + km["ina_74"] / k_max * 1012
+    assert float(uy.get("x")) == pytest.approx(x_bu - 14, abs=0.06)
+    assert float(uy.get("x")) + float(uy.get("width")) == pytest.approx(1100 - 24)
+
+
+def test_plan_profile_desc_lists_each_plotted_station():
+    root = parse(profile_plan_svg(today_statuses(), REAL))
+    desc = root.find("s:desc", NS).text
+    assert "escala de 50 a 100" in desc
+    assert "Monte Caseros 95" in desc and "Paso de los Libres 93" in desc
+    assert "Salto Grande Abajo" not in desc and "Nueva Palmira" not in desc
+
+
+def test_plan_profile_title_and_desc_are_referenced_by_id():
+    ids = set()
+    for svg in (profile_plan_svg(today_statuses(), REAL), phone(today_statuses())):
+        root = parse(svg)
+        title, desc = root.find("s:title", NS), root.find("s:desc", NS)
+        assert root.get("aria-labelledby") == title.get("id")
+        assert root.get("aria-describedby") == desc.get("id")
+        ids |= {title.get("id"), desc.get("id")}
+    assert len(ids) == 4

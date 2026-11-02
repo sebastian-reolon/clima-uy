@@ -744,6 +744,14 @@ def test_home_city_rows(home):
     assert fray[2] == ["sin regla pública", "más cercana: Boca Gualeguaychú (AR) 2,10 m, baja"]
 
 
+def test_home_percentile_baseline_allows_later_starts(home):
+    # Several stations start after 1990 (Alvear, La Cruz, Yapeyú in 2006): the definition says so.
+    html, _ = home
+    que = _flat(re.search(r'<h2>Ciudades uruguayas</h2>\s*<p class="que">(.*?)</p>', html, flags=re.S).group(1))
+    assert ("Percentil: qué parte de los días desde 1990, o desde que la estación tiene datos, estuvo más bajo."
+            in que)
+
+
 def test_home_city_table_labels_cells_for_phones(home):
     html, _ = home
     table = _table(html, "ciu")

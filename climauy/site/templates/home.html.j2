@@ -15,7 +15,7 @@
 </dl>
 </div>
 <section class="sec"><h2>Ciudades uruguayas</h2>
-<p class="que">Nivel en la regla de enfrente. Percentil: qué parte de los días desde {{ baseline_year }} estuvo más bajo. Cada regla tiene su propio cero, así que los metros no se comparan entre filas.{% if city_rows | selectattr("q_pct") | list %} Donde la estación mide caudal, el percentil es del caudal.{% endif %}</p>
+<p class="que">Nivel en la regla de enfrente. Percentil: qué parte de los días desde {{ baseline_year }}, o desde que la estación tiene datos, estuvo más bajo. Cada regla tiene su propio cero, así que los metros no se comparan entre filas.{% if city_rows | selectattr("q_pct") | list %} Donde la estación mide caudal, el percentil es del caudal.{% endif %}</p>
 <div class="tw"><table class="ciu">
 <thead><tr><th scope="col">Ciudad</th><th scope="col">Regla</th><th scope="col" class="n">Nivel</th><th scope="col" class="n">Δ 3 días (m)</th><th scope="col" class="n">Percentil</th><th scope="col" class="n">Alerta (m)</th><th scope="col" class="n">Falta (m)</th></tr></thead>
 <tbody>

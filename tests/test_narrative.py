@@ -1,3 +1,4 @@
+import dataclasses
 from datetime import datetime, timezone
 
 from climauy.analysis.status import StationStatus
@@ -172,3 +173,136 @@ def test_desde_1990_only_when_data_starts_in_1990():
     assert out.endswith("más que el 94% de los días desde 1993.")
     out = river_summary([status("a", pct=94.4, years=20.0, since=1990)], CATALOG)
     assert out.endswith("más que el 94% de los días desde 1990.")
+
+
+# ---- river_headline ----
+from climauy.narrative import river_headline  # noqa: E402
+
+
+def rstation(sid, name, order, represents=None, alert_m=None, country="AR", river="Uruguay"):
+    return Station(
+        id=sid, name=name, country=country, river=river, lat=0.0, lon=0.0, river_km=None, km_source=None,
+        sources={}, represents=represents, alert_m=alert_m, evac_m=None, cota_source=None, order=order,
+        tributary_of=None,
+    )
+
+
+def rstatus(sid, trend=None, pct=50.0, change=None, above=False, stale=False, value=1.0):
+    s = status(sid, pct=pct, trend=trend, stale=stale, above_alert=above)
+    return dataclasses.replace(s, latest_value=value, level_change_3d_m=change)
+
+
+RCAT = [
+    rstation("up1", "Alba Posse", 1),
+    rstation("up2", "Santo Tomé", 2),
+    rstation("pdl", "Paso de los Libres", 3, alert_m=7.0),
+    rstation("mc", "Monte Caseros", 4, represents="Bella Unión", alert_m=6.5),
+    rstation("moc", "Mocoretá", 5),
+    rstation("con", "Concordia", 6, represents="Salto", alert_m=10.0),
+    rstation("col", "Colón", 7, represents="Paysandú", alert_m=6.0),
+    rstation("br", "Artigas", 8, represents="Artigas", alert_m=5.0, country="UY", river="Quaraí"),
+]
+
+
+def sts(mc=None, con=None, col=None, up=("baja", "baja"), pdl=("baja", True), moc="sube"):
+    """Statuses; each city arg is (trend, pct, change, above)."""
+    out = [rstatus("up1", up[0]), rstatus("up2", up[1])]
+    out.append(rstatus("pdl", pdl[0], above=pdl[1]))
+    for sid, v in (("mc", mc), ("con", con), ("col", col)):
+        if v is not None:
+            out.append(rstatus(sid, v[0], pct=v[1], change=v[2], above=v[3]))
+    out.append(rstatus("moc", moc))
+    return out
+
+
+def test_headline_today_exact():
+    s = sts(mc=("sube", 95.0, 0.25, False), con=("sube", 92.3, 0.30, False), col=("estable", 91.0, 0.0, False))
+    s.append(rstatus("up3", "baja"))  # unknown to catalog: ignored
+    h1, sub = river_headline(s, RCAT)
+    assert h1 == "El río viene alto y sube despacio frente a Bella Unión y Salto."
+    assert sub == (
+        "Ninguna regla de las que miden enfrente llegó a su cota de alerta. Río arriba ya baja. "
+        "La única sobre alerta es Paso de los Libres, del lado argentino, y también baja."
+    )
+
+
+def test_headline_city_above_alert():
+    s = sts(mc=("sube", 95, 0.2, True), con=("sube", 92, 0.3, False), col=("baja", 91, -0.1, True))
+    h1, sub = river_headline(s, RCAT)
+    assert h1 == "El río pasó la cota de alerta frente a Bella Unión y Paysandú."
+    assert not sub.startswith("Ninguna regla")
+
+
+def test_headline_rises_fast_and_plain():
+    fast = sts(mc=("sube", 80, 1.2, False))
+    assert river_headline(fast, RCAT)[0] == "El río está por encima de lo normal y sube rápido frente a Bella Unión."
+    plain = sts(mc=("sube", 50, 0.7, False))
+    assert river_headline(plain, RCAT)[0] == "El río está en valores normales y sube frente a Bella Unión."
+    # speed comes from the largest rise
+    mixed = sts(mc=("sube", 50, 0.2, False), con=("sube", 50, 1.0, False))
+    assert river_headline(mixed, RCAT)[0] == "El río está en valores normales y sube rápido frente a Bella Unión y Salto."
+
+
+def test_headline_falls():
+    s = sts(mc=("baja", 10, -0.3, False), con=("estable", 20, 0.0, False))
+    assert river_headline(s, RCAT)[0] == "El río está bajo y baja frente a Bella Unión."
+
+
+def test_headline_stable():
+    s = sts(mc=("estable", 60, 0.0, False), con=("estable", 40, 0.0, False))
+    assert river_headline(s, RCAT)[0] == "El río está en valores normales y se mantiene estable."
+
+
+def test_headline_no_trend():
+    s = sts(mc=(None, 95, None, False))
+    assert river_headline(s, RCAT)[0] == "El río viene alto."
+
+
+def test_headline_no_fresh_city_data():
+    s = sts(mc=("sube", 95, 0.2, False))
+    s = [x if x.station_id != "mc" else rstatus("mc", "sube", stale=True) for x in s]
+    assert river_headline(s, RCAT) == ("No hay datos al día del río frente a las ciudades uruguayas.", "")
+    assert river_headline([], RCAT) == ("No hay datos al día del río frente a las ciudades uruguayas.", "")
+
+
+def test_headline_excludes_non_main_river_city():
+    s = sts(mc=("baja", 50, -0.1, False)) + [rstatus("br", "sube", pct=99, change=2.0, above=True)]
+    assert river_headline(s, RCAT)[0] == "El río está en valores normales y baja frente a Bella Unión."
+
+
+def test_headline_several_non_city_above_alert():
+    s = sts(mc=("baja", 50, -0.1, False), up=("baja", "baja"), pdl=("baja", True))
+    s = [x if x.station_id != "up2" else rstatus("up2", "baja", above=True) for x in s]
+    sub = river_headline(s, RCAT)[1]
+    assert sub.endswith("Sobre la alerta: Santo Tomé y Paso de los Libres.")
+
+
+def test_headline_single_above_alert_trend_wording():
+    s = sts(mc=("baja", 50, -0.1, False), up=("sube", "sube"), pdl=("sube", True))
+    assert river_headline(s, RCAT)[1].endswith("La única sobre alerta es Paso de los Libres, del lado argentino, y sigue subiendo.")
+    s = sts(mc=("baja", 50, -0.1, False), up=("baja", "baja"), pdl=("estable", True))
+    assert river_headline(s, RCAT)[1].endswith("del lado argentino, y está estable.")
+    # plain "baja" when the upstream sentence did not say "ya baja"
+    s = sts(mc=("baja", 50, -0.1, False), up=("sube", "estable"), pdl=("baja", True))
+    sub = river_headline(s, RCAT)[1]
+    assert "Río arriba" not in sub and sub.endswith("del lado argentino, y baja.")
+
+
+def test_headline_brazilian_side():
+    cat = RCAT + [rstation("br2", "Garruchos", 0, alert_m=3.0, country="BR")]
+    s = sts(mc=("baja", 50, -0.1, False), pdl=("baja", False)) + [rstatus("br2", "baja", above=True)]
+    assert "del lado brasileño" in river_headline(s, cat)[1]
+
+
+def test_headline_upstream_rising_and_tie():
+    s = sts(mc=("baja", 50, -0.1, False), up=("sube", "sube"), pdl=("baja", False))
+    assert "Río arriba sigue subiendo." in river_headline(s, RCAT)[1]
+    s = sts(mc=("baja", 50, -0.1, False), up=("sube", "baja"), pdl=("estable", False))
+    assert "Río arriba" not in river_headline(s, RCAT)[1]
+
+
+def test_headline_upstream_excludes_downstream_and_stale():
+    # Mocoretá (downstream of the first city) rising must not count; stale upstream is ignored
+    s = sts(mc=("baja", 50, -0.1, False), up=("baja", "baja"), pdl=("baja", False), moc="sube")
+    s = [x if x.station_id != "up1" else rstatus("up1", "sube", stale=True) for x in s]
+    assert "Río arriba ya baja." in river_headline(s, RCAT)[1]

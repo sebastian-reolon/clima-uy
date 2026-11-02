@@ -92,7 +92,7 @@ def test_enso_summary_decimal_comma():
         IndexValue("NINO34_WEEKLY", "2026-10-25", 1.9),
     ]
     assert enso_summary(idx) == (
-        "El Niño sigue activo: el índice oficial de la NOAA (RONI) está en +1,69 para julio-septiembre de 2026; "
+        "El Niño sigue activo: el índice oficial de la NOAA (RONI) está en +1,69 para julio a septiembre de 2026; "
         "el índice tradicional (ONI) marca +1,20."
     )
 
@@ -127,7 +127,7 @@ def test_enso_latest_period_ordering():
 
 def test_enso_tiny_negative_and_unknown_code():
     out = enso_summary([IndexValue("RONI", "2026-JAS", -0.001), IndexValue("RONI", "2027-XYZ", 2.0)])
-    assert "+0,00 para julio-septiembre de 2026" in out
+    assert "+0,00 para julio a septiembre de 2026" in out
 
 
 def test_summary_without_percentiles_keeps_other_sentences():

@@ -667,7 +667,7 @@ def _upstream_rows(statuses: Sequence[StationStatus], catalog: Sequence[Station]
 
 def _season_span(period: str) -> str:
     """«julio a septiembre de 2026»: the CPC season in words, without a dash."""
-    return season_label(period).replace("-", " a ")
+    return season_label(period)
 
 
 def _first_month(code: str) -> int:

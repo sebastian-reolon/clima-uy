@@ -222,11 +222,11 @@ def test_nino_enso_tables(site):
     # enso_summary, its lead as the h1 and the indices in the line under it.
     head = re.search(r'<section class="resp"><h1>(.*?)</h1>\s*<p>(.*?)</p>', html, flags=re.S)
     assert _flat(head.group(1)) == "El Niño sigue activo."
-    assert _flat(head.group(2)) == ("El índice oficial de la NOAA (RONI) está en +1,69 para julio-septiembre "
+    assert _flat(head.group(2)) == ("El índice oficial de la NOAA (RONI) está en +1,69 para julio a septiembre "
                                     "de 2026; el índice tradicional (ONI) marca +2,16.")
     rows = _rows(_table(html, "enso"))
-    assert rows[0][1:] == ("julio-septiembre de 2026", ["+1,69", "+2,16", "+0,47"])
-    assert rows[1][1:] == ("junio-agosto de 2026", ["+1,36", "+1,80", "+0,44"])
+    assert rows[0][1:] == ("julio a septiembre de 2026", ["+1,69", "+2,16", "+0,47"])
+    assert rows[1][1:] == ("junio a agosto de 2026", ["+1,36", "+1,80", "+0,44"])
     assert "es el índice que la NOAA usa ahora como oficial" in flat
     titles = [_text(t) for t in re.findall(r"<h2[^>]*>(.*?)</h2>", html, flags=re.S)]
     assert titles == ["Los dos índices", "Qué espera INUMET", "Notas"]

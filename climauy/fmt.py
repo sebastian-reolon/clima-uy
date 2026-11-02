@@ -13,18 +13,18 @@ MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agost
 # season with the year of its CENTER month: "2026-DJF" is Dec 2025 to Feb 2026 and
 # "2026-NDJ" is Nov 2026 to Jan 2027.
 SEASONS = {
-    "DJF": ("diciembre-febrero", 1),
-    "JFM": ("enero-marzo", 2),
-    "FMA": ("febrero-abril", 3),
-    "MAM": ("marzo-mayo", 4),
-    "AMJ": ("abril-junio", 5),
-    "MJJ": ("mayo-julio", 6),
-    "JJA": ("junio-agosto", 7),
-    "JAS": ("julio-septiembre", 8),
-    "ASO": ("agosto-octubre", 9),
-    "SON": ("septiembre-noviembre", 10),
-    "OND": ("octubre-diciembre", 11),
-    "NDJ": ("noviembre-enero", 12),
+    "DJF": ("diciembre a febrero", 1),
+    "JFM": ("enero a marzo", 2),
+    "FMA": ("febrero a abril", 3),
+    "MAM": ("marzo a mayo", 4),
+    "AMJ": ("abril a junio", 5),
+    "MJJ": ("mayo a julio", 6),
+    "JJA": ("junio a agosto", 7),
+    "JAS": ("julio a septiembre", 8),
+    "ASO": ("agosto a octubre", 9),
+    "SON": ("septiembre a noviembre", 10),
+    "OND": ("octubre a diciembre", 11),
+    "NDJ": ("noviembre a enero", 12),
 }
 
 

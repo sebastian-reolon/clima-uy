@@ -35,7 +35,7 @@ def test_hour_in_montevideo():
 
 def test_enso_periods():
     assert fmt.season_key("2026-JAS") < fmt.season_key("2026-ASO") < fmt.season_key("2027-DJF")
-    assert fmt.season_label("2026-JAS") == "julio-septiembre de 2026"
+    assert fmt.season_label("2026-JAS") == "julio a septiembre de 2026"
     assert fmt.season_label("2026-NDJ") == "noviembre de 2026 a enero de 2027"
     assert fmt.season_label("2026-DJF") == "diciembre de 2025 a febrero de 2026"
     assert fmt.is_season("2026-OND") and not fmt.is_season("2026-XYZ") and not fmt.is_season("bad")

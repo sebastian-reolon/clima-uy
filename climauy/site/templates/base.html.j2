@@ -20,7 +20,7 @@
 {% block notes %}{% endblock %}
 </ol></section>
 </main>
-<footer class="pie"><span class="credit">Hecho por <a href="{{ author_url }}">Sebastián Reolon</a></span><span>Código y datos en <a href="{{ repo_url }}">el repositorio público</a></span><span>Fuentes: {% for name, url in sources %}<a href="{{ url }}">{{ name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</span>{% if sheet %}<span>Hoja {{ sheet }} de 5</span>{% endif %}</footer>
+<footer class="pie"><span class="credit">Hecho por <a href="{{ author_url }}">Sebastián Reolon</a></span><span>Código y datos en <a href="{{ repo_url }}">el repositorio público</a></span><span>Fuentes: {% for name, url in sources %}<a href="{{ url }}">{{ name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</span>{% if sheet %}<span>Hoja {{ sheet }} de {{ sheets }}</span>{% endif %}</footer>
 </div></div>
 {% block scripts %}{% endblock %}
 </body>

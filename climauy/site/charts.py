@@ -1258,14 +1258,14 @@ def lag_svg(result: LagResult, upstream_name: str, downstream_name: str) -> str:
 # x = km along the main river (as the home profile), y = day, oldest on top.
 # Each cell is a station's day coloured by its percentile band; blank without
 # data. Styled by the `.hov` rules of static/v2/css/site.css, like the approved
-# mockup (docs/mockups/d-crecida.html in el-nino-uy). The rows are hit targets
+# mockup (d-crecida.html, 2026-11-02). The rows are hit targets
 # (data-i = day index) for the page's day selector, which moves the
 # `hov-{variant}-sel` outline.
 
 HOV_BOUNDS = (50, 75, 90, 95, 99)  # Ruling 4: bands <50, 50-75, 75-90, 90-95, 95-99, >=99
 HOV_MONTHS = [m[:3] for m in MONTHS]  # «sep», «oct»: the week ticks and the day titles
 _HOV_PHONE_ROW = 7.0  # phone: height of one day, in viewBox units
-_HOV_PHONE_CITY_ROW = 16.0  # phone: one city label per row, stepping down to the right
+_HOV_PHONE_CITY_ROW = 18.0  # phone: one city label per row, stepping down to the right
 
 
 def hov_band(p: float) -> int:

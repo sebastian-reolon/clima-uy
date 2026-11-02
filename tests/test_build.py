@@ -12,9 +12,10 @@ from climauy.site.build import FOOTER_TEXT, build_site
 from climauy.store import Forecast, IndexValue, Obs, Store
 
 NOW = datetime(2026, 11, 1, 21, 5, tzinfo=timezone.utc)  # 18:05 in Montevideo
-PAGES = ["index.html", "rio/index.html", "nino/index.html", "rio/metodologia/index.html", "datos/index.html"]
-SHEETS = {"index.html": 1, "rio/index.html": 2, "nino/index.html": 3, "datos/index.html": 4,
-          "rio/metodologia/index.html": 5}
+PAGES = ["index.html", "rio/index.html", "rio/crecida/index.html", "nino/index.html", "rio/metodologia/index.html",
+         "datos/index.html"]
+SHEETS = {"index.html": 1, "rio/index.html": 2, "rio/crecida/index.html": 3, "nino/index.html": 4,
+          "datos/index.html": 5, "rio/metodologia/index.html": 6}
 ALLOWED_ACRONYMS = {
     "INA", "ANA", "CTM", "SINAE", "CECOED", "INUMET", "NOAA", "RONI", "ONI", "CPC", "CARU", "DINAGUA",
     "UTC", "CSV", "JSON",
@@ -585,10 +586,10 @@ def test_sheet_number_in_footer(site, tmp_path):
     from climauy.site.build import render_snapshot_index
 
     out, _ = site
-    assert "Hoja 2 de 5" in _flat(_read(out, "rio/index.html"))
+    assert "Hoja 2 de 6" in _flat(_read(out, "rio/index.html"))
     for page, n in SHEETS.items():
         footer = re.search(r'<footer class="pie">.*?</footer>', _read(out, page), flags=re.S).group(0)
-        assert f"Hoja {n} de 5" in _flat(footer), page
+        assert f"Hoja {n} de 6" in _flat(footer), page
     index = render_snapshot_index(tmp_path, [date(2026, 11, 1)], base_url="/clima-uy")
     assert "Hoja" not in _flat(index.read_text(encoding="utf-8"))
 
@@ -635,6 +636,7 @@ def test_nav_marks_the_current_sheet(site):
     assert _nav(_read(out, "index.html")) == {"Río": True, "El Niño": False, "Datos": False}
     assert _nav(_read(out, "rio/index.html")) == {"Río": True, "El Niño": False, "Datos": False}
     assert _nav(_read(out, "rio/metodologia/index.html")) == {"Río": True, "El Niño": False, "Datos": False}
+    assert _nav(_read(out, "rio/crecida/index.html")) == {"Río": True, "El Niño": False, "Datos": False}
     assert _nav(_read(out, "nino/index.html")) == {"Río": False, "El Niño": True, "Datos": False}
     assert _nav(_read(out, "datos/index.html")) == {"Río": False, "El Niño": False, "Datos": True}
 
@@ -964,3 +966,103 @@ def test_home_notes_group_cotas_by_source_and_date(tmp_path):
             "Paysandú 6,00 m (DINAGUA, 3/8/2026); Fray Bentos 3,90 m (DINAGUA, 1/9/2026). "
             "No se comparan con las reglas de enfrente.") in _flat(notes)
     assert 'href="https://example.org/otro.pdf"' in notes and f'href="{DINAGUA_URL}"' in notes
+
+
+# ---------------------------------------------------------------- /rio/crecida/ (sheet 3)
+
+def test_crecida_title_block(site):
+    out, _ = site
+    html = _read(out, "rio/crecida/index.html")
+    assert re.search(r'<section class="resp"><h1>La crecida, día por día</h1>', html)
+    assert "Los últimos 60 días del río, de las represas de Brasil a Nueva Palmira." in _flat(html)
+    caj = re.search(r'<dl class="cajetin">(.*?)</dl>', html, flags=re.S).group(1)
+    assert [_flat(x) for x in re.findall(r"<dt>(.*?)</dt>", caj)] == ["Ventana", "Estaciones", "Datos", "Carácter"]
+    dds = [_flat(x) for x in re.findall(r"<dd>(.*?)</dd>", caj, flags=re.S)]
+    # NOW is 18:05 on 1/11 in Montevideo: the window ends that day.
+    assert dds == ["03/09/2026 al 01/11/2026", "1 de 33", "matriz en CSV", "informativo, no oficial"]
+    assert '<a href="/clima-uy/data/rio/crecida-60d.csv" download>matriz en CSV</a>' in caj
+
+
+def test_crecida_draws_both_variants_and_the_scale(site):
+    out, _ = site
+    html = _read(out, "rio/crecida/index.html")
+    assert html.count('<svg xmlns="http://www.w3.org/2000/svg" class="hov"') == 1
+    assert html.count('<svg xmlns="http://www.w3.org/2000/svg" class="hov movil"') == 1
+    ids = re.findall(r'\bid="([^"]+)"', html)
+    assert len(ids) == len(set(ids))
+    scale = _flat(re.search(r'<p class="escala">.*?</p>', html, flags=re.S).group(0))
+    assert scale == "menos de 5050 a 7575 a 9090 a 9595 a 9999 o másblanco: sin dato"
+
+
+def test_crecida_day_selector_works_only_with_js(site):
+    out, _ = site
+    html = _read(out, "rio/crecida/index.html")
+    assert '<label for="dia">Día</label><input id="dia" type="range" min="0" max="59" value="59"' in html
+    assert re.search(r'<div class="dia" id="dia-control" hidden>', html)
+    assert '<div id="dia-perfil" hidden>' in html
+    assert "Para elegir un día hace falta JavaScript." in re.search(r"<noscript>.*?</noscript>", html, flags=re.S).group(0)
+
+
+def test_crecida_day_data_is_safe_json(site):
+    import json
+
+    out, _ = site
+    html = _read(out, "rio/crecida/index.html")
+    raw = re.search(r'<script type="application/json" id="crecida-datos">(.*?)</script>', html, flags=re.S).group(1)
+    assert "<" not in raw
+    data = json.loads(raw)
+    assert len(data["days"]) == 60 and data["days"][-1] == "2026-11-01"
+    assert data["months"][8] == "sep"
+    assert [r["city"] for r in data["rows"]] == ["Bella Unión"]
+    assert data["rows"][0]["p"][-1] is not None
+
+
+def test_crecida_notes(site):
+    out, _ = site
+    notes = _flat(re.search(r'<ol class="notas">.*?</ol>', _read(out, "rio/crecida/index.html"), flags=re.S).group(0))
+    assert "Entran las estaciones con 10 años o más de historia y dato en al menos 80% de los días de la ventana." in notes
+    assert "Quedan afuera" not in notes  # the seed has no station with history and too few days
+    assert ("Un pico es un día más alto que los cinco anteriores y los cinco siguientes, con percentil 90 o más."
+            in notes)
+
+
+def test_crecida_skipped_note_lists_names(tmp_path):
+    with Store(tmp_path / "t.sqlite") as store:
+        _seed(store)
+        # Uruguaiana: 12 years of discharge that stop a month before the build.
+        start = date(2014, 9, 1)
+        store.upsert_obs([
+            Obs("ana_77150000", "discharge", datetime(d.year, d.month, d.day, 15, tzinfo=timezone.utc), 5000.0, "ana_hist")
+            for d in (start + timedelta(days=i) for i in range((date(2026, 10, 1) - start).days))
+        ])
+        build_site(store, load_catalog(), tmp_path / "out", NOW, base_url="/clima-uy")
+    html = _read(tmp_path / "out", "rio/crecida/index.html")
+    notes = _flat(re.search(r'<ol class="notas">.*?</ol>', html, flags=re.S).group(0))
+    assert "Quedan afuera: Uruguaiana." in notes
+
+
+def test_crecida_csv(site):
+    import csv
+
+    out, _ = site
+    with (out / "data/rio/crecida-60d.csv").open(newline="", encoding="utf-8") as f:
+        rows = list(csv.reader(f))
+    assert rows[0] == ["date", "station_id", "station", "km", "variable", "value", "percentile"]
+    body = rows[1:]
+    assert len(body) == 60
+    assert {r[1] for r in body} == {"ina_74"} and body[0][2] == "Monte Caseros" and body[0][4] == "level"
+    assert body[0][0] == "2026-09-03" and body[-1][0] == "2026-11-01"
+    for r in body:
+        float(r[3]), float(r[5]), float(r[6])
+        assert 0 <= float(r[6]) <= 100
+
+
+def test_links_to_crecida(site):
+    out, _ = site
+    link = '<a href="/clima-uy/rio/crecida/">Ver la crecida día por día, últimos 60 días</a>'
+    home = _read(out, "index.html")
+    assert link in home
+    assert home.index(link) > home.index('<p class="ley">')
+    rio = _read(out, "rio/index.html")
+    assert link in rio and rio.index(link) > rio.index('<figure class="profile">')
+    assert 'href="/clima-uy/data/rio/crecida-60d.csv"' in _read(out, "datos/index.html")

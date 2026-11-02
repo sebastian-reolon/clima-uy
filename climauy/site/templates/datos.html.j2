@@ -14,9 +14,11 @@
   <ul class="downloads">
     <li><a href="{{ base }}/data/rio/latest.json">Estado de hoy de todas las estaciones y la frase del día (JSON)</a></li>
     <li><a href="{{ base }}/data/rio/stations.csv">Catálogo de estaciones (CSV)</a></li>
+    <li><a href="{{ base }}/data/rio/crecida-60d.csv">La crecida de los últimos 60 días, estación por estación y día (CSV)</a></li>
     <li><a href="{{ base }}/data/enso/indices.csv">Índices RONI, ONI y Niño 3.4 semanal (CSV)</a></li>
   </ul>
   <p>En el estado de hoy, <code>last_data_utc</code> es la hora del dato más nuevo entre las estaciones al día (vacío si no hay ninguna), y cada estación dice la hora de su último dato (<code>latest_time_utc</code>) y de qué fuente es (<code>latest_source</code>).</p>
+  <p>En la crecida de 60 días hay una fila por estación del río Uruguay y día con dato: <code>date</code> (día de Montevideo), <code>station_id</code> y <code>station</code>, <code>km</code> desde Machadinho, <code>variable</code> (<code>level</code> en metros o <code>discharge</code> en m³/s), <code>value</code> (media del día) y <code>percentile</code> contra la historia de la estación antes de la ventana. Es la matriz de <a href="{{ base }}/rio/crecida/">la crecida, día por día</a> y se rehace en cada actualización.</p>
   <h3>Lecturas crudas y pronósticos, por mes</h3>
   <p>Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo. La columna <code>source</code> dice de qué fuente es cada valor; citala junto con este sitio (ver <a href="#licencias">licencias</a>). Cada mes se actualiza hasta el primer día del mes siguiente y después queda fijo.</p>
   <ul class="downloads">

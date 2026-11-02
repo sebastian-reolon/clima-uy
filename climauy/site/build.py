@@ -17,6 +17,7 @@ from typing import Sequence
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 
+from ..analysis import crecida
 from ..analysis.daily import family_daily, family_for, station_daily, station_readings
 from ..analysis.events import SEASONS, compare_floods, season_series
 from ..analysis.lag import LagResult, run_production_lags
@@ -840,7 +841,55 @@ def _doc_parts(md: str) -> dict:
     }
 
 
+# ---------------------------------------------------------------- /rio/crecida/ (sheet 3)
+
+def _crecida_data(matrix: crecida.RiverMatrix) -> Markup:
+    """The day selector's data as JSON for a <script type="application/json"> block.
+
+    Only what the day profile draws: days, the axis length and each station's
+    km, city and percentiles (one decimal). <, > and & are escaped so the
+    payload can never close the script element.
+    """
+    data = {
+        "days": [d.isoformat() for d in matrix.days],
+        "months": charts.HOV_MONTHS,
+        "kmMax": round(matrix.km_max, 1),
+        "rows": [{"name": r.name, "city": r.city, "km": round(r.km, 1),
+                  "p": [None if p is None else round(p, 1) for p in r.percentiles]} for r in matrix.rows],
+    }
+    text = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    return Markup(text.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026"))
+
+
+def _crecida_view(matrix: crecida.RiverMatrix) -> dict:
+    first, last = matrix.days[0], matrix.days[-1]
+    return {
+        "window_days": len(matrix.days),
+        "cajetin": [
+            ("Ventana", f"{first:%d/%m/%Y} al {last:%d/%m/%Y}"),
+            ("Estaciones", f"{len(matrix.rows)} de {matrix.stations_total}"),
+        ],
+        "character": CHARACTER,
+        "csv_path": publish.CRECIDA_CSV,
+        "hov_wide": Markup(charts.hovmoller_svg(matrix)),
+        "hov_phone": Markup(charts.hovmoller_svg(matrix, width=360, variant="movil")),
+        "bands": ["menos de 50", "50 a 75", "75 a 90", "90 a 95", "95 a 99", "99 o más"],
+        "data": _crecida_data(matrix),
+        "skipped": ", ".join(matrix.skipped),
+        "min_years": int(MIN_HISTORY_YEARS),
+        "min_coverage": int(round(crecida.MIN_COVERAGE * 100)),
+        "peak_days": NUMBER_WORDS.get(crecida.PEAK_HALF_WIDTH, str(crecida.PEAK_HALF_WIDTH)),
+        "peak_pct": int(crecida.PEAK_MIN_PERCENTILE),
+    }
+
+
+NUMBER_WORDS = {3: "tres", 4: "cuatro", 5: "cinco", 6: "seis", 7: "siete"}
+
+
 # ---------------------------------------------------------------- build
+
+SHEETS_TOTAL = 6
+
 
 def _env() -> Environment:
     env = Environment(
@@ -862,7 +911,8 @@ def _common(base: str) -> dict:
         "sources": SOURCES,
         "repo_url": REPO_URL,
         "author_url": AUTHOR_URL,
-        "sheet": None,  # «Hoja n de 5» in the footer; pages outside the numbered set leave it unset
+        "sheet": None,  # «Hoja n de 6» in the footer; pages outside the numbered set leave it unset
+        "sheets": SHEETS_TOTAL,
     }
 
 
@@ -888,7 +938,7 @@ def build_site(
     method_path: Path = METHOD_PATH,
     refs_path: Path = REFS_PATH,
 ) -> list[Path]:
-    """Write the five pages and the static assets into out_dir; returns the pages written."""
+    """Write the six pages, the static assets and the crecida CSV into out_dir; returns the pages written."""
     base = base_url.rstrip("/")
     out_dir.mkdir(parents=True, exist_ok=True)
     static_out = out_dir / "static"
@@ -912,6 +962,8 @@ def build_site(
     all_rows = _all_rows(statuses, catalog, store)
     fc_views, ver_views = _forecast_views(store, by_id, verify_production(store, catalog))
     lag_results = run_production_lags(store, catalog)
+    matrix = crecida.river_matrix(store, catalog, today)
+    publish.write_crecida_csv(out_dir, matrix, catalog)
 
     common = {
         **_common(base),
@@ -958,9 +1010,14 @@ def build_site(
             "lags": _lag_views(lag_results, by_id),
             "lag_validated": all(r.validated for r in lag_results) and bool(lag_results),
         }),
+        "rio/crecida/index.html": ("crecida.html.j2", {
+            "nav": "rio",
+            "sheet": 3,
+            **_crecida_view(matrix),
+        }),
         "nino/index.html": ("nino.html.j2", {
             "nav": "nino",
-            "sheet": 3,
+            "sheet": 4,
             "headline": _nino_headline(enso_summary(store.indices("RONI") + store.indices("ONI"))),
             "cajetin": _nino_cajetin(store, outlook_path),
             "enso_rows": _enso_rows(store),
@@ -969,12 +1026,12 @@ def build_site(
         }),
         "rio/metodologia/index.html": ("metodologia.html.j2", {
             "nav": "rio",
-            "sheet": 5,
+            "sheet": 6,
             "doc": _doc_parts(method_path.read_text(encoding="utf-8")),
         }),
         "datos/index.html": ("datos.html.j2", {
             "nav": "datos",
-            "sheet": 4,
+            "sheet": 5,
             "downloads": _downloads(store, catalog, now_utc),
             "source_terms": _source_terms(),
             "licences_url": f"{REPO_URL}/blob/main/{LICENCES_DOC}",

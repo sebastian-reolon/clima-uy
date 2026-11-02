@@ -17,6 +17,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Iterable, Sequence
 
+from .analysis.crecida import RiverMatrix
 from .analysis.daily import family_for, station_readings
 from .analysis.status import compute_status
 from .catalog import Station
@@ -47,6 +48,8 @@ DAILY_COLUMNS = ["date_local", "value", "n_readings"]
 RAW_COLUMNS = ["station_id", "variable", "time_utc", "value", "source", "quality"]
 FORECAST_COLUMNS = ["issuer", "station_id", "variable", "issued_utc", "valid_utc", "qualifier", "value"]
 INDEX_COLUMNS = ["name", "period", "value"]
+CRECIDA_COLUMNS = ["date", "station_id", "station", "km", "variable", "value", "percentile"]
+CRECIDA_CSV = "data/rio/crecida-60d.csv"  # the /rio/crecida/ matrix, rewritten on every build
 
 
 def _utc(t: datetime) -> str:
@@ -240,10 +243,29 @@ def export_data(store: Store, catalog: Sequence[Station], out_dir: Path, now_utc
     return written
 
 
+def write_crecida_csv(out_dir: Path, matrix: RiverMatrix, catalog: Sequence[Station]) -> Path:
+    """The /rio/crecida/ matrix: one row per station and day with data, downstream, oldest day first.
+
+    `value` is the day mean of the variable the page uses (m or m³/s). It is
+    left empty when the station's source family is not republished in full
+    (FULL_SERIES_SOURCES): the percentile, which the page shows, stays.
+    """
+    by_id = {s.id: s for s in catalog}
+    rows = []
+    for r in matrix.rows:
+        full = all(s in FULL_SERIES_SOURCES for s in family_for(by_id[r.station_id], r.variable))
+        for d, v, p in zip(matrix.days, r.values, r.percentiles):
+            if v is None or p is None:
+                continue
+            rows.append([d.isoformat(), r.station_id, r.name, round(r.km, 1), r.variable,
+                         round(v, 4) if full else None, round(p, 1)])
+    return _write_csv(out_dir / CRECIDA_CSV, CRECIDA_COLUMNS, rows)
+
+
 # ---------------------------------------------------------------- snapshot
 
-SNAPSHOT_PAGES = ("index.html", "rio", "nino")
-SNAPSHOT_DATA = ("data/rio/latest.json", "data/rio/stations.csv")
+SNAPSHOT_PAGES = ("index.html", "rio", "rio/crecida", "nino")  # "rio" already holds "rio/crecida"; listed to be explicit
+SNAPSHOT_DATA = ("data/rio/latest.json", "data/rio/stations.csv", CRECIDA_CSV)
 _DAY_DIR = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
@@ -269,7 +291,7 @@ def _rewrite_links(html: str, base: str, day: str) -> str:
 
 
 def write_snapshot(out_dir: Path, day_local: date, base_url: str = "/clima-uy") -> Path:
-    """Copy the home page, the river pages, the El Niño page and today's data into snapshots/<day>/.
+    """Copy the home page, the river pages (crecida included), the El Niño page and today's data into snapshots/<day>/.
 
     The same day is overwritten on every run; past days are never touched.
     Also regenerates snapshots/index.html from the day folders on disk.
@@ -285,6 +307,8 @@ def write_snapshot(out_dir: Path, day_local: date, base_url: str = "/clima-uy") 
         shutil.rmtree(tmp)
     for rel in SNAPSHOT_PAGES + SNAPSHOT_DATA:
         src = out_dir / rel
+        if (tmp / rel).exists():  # already copied with its parent folder
+            continue
         if src.is_dir():
             shutil.copytree(src, tmp / rel)
         else:

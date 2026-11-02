@@ -42,6 +42,11 @@ Editorial engineering. Tone: technical, austere.
 - `--water-2` oklch(48% 0.13 245 / .12)
 - `--alert`   oklch(54% 0.2 28)       above an alert level, alert lines
 - `--focus`   same as `--water`
+- `--hov-0` to `--hov-5`  oklch(96% 0.01 240), oklch(89% 0.035 240),
+  oklch(78% 0.07 242), oklch(65% 0.1 245), oklch(50% 0.12 250),
+  oklch(35% 0.11 260): the percentile bands of the crecida diagram
+  (<50, 50 to 75, 75 to 90, 90 to 95, 95 to 99, 99 or more), a sequential
+  blue because every cell is water. Used nowhere else.
 
 No decorative accent. Colour only marks a state: blue = rising or water,
 red = alert. Everything else is ink.
@@ -81,12 +86,21 @@ red = alert. Everything else is ink.
   each station a dot on it (filled ink for a Uruguayan city), tributaries a
   1 px branch. Three columns (name, gauge, reading) from 64em; one below.
 - Dams: a ruled grid of label and value, no boxes.
+- Crecida diagram (`/rio/crecida/`, approved mockup `d-crecida.html` of
+  2026-11-02): x = km as in the profile, y = the last 60
+  days with the most recent at the bottom, each cell a station's day in
+  the `--hov-*` band of its percentile, blank without data. Local peaks
+  are paper dots ringed in `--alert`; the Uruguayan stretch is a 2 px
+  `--water` bracket on top. A 360-wide variant on phones. Under it, a
+  range input labelled «Día» (rows are clickable too) redraws that day's
+  profile; the diagram reads in full without JavaScript.
 - Notes: ordered list, small, ink-2.
 - Footer: credit «Hecho por Sebastián Reolon», repo link, «Hoja n de N».
 
 ## Motion
 
-None. Only `<details>` opening. The old profile's grow-in script
+None. Only `<details>` opening and the crecida page's day selector, which
+redraws on input without animating. The old profile's grow-in script
 (`static/js/morph.js`) is no longer loaded by `/rio/`; it stays for the frozen
 snapshots that link it.
 

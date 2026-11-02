@@ -1,0 +1,122 @@
+{% extends "base.html.j2" %}
+{# Sheet 3: the river day by day. Ported from the approved mockup d-crecida.html (2026-11-02).
+   The diagram is static SVG; the day selector is the only script and only redraws the day profile. #}
+{% block title %}La crecida, día por día | clima-uy{% endblock %}
+{% block description %}Los últimos {{ window_days }} días del río Uruguay, de las represas de Brasil a Nueva Palmira: cada estación comparada con su propia historia, día por día, con la matriz en CSV.{% endblock %}
+{% block main %}
+<div class="cab">
+<section class="resp"><h1>La crecida, día por día</h1>
+<p>Los últimos {{ window_days }} días del río, de las represas de Brasil a Nueva Palmira. Una crecida que baja se ve como una franja oscura en diagonal: cuanto más inclinada, más lento viaja el agua.</p>
+</section>
+<dl class="cajetin">
+{% for label, value in cajetin %}
+<dt>{{ label }}</dt><dd>{{ value }}</dd>
+{% endfor %}
+<dt>Datos</dt><dd><a href="{{ base }}/{{ csv_path }}" download>matriz en CSV</a></dd>
+<dt>Carácter</dt><dd>{{ character }}</dd>
+</dl>
+</div>
+<section class="sec"><h2>El río en los últimos {{ window_days }} días</h2>
+<p class="que">Columnas: estaciones en el orden en que baja el agua. Filas: días, el más reciente abajo. Color: percentil de ese día contra la historia de cada estación desde 1990, o desde que tiene datos. Los puntos rojos son los picos de cada estación: si se alinean en diagonal, es la misma crecida bajando.</p>
+{{ hov_wide }}{{ hov_phone }}
+<p class="escala">{% for label in bands %}<span><i class="h{{ loop.index0 }}"></i>{{ label }}</span>{% endfor %}<span>blanco: sin dato</span></p>
+</section>
+<section class="sec"><h2>Un día</h2>
+<p class="que">Elegí un día tocando una fila del diagrama o con el control. Abajo, el perfil del río ese día.</p>
+<noscript><p>Para elegir un día hace falta JavaScript. El diagrama de arriba se lee completo sin él.</p></noscript>
+<div class="dia" id="dia-control" hidden><label for="dia">Día</label><input id="dia" type="range" min="0" max="{{ window_days - 1 }}" value="{{ window_days - 1 }}" step="1"><output id="dia-txt" for="dia"></output></div>
+<div id="dia-perfil" hidden><svg id="perfil-dia" class="perfil-dia" viewBox="0 0 1100 250" role="img" aria-label="Perfil del río el día elegido"></svg></div>
+</section>
+{% endblock %}
+{% block notes %}
+<li>Entran las estaciones con {{ min_years }} años o más de historia y dato en al menos {{ min_coverage }}% de los días de la ventana.{% if skipped %} Quedan afuera: {{ skipped }}.{% endif %}</li>
+<li>Un pico es un día más alto que los {{ peak_days }} anteriores y los {{ peak_days }} siguientes, con percentil {{ peak_pct }} o más. Cada estación usa nivel o caudal, el que tenga más datos en la ventana.</li>
+<li>La matriz se descarga en <a href="{{ base }}/{{ csv_path }}">CSV</a>: una fila por estación y día, con la media del día y su percentil.</li>
+{% endblock %}
+{% block scripts %}
+<script type="application/json" id="crecida-datos">{{ data }}</script>
+<script>
+(function () {
+  "use strict";
+  var D = JSON.parse(document.getElementById("crecida-datos").textContent);
+  var n = D.days.length;
+  var box = document.getElementById("dia-control"), inp = document.getElementById("dia");
+  var out = document.getElementById("dia-txt"), svg = document.getElementById("perfil-dia");
+  if (!n || !inp || !svg) return;
+  box.hidden = false;
+  document.getElementById("dia-perfil").hidden = false;
+  var NS = "http://www.w3.org/2000/svg";
+  var cur = n - 1;
+
+  function el(tag, attrs, text) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function dayText(i) {
+    var p = D.days[i].split("-");
+    return (+p[2]) + " de " + D.months[+p[1] - 1];
+  }
+  function moveSelection(i) {
+    var hovs = document.querySelectorAll("svg.hov");
+    for (var h = 0; h < hovs.length; h++) {
+      var row = hovs[h].querySelector('.hit[data-i="' + i + '"]'), sel = hovs[h].querySelector(".sel");
+      if (row && sel) sel.setAttribute("y", row.getAttribute("y"));
+    }
+  }
+  function draw(i) {
+    cur = i;
+    out.textContent = dayText(i);
+    moveSelection(i);
+    // The viewBox follows the drawn width, so 12-unit text is 12 px on any screen.
+    var W = Math.max(280, Math.round(svg.getBoundingClientRect().width) || 1100);
+    var narrow = W < 600;
+    var L = narrow ? 34 : 64, R = narrow ? 8 : 24, T = 30, PH = 200, H = T + PH + 20;
+    var X = function (k) { return L + k / D.kmMax * (W - L - R); };
+    var Y = function (p) { return T + (100 - Math.max(50, p)) / 50 * PH; };
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    for (var p = 50; p <= 100; p += 10) {
+      svg.appendChild(el("line", {"class": "g", x1: L, x2: W - R, y1: Y(p), y2: Y(p)}));
+      svg.appendChild(el("text", {"class": "ax", x: L - 8, y: Y(p) + 4, "text-anchor": "end"}, p === 50 ? "≤ 50" : String(p)));
+    }
+    var pts = [], said = [];
+    D.rows.forEach(function (r) {
+      if (r.p[i] != null) pts.push(X(r.km).toFixed(1) + "," + Y(r.p[i]).toFixed(1));
+    });
+    if (pts.length) svg.appendChild(el("polyline", {"class": "ln", points: pts.join(" ")}));
+    // City labels above their point; a label that would overlap one already placed moves up a line.
+    var placed = [];
+    D.rows.forEach(function (r) {
+      var v = r.p[i];
+      if (!r.city || v == null) return;
+      var x = X(r.km), y = Y(v), label = r.city + " P" + Math.floor(v), w = label.length * 6.6;
+      svg.appendChild(el("circle", {"class": "pt", cx: x.toFixed(1), cy: y.toFixed(1), r: 4}));
+      var end = x + 6 + w > W - R, left = end ? x - 6 - w : x + 6, ty = y - 8;
+      for (var tries = 0; tries < 6; tries++) {
+        var hit = placed.some(function (b) { return left < b[1] && left + w > b[0] && ty - 12 < b[3] && ty + 2 > b[2]; });
+        if (!hit) break;
+        ty -= 14;
+      }
+      placed.push([left, left + w, ty - 12, ty + 2]);
+      svg.appendChild(el("text", {"class": "ax", x: (end ? x - 6 : x + 6).toFixed(1), y: ty.toFixed(1), "text-anchor": end ? "end" : "start"}, label));
+      said.push(label);
+    });
+    if (!pts.length) svg.appendChild(el("text", {"class": "ax", x: W / 2, y: T + PH / 2, "text-anchor": "middle"}, "Sin datos ese día."));
+    svg.setAttribute("aria-label", "Perfil del río el " + dayText(i) + (said.length ? ": " + said.join(", ") : "") + ".");
+  }
+  inp.addEventListener("input", function () { draw(+inp.value); });
+  var hits = document.querySelectorAll("svg.hov .hit");
+  for (var h = 0; h < hits.length; h++) {
+    hits[h].addEventListener("click", function () { inp.value = this.getAttribute("data-i"); draw(+inp.value); });
+  }
+  var pending = 0;
+  window.addEventListener("resize", function () {
+    cancelAnimationFrame(pending);
+    pending = requestAnimationFrame(function () { draw(cur); });
+  });
+  draw(cur);
+})();
+</script>
+{% endblock %}

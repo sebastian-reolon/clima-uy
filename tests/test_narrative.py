@@ -167,6 +167,8 @@ def test_short_coverage_record_says_since_its_first_year():
     assert out == "El río está más alto en Santo Tomé: el valor más alto desde 2014."
 
 
-def test_thirty_years_of_coverage_keeps_1990():
+def test_desde_1990_only_when_data_starts_in_1990():
     out = river_summary([status("a", pct=94.4, years=30.0, since=1993)], CATALOG)
+    assert out.endswith("más que el 94% de los días desde 1993.")
+    out = river_summary([status("a", pct=94.4, years=20.0, since=1990)], CATALOG)
     assert out.endswith("más que el 94% de los días desde 1990.")

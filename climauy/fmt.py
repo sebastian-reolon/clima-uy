@@ -42,15 +42,13 @@ def pct(p: float) -> str:
 
 
 BASELINE_YEAR = 1990
-# With this much coverage the history reads as "since 1990"; with less, it says since when.
-FULL_COVERAGE_YEARS = 30.0
 
 
-def since_year(start_year: int | None, history_years: float) -> int:
-    """Year a station's history is said to start: 1990 with 30 years of coverage, else its first year."""
-    if start_year is None or history_years >= FULL_COVERAGE_YEARS:
+def since_year(start_year: int | None) -> int:
+    """Year a station's history is said to start: 1990 only when its data starts then, else its first year."""
+    if start_year is None or start_year <= BASELINE_YEAR:
         return BASELINE_YEAR
-    return max(start_year, BASELINE_YEAR)
+    return start_year
 
 
 def record_text(since: int) -> str:

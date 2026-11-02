@@ -430,7 +430,7 @@ def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -
         p, i = max(ranked, key=lambda t: (t[0], -t[1]))
         line1 = f"pico hoy: {_station_display(rows[i][0])}"
         crest = rows[i][1]
-        line2 = (record_text(since_year(crest.history_start_year, crest.history_years)) if is_record(p)
+        line2 = (record_text(since_year(crest.history_start_year)) if is_record(p)
                  else f"más alto que el {_pct(p)}% de los días")
         w = max(_text_width(line1, WIDE_FONT), _text_width(line2, WIDE_FONT))
         cx = min(max(x(i), w / 2), WIDE_W - w / 2)

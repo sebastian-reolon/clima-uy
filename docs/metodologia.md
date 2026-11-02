@@ -7,7 +7,7 @@ Esta página explica de dónde salen los números del módulo del río, qué sup
 - **ANA (Brasil).** Nivel y caudal cada 15 minutos de las estaciones brasileñas del río y de los afluentes Ibicuí, Ibirapuitã y Quaraí, desde el servicio `DadosHidrometeorologicos`. La historia diaria sale del servicio `HidroSerieHistorica`, que es la serie consolidada por la agencia.
 - **INA (Argentina).** Las alturas del río que mide Prefectura Naval Argentina, con las cotas de alerta y evacuación que publica el INA, y los pronósticos oficiales a 13 días con su banda. El INA también tiene la historia larga de cada estación.
 - **CTM Salto Grande.** El informe diario de la represa: caudal turbinado y vertido de Salto Grande y volumen de los embalses de Machadinho e Itá.
-- **GloFAS, vía Open-Meteo.** Caudal pronosticado a 30 días por un modelo global, en celdas sobre el cauce. GloFAS no dice a qué hora corrió el modelo: el sitio muestra cuándo se bajó el pronóstico.
+- **GloFAS, vía Open-Meteo.** Caudal pronosticado a 30 días por un modelo global, en celdas sobre el cauce. GloFAS no dice a qué hora corrió el modelo: el sitio muestra cuándo se bajó el pronóstico. De GloFAS se usa la última bajada de cada día.
 - **NOAA CPC.** Los índices de El Niño: RONI, ONI y la anomalía semanal de la región Niño 3.4.
 
 Cada fuente se baja cada 3 horas y el archivo crudo se guarda tal como llegó. Los horarios se guardan en UTC. Los días se cortan en hora de Montevideo.
@@ -26,7 +26,7 @@ Para poner todo el río en un mismo gráfico se usa el percentil de cada estaci�
 
 - Se usa el caudal cuando la estación lo tiene con historia suficiente; si no, el nivel.
 - Una estación necesita al menos 10 años de días con dato para tener percentil. Si tiene menos, se muestra su altura pero no su percentil.
-- Si una estación tiene menos de 30 años de días con dato, las frases no dicen «desde 1990» sino desde el primer año en que tiene datos (por ejemplo, «el valor más alto desde 2014»).
+- Si los datos de una estación empiezan después de 1990, las frases no dicen «desde 1990» sino desde el primer año en que tiene datos (por ejemplo, «el valor más alto desde 2014»).
 - El valor de hoy y el de hace 3 días se comparan contra la misma historia, que termina 3 días antes del último dato, para que ningún valor se compare consigo mismo.
 - Los percentiles nunca se redondean para arriba: 99,5 se muestra como 99,5 y no como 100.
 - El gráfico marca, donde hay cota oficial de alerta, en qué percentil cae esa cota. Solo lo hace cuando la línea de esa estación es su nivel: si la estación se compara por caudal, la marca no se dibuja, porque un percentil de caudal y uno de nivel no se pueden poner en la misma escala.

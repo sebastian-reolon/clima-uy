@@ -7,7 +7,7 @@ from datetime import date
 from typing import Sequence
 
 from ..catalog import Station, load_catalog
-from ..store import Store
+from ..store import Forecast, Store
 from ..timeutil import local_day
 from .daily import station_daily
 from .events import _station
@@ -26,6 +26,20 @@ VERIFICATION_TARGETS: dict[tuple[str, str, str], str] = {
     ("glofas", "ina_79", "discharge"): "ina_78",
 }
 _MAIN_QUALIFIER = {"ina": "main", "glofas": "median"}
+
+
+def daily_glofas_runs(forecasts: Sequence[Forecast]) -> list[Forecast]:
+    """One GloFAS forecast per Montevideo issue day: the rows of that day's latest download.
+
+    GloFAS publishes no run time and the archive downloads it every 3 h, so
+    each download would otherwise count as a separate run.
+    """
+    latest: dict[date, object] = {}
+    for f in forecasts:
+        d = local_day(f.issued_utc)
+        if d not in latest or f.issued_utc > latest[d]:
+            latest[d] = f.issued_utc
+    return [f for f in forecasts if f.issued_utc == latest[local_day(f.issued_utc)]]
 
 
 @dataclass(frozen=True)
@@ -54,14 +68,18 @@ def verify_forecasts(
     """Compare each run's daily forecast with the observed daily mean of the valid local day.
 
     Forecast values of one run on one local day are averaged. Days without an
-    observation and leads <= 0 are skipped.
+    observation and leads <= 0 are skipped. GloFAS uses the last download of
+    each local day (daily_glofas_runs).
     """
     stations = catalog if catalog is not None else load_catalog()
     observed = station_daily(store, _station(stations, obs_station_id or station_id), variable)
     main = _MAIN_QUALIFIER[issuer]
     # (issued, valid local day) -> qualifier -> values
     cells: dict[tuple, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
-    for f in store.forecasts(issuer, station_id):
+    forecasts = store.forecasts(issuer, station_id)
+    if issuer == "glofas":
+        forecasts = daily_glofas_runs(forecasts)
+    for f in forecasts:
         if f.variable == variable and f.qualifier in (main, "inferior", "superior"):
             cells[(f.issued_utc, local_day(f.valid_utc))][f.qualifier].append(f.value)
 

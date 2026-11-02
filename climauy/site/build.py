@@ -20,7 +20,7 @@ from ..analysis.daily import family_daily, family_for, station_daily, station_re
 from ..analysis.events import SEASONS, compare_floods, season_series
 from ..analysis.lag import LagResult, run_production_lags
 from ..analysis.status import MIN_HISTORY_YEARS, StationStatus, compute_status
-from ..analysis.verify import VERIFICATION_TARGETS, verify_production
+from ..analysis.verify import VERIFICATION_TARGETS, daily_glofas_runs, verify_production
 from ..catalog import Station
 from ..fmt import (
     MONTHS, day_long, day_numeric, day_short, days, hour_local, is_record, is_season, meters, num, pct,
@@ -169,7 +169,7 @@ def _station_view(st: Station, ss: StationStatus, store: Store, today: date) -> 
         reading = ", ".join(parts)
         change = _change(ss)
         if ss.percentile_today is not None:
-            since = since_year(ss.history_start_year, ss.history_years)
+            since = since_year(ss.history_start_year)
             percentile = (record_text(since) if is_record(ss.percentile_today)
                           else f"más alto que el {pct(ss.percentile_today)}% de los días desde {since}")
         elif ss.history_years < MIN_HISTORY_YEARS:
@@ -258,14 +258,22 @@ def _dam_view(store: Store, today: date) -> dict | None:
 
 
 def _runs_archived(store: Store, issuer: str, station_id: str, variable: str) -> int:
-    return len({f.issued_utc for f in store.forecasts(issuer, station_id) if f.variable == variable})
+    """Runs kept: INA runs, or GloFAS days (one download per local day, as verified)."""
+    fc = [f for f in store.forecasts(issuer, station_id) if f.variable == variable]
+    if issuer == "glofas":
+        fc = daily_glofas_runs(fc)
+    return len({f.issued_utc for f in fc})
 
 
-def _saved(n: int) -> str:
+def _saved(n: int, issuer: str) -> str:
+    if issuer == "glofas":
+        return "1 día de pronóstico guardado" if n == 1 else f"{n} días de pronóstico guardados"
     return "1 pronóstico guardado" if n == 1 else f"{n} pronósticos guardados"
 
 
-def _verified(n: int) -> str:
+def _verified(n: int, issuer: str) -> str:
+    if issuer == "glofas":
+        return "1 día verificado" if n == 1 else f"{n} días verificados"
     return "1 corrida verificada" if n == 1 else f"{n} corridas verificadas"
 
 
@@ -316,8 +324,8 @@ def _forecast_views(store: Store, by_id: dict[str, Station], verify: dict) -> tu
             "label": ("INA" if issuer == "ina" else "GloFAS") + f", {name}",
             # Until verification is possible the count is of archived runs, said as such;
             # afterwards it is VerifyResult.n_runs (runs with at least one observed day).
-            "status": _verified(res.n_runs) if res.enough else
-            f"acumulando datos desde el {day_long(VERIFY_SINCE)}: {_saved(archived)}",
+            "status": _verified(res.n_runs, issuer) if res.enough else
+            f"acumulando datos desde el {day_long(VERIFY_SINCE)}: {_saved(archived, issuer)}",
             "rows": rows,
         })
     return fc_views, ver_views

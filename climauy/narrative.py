@@ -45,7 +45,7 @@ def river_summary(statuses: Sequence[StationStatus], catalog: Sequence[Station])
         top_st, top_ss = max(ranked, key=lambda r: r[1].percentile_today)
         top_pct = top_ss.percentile_today
         if top_pct >= HIGH_PERCENTILE:
-            since = since_year(top_ss.history_start_year, top_ss.history_years)
+            since = since_year(top_ss.history_start_year)
             how_high = record_text(since) if is_record(top_pct) else f"más que el {pct(top_pct)}% de los días desde {since}"
             parts.append(f"El río está más alto en {_display(top_st)}: {how_high}.")
         else:

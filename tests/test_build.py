@@ -175,6 +175,8 @@ def test_forecast_status_and_glofas_label(site):
     flat = _flat(_read(out, "rio/index.html"))
     assert "acumulando datos desde el 1 de noviembre de 2026: 1 pronóstico guardado" in flat
     assert "acumulando datos desde el 1 de noviembre de 2026: 0 pronósticos guardados" in flat
+    # GloFAS is counted by local day of download (one seeded download -> 1 day).
+    assert "acumulando datos desde el 1 de noviembre de 2026: 1 día de pronóstico guardado" in flat
     listing = re.search(r'<ul class="verification">.*?</ul>', _read(out, "rio/index.html"), flags=re.S).group(0)
     assert "corrida" not in listing
     assert flat.count("Modelo global (GloFAS), sin corregir para este río") >= 2

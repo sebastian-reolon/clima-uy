@@ -132,3 +132,22 @@ def test_compare_floods_days_above_alert(store):
     assert "2009-10" not in res["s1"]
     q = res["q"]["2015-16"]
     assert (q.peak_value, q.peak_date, q.days_above_alert, q.variable) == (6.0, date(2015, 12, 2), None, "level")
+
+
+def test_glofas_one_forecast_per_local_issue_day(store):
+    from climauy.analysis.verify import daily_glofas_runs
+
+    cat = [st("g1", {"glofas": "0,0"}), st("o1", {"ina_q": "1"})]
+    for day in (date(2026, 2, 1), date(2026, 2, 2)):
+        put_obs(store, day + timedelta(days=1), 100.0, sid="o1", variable="discharge")
+        # 8 downloads in the same Montevideo day (03:23Z .. 00:23Z next UTC day).
+        for k in range(8):
+            issued = utc(day.year, day.month, day.day, 3, 23) + timedelta(hours=3 * k)
+            # Only the last download of the day says 120; earlier ones say 999.
+            v = 120.0 if k == 7 else 999.0
+            store.upsert_forecasts([fc(issued, day + timedelta(days=1), v, "median", "glofas", "g1", "discharge")])
+    r = verify_forecasts(store, "glofas", "g1", "discharge", obs_station_id="o1", catalog=cat)
+    assert r.n_runs == 2 and r.by_lead[1].n <= 2
+    assert r.by_lead[1].bias == pytest.approx(20.0)
+    kept = daily_glofas_runs(store.forecasts("glofas", "g1"))
+    assert {f.issued_utc for f in kept} == {utc(2026, 2, 2, 0, 23), utc(2026, 2, 3, 0, 23)}

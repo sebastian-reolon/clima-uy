@@ -23,8 +23,8 @@ from ..analysis.status import MIN_HISTORY_YEARS, StationStatus, compute_status
 from ..analysis.verify import VERIFICATION_TARGETS, verify_production
 from ..catalog import Station
 from ..fmt import (
-    MONTHS, RECORD_TEXT, day_long, day_numeric, day_short, days, hour_local, is_record, is_season, meters, num, pct,
-    season_key, season_label, signed,
+    MONTHS, day_long, day_numeric, day_short, days, hour_local, is_record, is_season, meters, num, pct,
+    record_text, season_key, season_label, signed, since_year,
 )
 from ..narrative import enso_summary, river_summary
 from .. import publish
@@ -161,22 +161,23 @@ def _station_view(st: Station, ss: StationStatus, store: Store, today: date) -> 
         # The level is written on the gauge; the reading line adds what the gauge does not show.
         parts = []
         if ss.above_evac:
-            parts.append("sobre la cota de evacuación")
+            parts.append("alcanzó o superó la cota de evacuación")
         elif ss.above_alert:
-            parts.append("sobre la cota de alerta")
+            parts.append("alcanzó o superó la cota de alerta")
         if ss.variable_used == "discharge" and ss.latest_value is not None:
             parts.append(f"caudal {num(ss.latest_value)} m³/s")
         reading = ", ".join(parts)
         change = _change(ss)
         if ss.percentile_today is not None:
-            percentile = (RECORD_TEXT if is_record(ss.percentile_today)
-                          else f"más alto que el {pct(ss.percentile_today)}% de los días desde 1990")
+            since = since_year(ss.history_start_year, ss.history_years)
+            percentile = (record_text(since) if is_record(ss.percentile_today)
+                          else f"más alto que el {pct(ss.percentile_today)}% de los días desde {since}")
         elif ss.history_years < MIN_HISTORY_YEARS:
             percentile = f"sin percentil (tiene {_years(ss.history_years)} de historia, hacen falta 10)"
     gauge = None if no_data else Markup(charts.gauge_svg(ss, st))
     readings = [] if no_data else station_readings(store, st, ss.variable_used)
     daily = family_daily(readings, family_for(st, ss.variable_used)) if readings else {}
-    source = readings[-1].source if readings else None
+    source = ss.latest_source
     start = max(daily) - timedelta(days=SPARK_DAYS) if daily else None
     recent = sum(1 for d in daily if d > start) if daily else 0
     spark = Markup(charts.sparkline_svg(daily, days=SPARK_DAYS)) if recent >= SPARK_MIN_DAYS else None
@@ -292,7 +293,9 @@ def _forecast_views(store: Store, by_id: dict[str, Station], verify: dict) -> tu
         run = ""
         if fc:
             issued = max(f.issued_utc for f in fc)
-            run = f"Corrida del {day_long(local_day(issued))} a las {hour_local(issued)}, hora de Montevideo."
+            # INA stamps its runs; GloFAS has no run time, only when it was downloaded.
+            what = "Pronóstico bajado el" if issuer == "glofas" else "Corrida del"
+            run = f"{what} {day_long(local_day(issued))} a las {hour_local(issued)}, hora de Montevideo."
         fc_views.append({
             "issuer": issuer, "name": name, "caption": caption, "run": run, "glofas": issuer == "glofas",
             "svg": Markup(charts.forecast_band_svg(station_daily(store, obs_st, variable), fc)) if fc else None,

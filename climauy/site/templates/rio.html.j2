@@ -132,7 +132,7 @@
     <figcaption>{{ s.cota }}</figcaption>
     <div class="table-wrap">
     <table class="season-table">
-      <thead><tr><th scope="col">Temporada</th><th scope="col" class="num">Máximo</th><th scope="col">Fecha</th>{% if s.has_cota %}<th scope="col" class="num">Días sobre la alerta</th>{% endif %}</tr></thead>
+      <thead><tr><th scope="col">Temporada</th><th scope="col" class="num">Máximo</th><th scope="col">Fecha</th>{% if s.has_cota %}<th scope="col" class="num">Días que alcanzó o superó la alerta</th>{% endif %}</tr></thead>
       <tbody>
       {% for r in s.rows %}
         <tr><th scope="row">{{ r.season }}</th><td class="num">{{ r.peak }}</td><td>{{ r.date }}</td>{% if s.has_cota %}<td class="num">{{ r.above }}</td>{% endif %}</tr>

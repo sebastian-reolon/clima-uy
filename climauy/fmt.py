@@ -41,11 +41,24 @@ def pct(p: float) -> str:
     return str(math.floor(p + 1e-9))
 
 
-RECORD_TEXT = "el valor más alto desde 1990"
+BASELINE_YEAR = 1990
+# With this much coverage the history reads as "since 1990"; with less, it says since when.
+FULL_COVERAGE_YEARS = 30.0
+
+
+def since_year(start_year: int | None, history_years: float) -> int:
+    """Year a station's history is said to start: 1990 with 30 years of coverage, else its first year."""
+    if start_year is None or history_years >= FULL_COVERAGE_YEARS:
+        return BASELINE_YEAR
+    return max(start_year, BASELINE_YEAR)
+
+
+def record_text(since: int) -> str:
+    return f"el valor más alto desde {since}"
 
 
 def is_record(p: float) -> bool:
-    """Percentile 100: higher than or equal to every day since 1990. Sentences then say RECORD_TEXT."""
+    """Percentile 100: higher than or equal to every day of the history. Sentences then say record_text."""
     return p >= 100.0
 
 

@@ -40,6 +40,13 @@ def _seed(store: Store) -> None:
         Forecast("ina", "ina_72", "level", issued, issued + timedelta(days=k), q, 7.0 + k * 0.05 + off)
         for k in range(1, 14) for q, off in (("main", 0.0), ("inferior", -0.3), ("superior", 0.3))
     ])
+    # One GloFAS fetch for Uruguaiana (fetch time 18:26 in Montevideo), valid at local midnight.
+    fetched = datetime(2026, 11, 1, 21, 26, 40, tzinfo=timezone.utc)
+    store.upsert_forecasts([
+        Forecast("glofas", "ana_77150000", "discharge", fetched, datetime(2026, 11, 1 + k, 3, tzinfo=timezone.utc),
+                 q, 9000.0 + 100 * k + off)
+        for k in range(1, 20) for q, off in (("median", 0), ("p25", -300), ("p75", 300), ("min", -600), ("max", 600))
+    ])
     store.upsert_indices([
         IndexValue("RONI", "2026-JJA", 1.36), IndexValue("RONI", "2026-JAS", 1.69),
         IndexValue("ONI", "2026-JJA", 1.80), IndexValue("ONI", "2026-JAS", 2.16),
@@ -140,6 +147,27 @@ def test_unvalidated_lag_title(site):
     flat = _flat(_read(out, "rio/index.html"))
     assert "Lo que tardó el agua en crecidas pasadas (no validado como pronóstico)" in flat
     assert "No validado: no hay crecidas para estimar el rezago." in flat
+
+
+def test_forecast_run_wording(site):
+    out, _ = site
+    flat = _flat(_read(out, "rio/index.html"))
+    # INA publishes a run time; GloFAS does not, so the page says when it was downloaded.
+    assert "Corrida del 1 de noviembre de 2026 a las 09:00, hora de Montevideo." in flat
+    assert "Pronóstico bajado el 1 de noviembre de 2026 a las 18:26, hora de Montevideo." in flat
+    assert flat.count("Corrida del") == 1
+
+
+def test_alert_reading_says_reached_or_exceeded(tmp_path):
+    with Store(tmp_path / "t.sqlite") as store:
+        # Paso de los Libres exactly at its alert level (7,50 m per the catalog).
+        alert = next(s for s in load_catalog() if s.id == "ina_72").alert_m
+        store.upsert_obs([Obs("ina_72", "level", datetime(2026, 11, 1, 15, tzinfo=timezone.utc), alert, "ina")])
+        build_site(store, load_catalog(), tmp_path / "out", NOW, base_url="/clima-uy")
+    html = _read(tmp_path / "out", "rio/index.html")
+    block = _flat(re.search(r'<li[^>]*id="estacion-ina_72".*?</li>', html, flags=re.S).group(0))
+    assert "alcanzó o superó la cota de alerta" in block
+    assert "1 estación alcanzó o superó su cota de alerta" in _flat(html)
 
 
 def test_forecast_status_and_glofas_label(site):
@@ -299,7 +327,9 @@ def test_record_station_meta(site):
     out, _ = site
     html = _read(out, "rio/index.html")
     block = _flat(re.search(r'<li[^>]*id="estacion-ina_74".*?</li>', html, flags=re.S).group(0))
-    assert "el valor más alto desde 1990" in block
+    # Its seeded history starts in 2014: under 30 years, so the text says since when.
+    assert "el valor más alto desde 2014" in block
+    assert "desde 1990" not in block
     assert "100%" not in _text(html.split("<svg")[0]) and "más que el 100%" not in _flat(html)
 
 

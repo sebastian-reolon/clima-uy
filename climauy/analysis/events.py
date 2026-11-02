@@ -16,7 +16,8 @@ SEASONS: dict[str, int] = {"2009-10": 2009, "2015-16": 2015, "2023-24": 2023, "2
 class FloodSummary:
     peak_value: float
     peak_date: date
-    # Days whose daily mean level exceeded the official alert level; None when
+    # Days whose daily mean level reached or exceeded the official alert level
+    # (>=, as the station status); None when
     # the station has no INA level series or no alert level.
     days_above_alert: int | None
     # Variable the summary is based on ("level" or "discharge").
@@ -63,7 +64,7 @@ def compare_floods(
             if not days:
                 continue
             peak_date, peak = max(days, key=lambda dv: (dv[1], -dv[0].toordinal()))
-            above = sum(1 for _, v in days if v > station.alert_m) if has_alert else None
+            above = sum(1 for _, v in days if v >= station.alert_m) if has_alert else None
             seasons[name] = FloodSummary(peak, peak_date, above, variable)
         out[sid] = seasons
     return out

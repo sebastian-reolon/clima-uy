@@ -126,7 +126,8 @@ def test_compare_floods_days_above_alert(store):
     put_obs(store, date(2015, 12, 2), 6.0, sid="q", source="ana_hist")
     res = compare_floods(store, ["s1", "q"], catalog=cat)
     s = res["s1"]["2015-16"]
-    assert (s.peak_value, s.peak_date, s.days_above_alert, s.variable) == (9.5, date(2015, 11, 3), 3, "level")
+    # 4/11 sits exactly at the alert (7,0): reaching it counts, as in the station status.
+    assert (s.peak_value, s.peak_date, s.days_above_alert, s.variable) == (9.5, date(2015, 11, 3), 4, "level")
     assert res["s1"]["2023-24"].days_above_alert == 0
     assert "2009-10" not in res["s1"]
     q = res["q"]["2015-16"]

@@ -22,7 +22,7 @@ from ..analysis.lag import LagResult
 from ..analysis.status import StationStatus
 from ..catalog import Station
 from ..fmt import day_numeric as _day, day_short as _day_short, days as _days
-from ..fmt import RECORD_TEXT, is_record
+from ..fmt import is_record, record_text, since_year
 from ..fmt import meters as _m, num as _num, pct as _pct
 from ..store import Forecast
 from ..timeutil import local_day
@@ -279,7 +279,7 @@ def _profile_line(station: Station, status: StationStatus | None) -> str:
         parts[0] += ", por debajo de la mediana"
     if status.percentile_3d_ago is not None:
         parts.append(f"hace 3 días {_pct(status.percentile_3d_ago)}")
-    if status.alert_percentile is not None:
+    if status.alert_percentile is not None and status.variable_used == "level":
         below = ", por debajo de la mediana" if status.alert_percentile < 50 else ""
         parts.append(f"alerta en {_pct(status.alert_percentile)}{below}")
     return f"{name}: " + ", ".join(parts)
@@ -394,9 +394,11 @@ def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -
     body += guides + names + city_texts
     height = (ly - LINE_GAP if cities else name_y + (names_rows - 1) * LINE_GAP) + 12
 
-    # Alert ticks under the lines, only where the station has data today.
+    # Alert ticks under the lines, only where the station has data today and the line is
+    # its level: the alert percentile is among levels, not comparable with a discharge one.
     for i, (_, ss) in enumerate(rows):
-        if raw_today[i] is not None and ss is not None and ss.alert_percentile is not None:
+        if (raw_today[i] is not None and ss is not None and ss.alert_percentile is not None
+                and ss.variable_used == "level"):
             ay = profile_y(ss.alert_percentile)
             if ss.alert_percentile < 50:
                 # Off the axis: an open (broken) tick on the bottom edge, like today's open marker.
@@ -427,7 +429,9 @@ def profile_svg(statuses: Sequence[StationStatus], catalog: Sequence[Station]) -
     if ranked:
         p, i = max(ranked, key=lambda t: (t[0], -t[1]))
         line1 = f"pico hoy: {_station_display(rows[i][0])}"
-        line2 = RECORD_TEXT if is_record(p) else f"más alto que el {_pct(p)}% de los días"
+        crest = rows[i][1]
+        line2 = (record_text(since_year(crest.history_start_year, crest.history_years)) if is_record(p)
+                 else f"más alto que el {_pct(p)}% de los días")
         w = max(_text_width(line1, WIDE_FONT), _text_width(line2, WIDE_FONT))
         cx = min(max(x(i), w / 2), WIDE_W - w / 2)
         body.append(_line(x(i), 136, x(i), profile_y(max(p, 50)) - 6, INK, 1, cls="crest-leader"))

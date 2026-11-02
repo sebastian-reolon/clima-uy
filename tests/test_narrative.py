@@ -46,7 +46,7 @@ def test_summary_with_rising_and_falling():
     assert river_summary(sts, CATALOG) == (
         "El río está más alto en Santo Tomé: más que el 94% de los días desde 1990. "
         "Sube en Santo Tomé y Salto (medido en Concordia); baja en Paysandú. "
-        "1 estación supera su cota de alerta: Santo Tomé."
+        "1 estación alcanzó o superó su cota de alerta: Santo Tomé."
     )
 
 
@@ -76,7 +76,7 @@ def test_summary_plural_alert_and_overflow_list():
     sts = [status(s, pct=50, trend="sube", above_alert=True) for s in "abcde"]
     out = river_summary(sts, CATALOG)
     assert "Sube en Santo Tomé, Salto (medido en Concordia), Paysandú, Fray Bentos y 1 más." in out
-    assert "5 estaciones superan su cota de alerta: " in out
+    assert "5 estaciones alcanzaron o superaron su cota de alerta: " in out
     assert out.endswith("alerta: Santo Tomé, Salto (medido en Concordia), Paysandú, Fray Bentos y 1 más.")
 
 
@@ -132,7 +132,7 @@ def test_enso_tiny_negative_and_unknown_code():
 def test_summary_without_percentiles_keeps_other_sentences():
     sts = [status("a", pct=None, trend="sube", above_alert=True), status("c", pct=None)]
     out = river_summary(sts, CATALOG)
-    assert out == "Sube en Santo Tomé. 1 estación supera su cota de alerta: Santo Tomé."
+    assert out == "Sube en Santo Tomé. 1 estación alcanzó o superó su cota de alerta: Santo Tomé."
 
 
 def test_summary_fresh_without_pct_ignored_for_max():
@@ -155,3 +155,18 @@ def test_record_reads_highest_since_1990():
 
 def test_summary_nothing_to_say_is_empty():
     assert river_summary([status("a", pct=None)], CATALOG) == ""
+
+
+def test_short_coverage_says_since_its_first_year():
+    out = river_summary([status("a", pct=94.4, years=15.2, since=2011)], CATALOG)
+    assert out == "El río está más alto en Santo Tomé: más que el 94% de los días desde 2011."
+
+
+def test_short_coverage_record_says_since_its_first_year():
+    out = river_summary([status("a", pct=100.0, years=12.0, since=2014)], CATALOG)
+    assert out == "El río está más alto en Santo Tomé: el valor más alto desde 2014."
+
+
+def test_thirty_years_of_coverage_keeps_1990():
+    out = river_summary([status("a", pct=94.4, years=30.0, since=1993)], CATALOG)
+    assert out.endswith("más que el 94% de los días desde 1990.")

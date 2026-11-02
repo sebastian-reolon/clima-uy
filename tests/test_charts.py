@@ -420,3 +420,20 @@ def test_profile_crest_record_wording():
     assert "pico hoy: Santo Tomémás alto que el" not in "".join(texts)
     assert "pico hoy: Santo Toméel valor más alto desde 1990" in texts
     assert not any("100%" in t for t in texts)
+
+
+def test_profile_crest_record_with_short_coverage():
+    texts = texts_of(profile_svg([status("a", 100.0, years=12.0, since=2014), status("b", 80.0)], CATALOG))
+    assert "pico hoy: Santo Toméel valor más alto desde 2014" in texts
+
+
+def test_profile_alert_tick_only_for_level_stations():
+    # A percentile of discharge cannot be compared with where the alert level falls among levels.
+    sts = [status("a", 80.0, alert_pct=95.0, variable="discharge"), status("b", 85.0, alert_pct=93.0)]
+    root = parse(profile_svg(sts, CATALOG))
+    ticks = [l for l in root.iter("{http://www.w3.org/2000/svg}line") if (l.get("class") or "").startswith("alert-tick")]
+    assert len(ticks) == 1
+    desc = root.find("s:desc", NS).text
+    assert "Santo Tomé: hoy 80;" in desc
+    assert "Paso de los Libres: hoy 85, alerta en 93" in desc
+    assert desc.count("alerta en") == 1

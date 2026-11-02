@@ -152,6 +152,7 @@ code{font-family:inherit;font-weight:600}
 
 /* /nino/ */
 table.enso{max-width:34rem}
+table.enso tbody th{white-space:normal}
 .sec p.expl{margin-top:var(--s4)}
 table.outlook{max-width:52rem}
 table.outlook td{white-space:normal}

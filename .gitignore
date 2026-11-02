@@ -5,3 +5,4 @@ out/
 *.egg-info/
 .pytest_cache/
 build/
+.hallmark/

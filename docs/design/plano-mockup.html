@@ -1,0 +1,168 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>clima-uy · propuesta C: Plano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400..800&family=Overpass+Mono:wght@400..700&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · macrostructure: custom (drawing sheet: title block + section + schedule) · tone: technical · anchor hue: none (state colours only) */
+:root{
+  --paper: oklch(97.8% 0.002 250);
+  --grid: oklch(92.5% 0.006 245);
+  --grid-2: oklch(88% 0.01 245);
+  --ink: oklch(21% 0.012 255);
+  --ink-2: oklch(46% 0.012 255);
+  --line: oklch(21% 0.012 255);
+  --water: oklch(48% 0.13 245);
+  --water-2: oklch(48% 0.13 245 / .12);
+  --alert: oklch(54% 0.2 28);
+  --focus: oklch(48% 0.13 245);
+  --sans: "Overpass", system-ui, sans-serif;
+  --mono: "Overpass Mono", ui-monospace, monospace;
+  --s1:.25rem;--s2:.5rem;--s3:.75rem;--s4:1rem;--s5:1.5rem;--s6:2rem;--s7:3rem;
+}
+*{box-sizing:border-box}
+html,body{overflow-x:clip}
+body{margin:0;color:var(--ink);font-family:var(--sans);font-size:1rem;line-height:1.5;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:16px 16px}
+a{color:inherit;text-underline-offset:3px;text-decoration-thickness:1px}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.hoja{max-width:76rem;margin:var(--s5) auto;padding:0 var(--s4)}
+.marco{border:2px solid var(--line);background:var(--paper)}
+.top{display:flex;justify-content:space-between;align-items:center;padding:var(--s2) var(--s4);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:.85rem}
+.marca{font-family:var(--sans);font-weight:800;font-size:1.05rem;text-decoration:none}
+nav a{margin-left:var(--s4);text-decoration:none;color:var(--ink-2)}
+nav a[aria-current]{color:var(--ink);text-decoration:underline}
+.cab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,22rem);border-bottom:1px solid var(--line)}
+.resp{padding:var(--s6) var(--s5) var(--s5)}
+.resp h1{font-weight:750;font-size:clamp(1.9rem,3.6vw,2.9rem);line-height:1.08;letter-spacing:-.015em;margin:0 0 var(--s3);max-width:24ch}
+.resp p{margin:0;max-width:44rem;font-size:1.08rem;color:var(--ink)}
+.cajetin{border-left:1px solid var(--line);display:grid;grid-template-columns:auto minmax(0,1fr);font-size:.82rem;align-content:stretch}
+.cajetin dt,.cajetin dd{margin:0;padding:var(--s2) var(--s3);border-bottom:1px solid var(--line)}
+.cajetin dt{color:var(--ink-2);border-right:1px solid var(--line)}
+.cajetin dd{font-family:var(--mono)}
+.cajetin dt:nth-last-of-type(1),.cajetin dd:nth-last-of-type(1){border-bottom:0}
+.sec{padding:var(--s5);border-bottom:1px solid var(--line)}
+.sec:last-child{border-bottom:0}
+.sec h2{font-size:1.05rem;font-weight:750;margin:0 0 var(--s1)}
+.sec .que{margin:0 0 var(--s4);color:var(--ink-2);font-size:.92rem;max-width:52rem}
+.perfil{width:100%;height:auto;display:block}
+.perfil .g{stroke:var(--grid-2);stroke-width:1}
+.perfil .g2{stroke:var(--ink-2);stroke-dasharray:4 3}
+.perfil .tick{stroke:var(--ink)}
+.perfil .ax{font:400 12px var(--mono);fill:var(--ink-2)}
+.perfil .axl{font:500 12px var(--sans);fill:var(--water)}
+.perfil .uy{fill:var(--water-2)}
+.perfil .l0{fill:none;stroke:var(--ink);stroke-width:2}
+.perfil .l3{fill:none;stroke:var(--ink-2);stroke-width:1.2;stroke-dasharray:3 3}
+.perfil .p{fill:var(--ink)}
+.perfil .pa{fill:var(--alert)}
+.perfil .pc{fill:var(--paper);stroke:var(--ink);stroke-width:2}
+.perfil .lead{stroke:var(--ink);stroke-width:1}
+.perfil .cn{font:700 14px var(--sans);fill:var(--ink)}
+.perfil .lbg{fill:var(--paper)}
+.perfil .ca{fill:var(--alert)}
+.perfil .cv{font:400 12.5px var(--mono);fill:var(--ink)}
+.ley{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5);font-size:.82rem;color:var(--ink-2);margin-top:var(--s2)}
+.ley i{display:inline-block;width:22px;vertical-align:middle;margin-right:6px;border-top:2px solid var(--ink)}
+.ley i.d{border-top:1.5px dashed var(--ink-2)}
+.ley i.u{border:0;height:10px;background:var(--water-2);outline:1px solid var(--water)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:.5rem .75rem .5rem 0;border-bottom:1px solid var(--grid-2);vertical-align:baseline;white-space:nowrap}
+thead th{font-weight:600;font-size:.78rem;color:var(--ink-2);border-bottom:1.5px solid var(--line);white-space:normal;vertical-align:bottom}
+tbody th{font-weight:700}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.strong{font-weight:700}
+tr.up td.d3{color:var(--water);font-weight:700}
+tr.sin td{color:var(--ink-2)}
+td.obs{font-size:.82rem;color:var(--ink-2);white-space:normal}
+.bar{display:inline-block;width:46px;height:6px;background:var(--grid);vertical-align:middle;margin-left:6px}
+.bar span{display:block;height:100%;background:var(--ink)}
+.dos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.dos > .sec{border-bottom:0}
+.dos > .sec + .sec{border-left:1px solid var(--line)}
+.kv{display:grid;grid-template-columns:auto auto;justify-content:start;gap:.2rem 1.5rem;margin:0 0 var(--s3);font-size:.92rem}
+.kv dt{color:var(--ink-2)}.kv dd{margin:0;font-family:var(--mono)}
+.sec p{margin:0 0 var(--s2);max-width:46rem}
+details summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+.pais{display:block;font-weight:400;font-size:.78rem;color:var(--ink-2)}
+tr.al th{color:var(--alert)}
+.notas{margin:0;padding-left:1.4rem;font-size:.86rem;color:var(--ink-2);max-width:56rem}
+.notas li{margin-bottom:.3rem}
+.pie{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--s2);padding:var(--s3) var(--s4);border-top:1px solid var(--line);font-size:.82rem}
+.pie strong{font-weight:700}
+.perfil.movil{display:none}
+@media (max-width:40em){
+  .perfil{display:none}.perfil.movil{display:block}
+  .perfil.movil .ax{font-size:11px}.perfil.movil .cv{font-size:11.5px}.perfil.movil .cn{font-size:13px}.perfil.movil .axl{font-size:11px}
+  table.ciu thead{display:none}
+  table.ciu tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.15rem 1rem;padding:.7rem 0;border-bottom:1px solid var(--grid-2)}
+  table.ciu th,table.ciu td{border:0;padding:0;text-align:left;white-space:normal}
+  table.ciu tbody th{grid-column:1/-1;font-size:1.1rem}
+  table.ciu td[data-l]::before{content:attr(data-l) " ";color:var(--ink-2);font-family:var(--sans);font-size:.78rem;display:block}
+  table.ciu td.obs{grid-column:1/-1}
+}
+@media (max-width:56em){
+  .cab,.dos{grid-template-columns:minmax(0,1fr)}
+  .cajetin{border-left:0;border-top:1px solid var(--line)}
+  .dos > .sec + .sec{border-left:0;border-top:1px solid var(--line)}
+  .resp{padding:var(--s5) var(--s4) var(--s4)}
+  .sec{padding:var(--s4)}
+  nav a{margin-left:var(--s3)}
+}
+</style></head><body><div class="hoja"><div class="marco">
+<header class="top"><a class="marca" href="#">clima-uy</a><nav><a href="#" aria-current="page">Río</a><a href="#">El Niño</a><a href="#">Datos</a></nav></header>
+<div class="cab">
+<section class="resp"><h1>El río viene alto y sube despacio frente a Bella Unión y Salto.</h1>
+<p>Ninguna regla de las que miden enfrente llegó a su cota de alerta. Río arriba ya baja. La única sobre alerta es Paso de los Libres, del lado argentino, y también baja.</p></section>
+<dl class="cajetin">
+<dt>Estado al</dt><dd>2026-11-02 09:00 (UY)</dd>
+<dt>Próxima</dt><dd>12:00, cada 3 h</dd>
+<dt>Estaciones</dt><dd>34 con dato, 2 sin</dd>
+<dt>Fuentes</dt><dd>INA · ANA · CTM</dd>
+<dt>Historia</dt><dd>desde 1990</dd>
+<dt>Carácter</dt><dd>informativo, no oficial</dd>
+</dl>
+</div>
+<section class="sec"><h2>Ciudades uruguayas</h2>
+<p class="que">Nivel en la regla de enfrente. Percentil: qué parte de los días desde 1990 estuvo más bajo. Cada regla tiene su propio cero, así que los metros no se comparan entre filas.</p>
+<div class="tw"><table class="ciu">
+<thead><tr><th>Ciudad</th><th>Regla</th><th class="n">Nivel</th><th class="n">Δ 3 días (m)</th><th class="n">Percentil</th><th class="n">Alerta (m)</th><th class="n">Falta (m)</th></tr></thead>
+<tbody><tr class="up"><th scope="row">Bella Unión</th><td data-l="Regla">Monte Caseros (AR)</td><td class="n" data-l="Nivel">6,05 m</td><td class="n d3" data-l="Δ 3 días">+0,25</td><td class="n" data-l="Percentil">94 <span class="bar"><span style="width:94%"></span></span></td><td class="n" data-l="Alerta">7,50</td><td class="n strong" data-l="Falta">1,45</td></tr>
+<tr class=""><th scope="row">Artigas</th><td data-l="Regla">Quaraí (BR)</td><td class="n" data-l="Nivel">22 m³/s</td><td class="n d3" data-l="Δ 3 días">—</td><td class="n" data-l="Percentil">52 <span class="bar"><span style="width:52%"></span></span></td><td class="n" data-l="Alerta">—</td><td class="n strong" data-l="Falta">—</td></tr>
+<tr class="up"><th scope="row">Salto</th><td data-l="Regla">Concordia (AR)</td><td class="n" data-l="Nivel">9,30 m</td><td class="n d3" data-l="Δ 3 días">+0,30</td><td class="n" data-l="Percentil">92 <span class="bar"><span style="width:92%"></span></span></td><td class="n" data-l="Alerta">11,00</td><td class="n strong" data-l="Falta">1,70</td></tr>
+<tr class=""><th scope="row">Paysandú</th><td data-l="Regla">Colón (AR)</td><td class="n" data-l="Nivel">5,50 m</td><td class="n d3" data-l="Δ 3 días">0,00</td><td class="n" data-l="Percentil">91 <span class="bar"><span style="width:91%"></span></span></td><td class="n" data-l="Alerta">7,10</td><td class="n strong" data-l="Falta">1,60</td></tr>
+<tr class="sin"><th scope="row">Fray Bentos</th><td>sin regla pública</td><td class="obs" colspan="5">más cercana: Boca Gualeguaychú (AR) 2,10 m, baja</td></tr></tbody></table></div>
+</section>
+<section class="sec"><h2>Perfil del río hoy</h2>
+<p class="que">Cada estación comparada con su propia historia, de las represas de Brasil a Nueva Palmira.</p>
+<svg class="perfil perfil" viewBox="0 0 1100 500" role="img" aria-label="Perfil del río: cada estación comparada con su propia historia"><line x1="64" x2="1076" y1="350.0" y2="350.0" class="g"/><text x="56" y="354.0" class="ax" text-anchor="end">50</text><line x1="64" x2="1076" y1="287.20000000000005" y2="287.20000000000005" class="g"/><text x="56" y="291.20000000000005" class="ax" text-anchor="end">60</text><line x1="64" x2="1076" y1="224.4" y2="224.4" class="g"/><text x="56" y="228.4" class="ax" text-anchor="end">70</text><line x1="64" x2="1076" y1="161.60000000000002" y2="161.60000000000002" class="g"/><text x="56" y="165.60000000000002" class="ax" text-anchor="end">80</text><line x1="64" x2="1076" y1="98.80000000000001" y2="98.80000000000001" class="g g2"/><text x="56" y="102.80000000000001" class="ax" text-anchor="end">90</text><line x1="64" x2="1076" y1="36.0" y2="36.0" class="g"/><text x="56" y="40.0" class="ax" text-anchor="end">100</text><text x="64" y="22" class="ax">percentil</text><line x1="64.0" x2="64.0" y1="350" y2="356" class="tick"/><text x="64.0" y="370" class="ax" text-anchor="middle">0</text><line x1="239.66354847259635" x2="239.66354847259635" y1="350" y2="356" class="tick"/><text x="239.66354847259635" y="370" class="ax" text-anchor="middle">200</text><line x1="415.3270969451927" x2="415.3270969451927" y1="350" y2="356" class="tick"/><text x="415.3270969451927" y="370" class="ax" text-anchor="middle">400</text><line x1="590.9906454177891" x2="590.9906454177891" y1="350" y2="356" class="tick"/><text x="590.9906454177891" y="370" class="ax" text-anchor="middle">600</text><line x1="766.6541938903854" x2="766.6541938903854" y1="350" y2="356" class="tick"/><text x="766.6541938903854" y="370" class="ax" text-anchor="middle">800</text><line x1="942.3177423629819" x2="942.3177423629819" y1="350" y2="356" class="tick"/><text x="942.3177423629819" y="370" class="ax" text-anchor="middle">1000</text><text x="64" y="390" class="ax">km desde Machadinho, en línea recta entre estaciones (aprox.)</text><rect x="689.4616294057913" y="36" width="386.5383705942087" height="314" class="uy"/><text x="695.4616294057913" y="50" class="axl">tramo con costa uruguaya</text><polyline class="l3" points="255.0,131.1 283.3,118.0 332.6,107.7 358.2,67.4 383.3,101.2 428.3,64.6 436.9,71.5 485.5,57.5 556.7,60.0 567.6,62.3 599.7,61.8 633.1,67.0 703.5,75.4 751.5,230.3 807.1,81.9 821.0,90.6 902.8,91.1 929.0,91.0 950.7,108.5 991.2,121.3"/><polyline class="l0" points="64.0,203.4 118.6,203.1 193.8,166.2 235.6,242.4 255.0,200.5 278.1,247.3 283.3,164.9 332.6,142.4 358.2,105.0 373.5,166.2 383.3,158.7 428.3,151.4 436.9,196.2 485.5,122.2 492.8,150.4 556.7,76.2 558.5,125.4 567.6,78.7 599.7,70.2 633.1,74.2 636.2,88.6 703.5,67.7 751.5,120.1 807.1,75.0 821.0,84.1 902.8,91.1 929.0,93.6 950.7,115.3 991.2,156.0"/><circle cx="64.0" cy="203.4" r="2.6" class="p"/><circle cx="118.6" cy="203.1" r="2.6" class="p"/><circle cx="193.8" cy="166.2" r="2.6" class="p"/><circle cx="235.6" cy="242.4" r="2.6" class="p"/><circle cx="255.0" cy="200.5" r="2.6" class="p"/><circle cx="278.1" cy="247.3" r="2.6" class="p"/><circle cx="283.3" cy="164.9" r="2.6" class="p"/><circle cx="332.6" cy="142.4" r="2.6" class="p"/><circle cx="358.2" cy="105.0" r="2.6" class="p"/><circle cx="373.5" cy="166.2" r="2.6" class="p"/><circle cx="383.3" cy="158.7" r="2.6" class="p"/><circle cx="428.3" cy="151.4" r="2.6" class="p"/><circle cx="436.9" cy="196.2" r="2.6" class="p"/><circle cx="485.5" cy="122.2" r="2.6" class="p"/><circle cx="492.8" cy="150.4" r="2.6" class="p"/><circle cx="556.7" cy="76.2" r="2.6" class="p"/><circle cx="558.5" cy="125.4" r="2.6" class="p"/><circle cx="567.6" cy="78.7" r="2.6" class="p"/><circle cx="599.7" cy="70.2" r="2.6" class="p"/><circle cx="633.1" cy="74.2" r="2.6" class="pa"/><circle cx="636.2" cy="88.6" r="2.6" class="p"/><circle cx="703.5" cy="67.7" r="4.5" class="pc"/><circle cx="751.5" cy="120.1" r="2.6" class="p"/><circle cx="807.1" cy="75.0" r="2.6" class="p"/><circle cx="821.0" cy="84.1" r="4.5" class="pc"/><circle cx="902.8" cy="91.1" r="4.5" class="pc"/><circle cx="929.0" cy="93.6" r="2.6" class="p"/><circle cx="950.7" cy="115.3" r="2.6" class="p"/><circle cx="991.2" cy="156.0" r="2.6" class="p"/><line x1="633.1" y1="80.2" x2="633.1" y2="388.0" class="lead"/><line x1="703.5" y1="73.7" x2="703.5" y2="432.0" class="lead"/><line x1="821.0" y1="90.1" x2="821.0" y2="388.0" class="lead"/><line x1="902.8" y1="97.1" x2="902.8" y2="432.0" class="lead"/><rect x="466.5" y="388.0" width="165.6" height="36" class="lbg"/><text x="629.1" y="402.0" class="cn ca" text-anchor="end">Paso de los Libres</text><text x="629.1" y="418.0" class="cv" text-anchor="end">7,66 m · sobre alerta</text><rect x="604.1" y="432.0" width="98.4" height="36" class="lbg"/><text x="699.5" y="446.0" class="cn" text-anchor="end">Bella Unión</text><text x="699.5" y="462.0" class="cv" text-anchor="end">6,05 m · P94</text><rect x="722.8" y="388.0" width="97.2" height="36" class="lbg"/><text x="817.0" y="402.0" class="cn" text-anchor="end">Salto</text><text x="817.0" y="418.0" class="cv" text-anchor="end">9,30 m · P92</text><rect x="804.6" y="432.0" width="97.2" height="36" class="lbg"/><text x="898.8" y="446.0" class="cn" text-anchor="end">Paysandú</text><text x="898.8" y="462.0" class="cv" text-anchor="end">5,50 m · P91</text></svg><svg class="perfil movil" viewBox="0 0 340 560" role="img" aria-label="Perfil del río: cada estación comparada con su propia historia"><line x1="34" x2="332" y1="320.0" y2="320.0" class="g"/><text x="26" y="324.0" class="ax" text-anchor="end">50</text><line x1="34" x2="332" y1="263.20000000000005" y2="263.20000000000005" class="g"/><text x="26" y="267.20000000000005" class="ax" text-anchor="end">60</text><line x1="34" x2="332" y1="206.4" y2="206.4" class="g"/><text x="26" y="210.4" class="ax" text-anchor="end">70</text><line x1="34" x2="332" y1="149.60000000000002" y2="149.60000000000002" class="g"/><text x="26" y="153.60000000000002" class="ax" text-anchor="end">80</text><line x1="34" x2="332" y1="92.80000000000001" y2="92.80000000000001" class="g g2"/><text x="26" y="96.80000000000001" class="ax" text-anchor="end">90</text><line x1="34" x2="332" y1="36.0" y2="36.0" class="g"/><text x="26" y="40.0" class="ax" text-anchor="end">100</text><text x="34" y="22" class="ax">percentil</text><line x1="134.78868167255527" x2="134.78868167255527" y1="320" y2="326" class="tick"/><text x="134.78868167255527" y="340" class="ax" text-anchor="middle">800</text><line x1="246.77610575317226" x2="246.77610575317226" y1="320" y2="326" class="tick"/><text x="246.77610575317226" y="340" class="ax" text-anchor="middle">1000</text><text x="34" y="360" class="ax">km desde Machadinho (aprox.)</text><rect x="80.50273402313746" y="36" width="251.49726597686254" height="284" class="uy"/><text x="86.50273402313746" y="50" class="axl">tramo con costa uruguaya</text><polyline class="l3" points="49.6,64.0 94.5,71.6 125.1,211.8 160.6,77.5 169.4,85.4 221.6,85.8 238.3,85.8 252.1,101.5 277.9,113.1"/><polyline class="l0" points="49.6,70.6 51.6,83.5 94.5,64.6 125.1,112.1 160.6,71.3 169.4,79.5 221.6,85.8 238.3,88.1 252.1,107.8 277.9,144.5"/><circle cx="49.6" cy="70.6" r="2.6" class="pa"/><circle cx="51.6" cy="83.5" r="2.6" class="p"/><circle cx="94.5" cy="64.6" r="4.5" class="pc"/><circle cx="125.1" cy="112.1" r="2.6" class="p"/><circle cx="160.6" cy="71.3" r="2.6" class="p"/><circle cx="169.4" cy="79.5" r="4.5" class="pc"/><circle cx="221.6" cy="85.8" r="4.5" class="pc"/><circle cx="238.3" cy="88.1" r="2.6" class="p"/><circle cx="252.1" cy="107.8" r="2.6" class="p"/><circle cx="277.9" cy="144.5" r="2.6" class="p"/><line x1="49.6" y1="76.6" x2="49.6" y2="370.0" class="lead"/><line x1="94.5" y1="70.6" x2="94.5" y2="408.0" class="lead"/><line x1="169.4" y1="85.5" x2="169.4" y2="446.0" class="lead"/><line x1="221.6" y1="91.8" x2="221.6" y2="484.0" class="lead"/><rect x="50.6" y="370.0" width="153.0" height="36" class="lbg"/><text x="53.6" y="384.0" class="cn ca" text-anchor="start">Paso de los Libres</text><text x="53.6" y="400.0" class="cv" text-anchor="start">7,66 m · sobre alerta</text><rect x="95.5" y="408.0" width="90.0" height="36" class="lbg"/><text x="98.5" y="422.0" class="cn" text-anchor="start">Bella Unión</text><text x="98.5" y="438.0" class="cv" text-anchor="start">6,05 m · P94</text><rect x="170.4" y="446.0" width="90.0" height="36" class="lbg"/><text x="173.4" y="460.0" class="cn" text-anchor="start">Salto</text><text x="173.4" y="476.0" class="cv" text-anchor="start">9,30 m · P92</text><rect x="130.6" y="484.0" width="90.0" height="36" class="lbg"/><text x="217.6" y="498.0" class="cn" text-anchor="end">Paysandú</text><text x="217.6" y="514.0" class="cv" text-anchor="end">5,50 m · P91</text></svg>
+<p class="ley"><span><i></i>hoy</span><span><i class="d"></i>hace 3 días</span><span><i class="u"></i>tramo con costa uruguaya</span><span>línea punteada en 90: el 10% de los días más altos</span></p>
+</section>
+<div class="dos">
+<section class="sec"><h2>Aguas arriba</h2>
+<p class="que">Lo que pasa antes de llegar a Bella Unión.</p>
+<div class="tw"><table><thead><tr><th>Estación</th><th class="n">Nivel</th><th class="n">Δ 3 días (m)</th><th class="n">Percentil</th></tr></thead><tbody><tr><th scope="row">Garruchos</th><td class="n">4,83 m</td><td class="n d3">-4,05</td><td class="n">74</td></tr><tr><th scope="row">Santo Tomé</th><td class="n">6,64 m</td><td class="n d3">-3,51</td><td class="n">86</td></tr><tr><th scope="row">Yapeyú</th><td class="n">7,98 m</td><td class="n d3">-0,50</td><td class="n">94</td></tr><tr><th scope="row">Paso de los Libres</th><td class="n">7,66 m</td><td class="n d3">-0,45</td><td class="n">93</td></tr></tbody></table></div>
+<p style="margin-top:var(--s3)"><a href="#">Pronósticos del INA y GloFAS, y crecidas de 2009, 2015 y 2023</a></p>
+</section>
+<section class="sec"><h2>El Niño</h2>
+<p class="que">Anomalía del Pacífico central, julio a septiembre de 2026, y perspectiva de INUMET.</p>
+<dl class="kv"><dt>RONI (oficial NOAA)</dt><dd>+1,69 °C</dd><dt>ONI</dt><dd>+2,16 °C</dd><dt>Pico esperado</dt><dd>nov–dic 2026</dd><dt>Lluvia norte, nov–ene</dt><dd>60% sobre lo normal</dd><dt>Segunda ventana</dt><dd>mar–may 2027</dd></dl>
+<p><a href="#">Por qué los dos índices dan distinto</a></p>
+</section>
+</div>
+<section class="sec"><h2>Todas las estaciones</h2>
+<details><summary>Ver las 34 reglas en orden aguas abajo</summary><div class="tw"><table>
+<thead><tr><th>Estación</th><th class="n">Hoy</th><th class="n">Δ 3 días (m)</th><th class="n">Percentil</th><th class="n">Alerta (m)</th></tr></thead><tbody><tr><th scope="row">Machadinho jusante<span class="pais">BR</span></th><td class="n">948 m³/s</td><td class="n">—</td><td class="n">73</td><td class="n">—</td></tr><tr><th scope="row">Itá barramento<span class="pais">BR</span></th><td class="n">1417 m³/s</td><td class="n">—</td><td class="n">73</td><td class="n">—</td></tr><tr><th scope="row">Foz do Chapecó jusante<span class="pais">BR</span></th><td class="n">2,94 m</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr><tr><th scope="row">Iraí<span class="pais">BR</span></th><td class="n">1630 m³/s</td><td class="n">—</td><td class="n">79</td><td class="n">—</td></tr><tr><th scope="row">Itapiranga<span class="pais">BR</span></th><td class="n">2639 m³/s</td><td class="n">—</td><td class="n">67</td><td class="n">—</td></tr><tr><th scope="row">Pepirí Miní<span class="pais">AR</span></th><td class="n">3,75 m</td><td class="n">-1,50</td><td class="n">73</td><td class="n">—</td></tr><tr><th scope="row">Alto Uruguai<span class="pais">BR</span></th><td class="n">1975 m³/s</td><td class="n">—</td><td class="n">66</td><td class="n">—</td></tr><tr><th scope="row">El Soberbio<span class="pais">AR</span></th><td class="n">3031 m³/s</td><td class="n">-0,80</td><td class="n">79</td><td class="n">—</td></tr><tr><th scope="row">Alba Posse<span class="pais">AR</span></th><td class="n">4,45 m</td><td class="n">-0,80</td><td class="n">83</td><td class="n">—</td></tr><tr><th scope="row">Porto Mauá<span class="pais">BR</span></th><td class="n">3,84 m</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr><tr><th scope="row">Panambí<span class="pais">AR</span></th><td class="n">3,70 m</td><td class="n">-1,10</td><td class="n">89</td><td class="n">—</td></tr><tr><th scope="row">Porto Lucena<span class="pais">BR</span></th><td class="n">3333 m³/s</td><td class="n">—</td><td class="n">79</td><td class="n">—</td></tr><tr><th scope="row">San Javier<span class="pais">AR</span></th><td class="n">3604 m³/s</td><td class="n">-1,17</td><td class="n">80</td><td class="n">8,00</td></tr><tr><th scope="row">Puerto Concepción<span class="pais">AR</span></th><td class="n">3,60 m</td><td class="n">-3,20</td><td class="n">81</td><td class="n">15,50</td></tr><tr><th scope="row">Garruchos<span class="pais">AR</span></th><td class="n">4474 m³/s</td><td class="n">-4,05</td><td class="n">74</td><td class="n">12,00</td></tr><tr><th scope="row">Santo Tomé<span class="pais">AR</span></th><td class="n">5616 m³/s</td><td class="n">-3,51</td><td class="n">86</td><td class="n">11,50</td></tr><tr><th scope="row">Passo São Borja<span class="pais">BR</span></th><td class="n">5122 m³/s</td><td class="n">—</td><td class="n">81</td><td class="n">—</td></tr><tr><th scope="row">Alvear<span class="pais">AR</span></th><td class="n">8,00 m</td><td class="n">-1,07</td><td class="n">93</td><td class="n">9,50</td></tr><tr><th scope="row">Itaqui<span class="pais">BR</span></th><td class="n">5853 m³/s</td><td class="n">—</td><td class="n">85</td><td class="n">—</td></tr><tr><th scope="row">La Cruz<span class="pais">AR</span></th><td class="n">8,12 m</td><td class="n">-0,96</td><td class="n">93</td><td class="n">9,50</td></tr><tr><th scope="row">Yapeyú<span class="pais">AR</span></th><td class="n">7,98 m</td><td class="n">-0,50</td><td class="n">94</td><td class="n">9,50</td></tr><tr><th scope="row">Ibirapuitã Alegrete<span class="pais">BR</span></th><td class="n">40 m³/s</td><td class="n">—</td><td class="n">55</td><td class="n">—</td></tr><tr><th scope="row">Ibicuí Passo Mariano Pinto<span class="pais">BR</span></th><td class="n">970 m³/s</td><td class="n">—</td><td class="n">67</td><td class="n">—</td></tr><tr class="al"><th scope="row">Paso de los Libres<span class="pais">AR</span></th><td class="n">12197 m³/s</td><td class="n">-0,45</td><td class="n">93</td><td class="n">7,50</td></tr><tr><th scope="row">Uruguaiana<span class="pais">BR</span></th><td class="n">11246 m³/s</td><td class="n">—</td><td class="n">91</td><td class="n">—</td></tr><tr><th scope="row">Quaraí<span class="pais">BR · frente a Artigas</span></th><td class="n">22 m³/s</td><td class="n">—</td><td class="n">52</td><td class="n">—</td></tr><tr><th scope="row">Monte Caseros<span class="pais">AR · frente a Bella Unión</span></th><td class="n">6,05 m</td><td class="n">0,25</td><td class="n">94</td><td class="n">7,50</td></tr><tr><th scope="row">Mocoretá<span class="pais">AR</span></th><td class="n">9,18 m</td><td class="n">0,37</td><td class="n">86</td><td class="n">10,30</td></tr><tr><th scope="row">Salto Grande Arriba<span class="pais">AR</span></th><td class="n">13956 m³/s</td><td class="n">0,38</td><td class="n">93</td><td class="n">35,50</td></tr><tr><th scope="row">Salto Grande Abajo<span class="pais">AR</span></th><td class="n">13159 m³/s</td><td class="n">0,30</td><td class="n">93</td><td class="n">17,30</td></tr><tr><th scope="row">Concordia<span class="pais">AR · frente a Salto</span></th><td class="n">9,30 m</td><td class="n">0,30</td><td class="n">92</td><td class="n">11,00</td></tr><tr><th scope="row">Colón<span class="pais">AR · frente a Paysandú</span></th><td class="n">5,50 m</td><td class="n">0,00</td><td class="n">91</td><td class="n">7,10</td></tr><tr><th scope="row">Concepción del Uruguay<span class="pais">AR</span></th><td class="n">4,30 m</td><td class="n">-0,08</td><td class="n">90</td><td class="n">5,30</td></tr><tr><th scope="row">Campichuelo<span class="pais">AR</span></th><td class="n">3,32 m</td><td class="n">-0,11</td><td class="n">87</td><td class="n">5,30</td></tr><tr><th scope="row">Gualeguaychú<span class="pais">AR</span></th><td class="n">2,20 m</td><td class="n">-0,20</td><td class="n">82</td><td class="n">3,50</td></tr><tr><th scope="row">Boca Gualeguaychú<span class="pais">AR</span></th><td class="n">2,10 m</td><td class="n">-0,20</td><td class="n">80</td><td class="n">2,90</td></tr><tr><th scope="row">Nueva Palmira<span class="pais">AR</span></th><td class="n">1,17 m</td><td class="n">-0,08</td><td class="n">—</td><td class="n">—</td></tr></tbody></table></div></details>
+</section>
+<section class="sec"><h2>Notas</h2>
+<ol class="notas">
+<li>No es una alerta oficial. Para alertas y evacuaciones: SINAE y el CECOED de tu departamento.</li>
+<li>Las cotas oficiales uruguayas se miden en la regla de cada ciudad: Bella Unión 6,30 m, Salto 11,40 m, Paysandú 6,00 m, Fray Bentos 3,90 m (DINAGUA, 3/8/2026). No se comparan con las reglas de enfrente.</li>
+<li>Artigas se mide en Quaraí, sobre el río Cuareim, en caudal. Esa estación no tiene cota de alerta.</li>
+<li>Los datos crudos de todas las fuentes se descargan en Datos.</li>
+</ol></section>
+<footer class="pie"><span>Hecho por <strong>Sebastián Reolon</strong></span><span>Código y datos en el repositorio público</span><span>Hoja 1 de 3</span></footer>
+</div></div></body></html>

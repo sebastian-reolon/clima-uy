@@ -225,15 +225,21 @@ def staff_groups(cfg: CityConfig, today: float | None) -> list[tuple[float, str,
     """(value, text, data-m) per staff label, ascending. The text carries the heights: today
     absorbs marks within 0.1 m («hoy, y alerta 4,38»); other marks within 0.1 m of each other
     share a label that keeps each one's height («2009 9,07 y 2015/16 9,12»), and data-m is the first."""
+    return [(v, " ".join(lines), data_m) for v, lines, data_m in _staff_lines(cfg, today)]
+
+
+def _staff_lines(cfg: CityConfig, today: float | None) -> list[tuple[float, list[str], float]]:
+    """staff_groups with each label split in the lines the staff draws: one per merged mark
+    («2009 9,07 y», «2015/16 9,12»), so a merged label fits the staff's width."""
     lo, hi = cfg.range_m
     marks = sorted((mk for mk in cfg.marks if lo <= mk.m <= hi), key=lambda mk: mk.m)
-    out: list[tuple[float, str, float]] = []
+    out: list[tuple[float, list[str], float]] = []
     if today is not None and lo <= today <= hi:
         near = [mk for mk in marks if abs(mk.m - today) <= STAFF_MERGE_M]
         marks = [mk for mk in marks if mk not in near]
         label = "hoy" + "".join(f", y {near[0].short}" if i == 0 else f" y {mk.short}"
                                 for i, mk in enumerate(near))
-        out.append((today, f"{label} {_fmt(today)}", today))
+        out.append((today, [f"{label} {_fmt(today)}"], today))
     groups: list[list[Mark]] = []
     for mk in marks:
         if groups and mk.m - groups[-1][0].m < STAFF_MERGE_M - 1e-9:
@@ -241,7 +247,8 @@ def staff_groups(cfg: CityConfig, today: float | None) -> list[tuple[float, str,
         else:
             groups.append([mk])
     for g in groups:
-        out.append((g[0].m, " y ".join(f"{mk.short} {_fmt(mk.m)}" for mk in g), g[0].m))
+        parts = [f"{mk.short} {_fmt(mk.m)}" for mk in g]
+        out.append((g[0].m, [p + " y" for p in parts[:-1]] + parts[-1:], g[0].m))
     return sorted(out, key=lambda t: t[0])
 
 
@@ -266,14 +273,18 @@ def staff_svg(cfg: CityConfig, today: float | None, cursor: float | None = None)
         if whole:
             t.append(f'<text class="stn" x="{x - 16}" y="{y(m) + 4:.1f}" text-anchor="end">{int(round(m))}</text>')
     used: list[float] = []
-    for v, label, data_m in staff_groups(cfg, today):
+    for v, lines, data_m in _staff_lines(cfg, today):
         ty = y(v) + 4
-        while any(abs(ty - u) < STAFF_LABEL_GAP for u in used):
+        # every line of the label (the first at ty, the next ones below) keeps clear of the others
+        while any(abs(ty + k * STAFF_LABEL_GAP - u) < STAFF_LABEL_GAP for k in range(len(lines)) for u in used):
             ty -= STAFF_LABEL_GAP
-        used.append(ty)
-        cls = "mkt hoy" if label.startswith("hoy") else "mkt"
+        used.extend(ty + k * STAFF_LABEL_GAP for k in range(len(lines)))
+        cls = "mkt hoy" if lines[0].startswith("hoy") else "mkt"
+        rest = "".join(f'<tspan x="{x + 26}" y="{ty + k * STAFF_LABEL_GAP:.1f}">{escape(ln)}</tspan>'
+                       for k, ln in enumerate(lines[1:], 1))
+        first = escape(lines[0]) + (" " if rest else "")
         t.append(f'<line class="mk" x1="{x + 10}" y1="{y(v):.1f}" x2="{x + 22}" y2="{ty - 4:.1f}"/>'
-                 f'<text class="{cls}" x="{x + 26}" y="{ty:.1f}" data-m="{data_m:g}">{escape(label)}</text>')
+                 f'<text class="{cls}" x="{x + 26}" y="{ty:.1f}" data-m="{data_m:g}">{first}{rest}</text>')
     cur = "" if cursor is None else f' transform="translate(0,{y(min(max(cursor, lo), hi)):.1f})"'
     t.append(f'<g class="cur"{cur}><line x1="{x - 18}" x2="{x + 10}" y1="0" y2="0"/>'
              f'<path d="M{x - 26},-6L{x - 18},0L{x - 26},6Z"/></g>')

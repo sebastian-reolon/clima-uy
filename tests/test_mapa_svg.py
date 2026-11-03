@@ -102,7 +102,8 @@ def _cfg_with(cfg, marks, rng=None):
 
 
 def _baselines(svg):
-    return sorted(float(y) for y in re.findall(r'class="mkt[^"]*" x="[\d.]+" y="([\d.]+)"', svg))
+    """Baselines of every staff label line: the <text> ones and their <tspan> continuation lines."""
+    return sorted(float(y) for y in re.findall(r'(?:class="mkt[^"]*" |<tspan )x="[\d.]+" y="([\d.]+)"', svg))
 
 
 def test_staff_merges_today_with_alerta(city):
@@ -117,8 +118,11 @@ def test_staff_merges_near_marks_without_today(city):
     cfg, _ = city
     svg = staff_svg(cfg, None)
     # each merged mark keeps its own height; the label points at the first one
-    assert re.search(r'<text class="mkt" x="[\d.]+" y="[\d.]+" data-m="9.07">2009 9,07 y 2015/16 9,12</text>', svg)
-    assert "2009 y 2015/16" not in svg and ">2015/16" not in svg
+    # one line per merged mark, so the label fits the staff's 215 units
+    m = re.search(r'<text class="mkt" x="96" y="([\d.]+)" data-m="9.07">2009 9,07 y '
+                  r'<tspan x="96" y="([\d.]+)">2015/16 9,12</tspan></text>', svg)
+    assert m and float(m.group(2)) - float(m.group(1)) == 13
+    assert "2009 y 2015/16" not in svg and 'data-m="9.12"' not in svg  # no label of its own
     assert "hoy" not in svg
     assert ">alerta 4,39<" in svg
 

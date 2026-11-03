@@ -552,4 +552,4 @@ def test_mark_labels_are_escaped_and_merged_marks_keep_their_heights(tmp_path):
     buttons = re.search(r'<ul class="marcas".*?</ul>', html, flags=re.S).group(0)
     assert '<button type="button" data-m="4.5" aria-pressed="false">pico A 4,50 y pico B 4,55</button>' in buttons
     staff = re.search(r'<svg class="staff".*?</svg>', html, flags=re.S).group(0)
-    assert ">pico A 4,50 y pico B 4,55</text>" in staff
+    assert '>pico A 4,50 y <tspan x="96" y="' in staff and ">pico B 4,55</tspan></text>" in staff

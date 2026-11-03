@@ -21,9 +21,9 @@
 <tbody>
 {% for r in city_rows %}
 {% if r.gauge is none %}
-<tr class="sin"><th scope="row">{{ r.city }}</th><td>sin regla pública</td><td class="obs" colspan="5">{{ r.near }}</td></tr>
+<tr class="sin"><th scope="row">{{ r.city }}{% if r.mapa %} <a class="vm" href="{{ r.mapa }}">ver el mapa</a>{% endif %}</th><td>sin regla pública</td><td class="obs" colspan="5">{{ r.near }}</td></tr>
 {% else %}
-<tr{% if r.cls %} class="{{ r.cls }}"{% endif %}><th scope="row">{{ r.city }}</th><td data-l="Regla">{{ r.gauge }}</td><td class="n" data-l="Nivel">{{ r.reading }}</td><td class="n d3" data-l="Δ 3 días">{{ r.d3 or "—" }}</td><td class="n" data-l="Percentil">{% if r.pct %}{{ r.pct }} <span class="bar"><span style="width:{{ r.bar }}%"></span></span>{% else %}—{% endif %}</td><td class="n" data-l="Alerta">{{ r.alert or "—" }}</td><td class="n strong" data-l="Falta">{{ r.falta or "—" }}</td></tr>
+<tr{% if r.cls %} class="{{ r.cls }}"{% endif %}><th scope="row">{{ r.city }}{% if r.mapa %} <a class="vm" href="{{ r.mapa }}">ver el mapa</a>{% endif %}</th><td data-l="Regla">{{ r.gauge }}</td><td class="n" data-l="Nivel">{{ r.reading }}</td><td class="n d3" data-l="Δ 3 días">{{ r.d3 or "—" }}</td><td class="n" data-l="Percentil">{% if r.pct %}{{ r.pct }} <span class="bar"><span style="width:{{ r.bar }}%"></span></span>{% else %}—{% endif %}</td><td class="n" data-l="Alerta">{{ r.alert or "—" }}</td><td class="n strong" data-l="Falta">{{ r.falta or "—" }}</td></tr>
 {% endif %}
 {% endfor %}
 </tbody></table></div>

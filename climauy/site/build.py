@@ -7,12 +7,13 @@ snapshot) still finds the stylesheet and the rest of the site.
 from __future__ import annotations
 
 import json
+import logging
 import math
 import shutil
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from typing import Sequence
+from typing import Callable, Sequence
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
@@ -28,13 +29,17 @@ from ..fmt import (
     BASELINE_YEAR, MONTHS, SEASONS as CPC_SEASONS, day_long, day_numeric, day_short, days, hour_local, is_record, is_season,
     meters, num, pct, record_text, season_key, season_label, signed, since_year,
 )
+from ..mapa.config import MAPA_DIR, CityConfig, TodayLevel, list_cities, load_city, today_level
+from ..mapa.pack import Pack, load_pack
 from ..narrative import enso_summary, river_headline, river_summary
 from .. import publish
 from ..publish import series_exported
 from ..store import Store
 from ..timeutil import MONTEVIDEO, local_day
-from . import charts
+from . import charts, mapa_svg
 from .markdown import render as render_md
+
+log = logging.getLogger(__name__)
 
 SITE_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SITE_DIR.parents[1]
@@ -905,9 +910,299 @@ def _crecida_view(matrix: crecida.RiverMatrix, catalog: Sequence[Station]) -> di
 NUMBER_WORDS = {3: "tres", 4: "cuatro", 5: "cinco", 6: "seis", 7: "siete"}
 
 
+# ---------------------------------------------------------------- /rio/mapa/<city>/ (sheet 4)
+
+MAPA_SHEET = 4
+GFM_DAYS = 10  # the satellite section looks this many days back (Ruling 11)
+ZONE_ROWS = 6  # zones listed per level, as in the approved mockup
+MARK_TOL = 0.005  # a level or mark «at» m is within this many metres
+MAPA_CHARACTER = "estimación, no observación"
+MAPA_SOURCES = [
+    ("IDE Uruguay", "https://www.ide.uy/"),
+    ("Copernicus GFM", "https://global-flood.emergency.copernicus.eu/"),
+    ("WorldPop", "https://hub.worldpop.org/"),
+    ("OpenStreetMap", "https://www.openstreetmap.org/copyright"),
+    ("INE", "https://www.gub.uy/instituto-nacional-estadistica/"),
+    ("INA", "https://alerta.ina.gob.ar/a5"),
+    ("CARU", "https://caru.org.uy/"),
+]
+OSM_COPYRIGHT = "https://www.openstreetmap.org/copyright"
+RADAR_LIMIT = "Entre casas y árboles el radar no ve: ahí manda la estimación."
+
+
+def _fetch_gfm(frame_utm, now_utc: datetime, cache_path: Path):
+    """The latest GFM scene for a city frame; imported late so the build never needs the extra."""
+    from ..mapa.gfm import latest_flood_cached
+    return latest_flood_cached(frame_utm, now_utc, cache_path)
+
+
+def _half_up(x: float) -> int:
+    """Round half up, as the page script's Math.round does, so both agree on .5."""
+    return int(math.floor(x + 0.5))
+
+
+def people(n: float) -> str:
+    """«menos de 15» under 15 people, else «unas N» rounded to 10 (to 100 from 1.000)."""
+    if n < 15:
+        return "menos de 15"
+    r = 10 if n < 1000 else 100
+    return "unas " + num(_half_up(n / r) * r, 0)
+
+
+def _m2(v: float) -> str:
+    return f"{v:.2f}".replace(".", ",")
+
+
+def _ha_text(ha: float) -> str:
+    return num(_half_up(ha), 0) + " ha"
+
+
+def _short_day(d: date) -> str:
+    """«2 nov»: the cajetín's compact date."""
+    return f"{d.day} {MONTHS[d.month - 1][:3]}"
+
+
+def _ring_area(r: list) -> float:
+    xs, ys = r[0::2], r[1::2]
+    n = len(xs)
+    return abs(sum(xs[i] * ys[(i + 1) % n] - xs[(i + 1) % n] * ys[i] for i in range(n))) / 2
+
+
+def _inside(x: float, y: float, r: list) -> bool:
+    xs, ys = r[0::2], r[1::2]
+    n, hit = len(xs), False
+    for i in range(n):
+        x1, y1, x2, y2 = xs[i], ys[i], xs[(i + 1) % n], ys[(i + 1) % n]
+        if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
+            hit = not hit
+    return hit
+
+
+def polys_ha(rings: list) -> float:
+    """Hectares of flat [x, y, ...] rings in metres, outer rings and holes together: a ring
+    inside an odd number of the others is a hole (orientation is not relied on)."""
+    total = 0.0
+    for i, r in enumerate(rings):
+        if len(r) < 6:
+            continue
+        x, y = r[0], r[1]
+        depth = sum(1 for j, o in enumerate(rings) if j != i and len(o) >= 6 and _inside(x, y, o))
+        total += -_ring_area(r) if depth % 2 else _ring_area(r)
+    return max(total, 0.0) / 10_000
+
+
+def _satellite_view(res, city: str) -> dict:
+    """Cajetín value, the date line and the text of «Hoy en el satélite» for a GfmResult."""
+    if res.status == "ok" and res.when_utc is not None:
+        t = res.when_utc.astimezone(timezone.utc)
+        when = f"{t.day} de {MONTHS[t.month - 1]}, {t:%H:%M} UTC"
+        date_line = ("Última pasada disponible de Sentinel-1: " if res.stale else "Última pasada de Sentinel-1: ") + when + "."
+        n = _half_up(polys_ha(res.polys)) if res.polys else 0
+        if not res.polys:
+            seen = "Fuera del cauce el radar no vio agua."
+        elif n == 0:
+            seen = "Fuera del cauce el radar vio menos de 1 ha de agua."
+        else:
+            seen = f"Fuera del cauce el radar vio unas {num(n, 0)} ha de agua."
+        lines = [date_line, f"{seen} {RADAR_LIMIT}"]
+        if res.stale:
+            lines.append("No se pudo consultar el satélite en esta actualización; se muestra la última pasada guardada.")
+        return {"cajetin": f"Sentinel-1, {_short_day(t.date())} {t:%H:%M} UTC", "lines": lines,
+                "polys": res.polys}
+    if res.status == "none":
+        return {"cajetin": f"sin pasadas en los últimos {GFM_DAYS} días", "polys": [],
+                "lines": [f"No hay pasadas de Sentinel-1 sobre {city} en los últimos {GFM_DAYS} días."]}
+    return {"cajetin": "no se pudo consultar", "polys": [],
+            "lines": ["No se pudo consultar el satélite en esta actualización."]}
+
+
+def _level_at(levels: list[dict], m: float) -> dict:
+    """The level drawn for m: a level exactly at m (a mark), else the nearest grid level,
+    the first one on a tie. The page script does the same."""
+    exact = next((lv for lv in levels if abs(lv["m"] - m) < MARK_TOL), None)
+    if exact is not None:
+        return exact
+    return min((lv for lv in levels if lv["grid"]), key=lambda lv: abs(lv["m"] - m))
+
+
+def _reference_mark(cfg: CityConfig) -> tuple[float, str]:
+    """(metres, «la cota de evacuación») for the h1: evacuation, else the highest official mark."""
+    lo, hi = cfg.range_m
+    marks = [mk for mk in cfg.marks if lo <= mk.m <= hi]
+    evac = next((mk for mk in marks if mk.short == "evacuación"), None)
+    if evac is not None:
+        return evac.m, "la cota de evacuación"
+    official = [mk for mk in marks if mk.kind == "oficial"]
+    if official:
+        top = max(official, key=lambda mk: mk.m)
+        return top.m, f"la cota de {top.short}"
+    return hi, "el tope de la escala"
+
+
+def _join(items: list[str]) -> str:
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " y " + items[-1]
+
+
+def _zone_rows(level: dict) -> list[tuple[str, str]]:
+    return [(name, people(v)) for name, v in level["zones"][:ZONE_ROWS] if v >= 1]
+
+
+def _level_json(pack: Pack, cfg: CityConfig, lv: dict, two_paths: bool) -> dict:
+    out = {"m": lv["m"], "grid": lv["grid"], "ha": round(lv["area_ha"], 1), "pop": lv["pop"],
+           "z": [[n, v] for n, v in lv["zones"][:ZONE_ROWS] if v >= 1],
+           "d": mapa_svg.level_path(pack, cfg, lv, "wide")}
+    if two_paths:
+        out["dm"] = mapa_svg.level_path(pack, cfg, lv, "movil")
+    return out
+
+
+def _niveles_json(pack: Pack, cfg: CityConfig, marks: list[dict], start: float) -> str:
+    """rio/mapa/<slug>/niveles.json: every pack level (grid and mark levels) with its paths,
+    people, hectares and zones; the marks; the range and the level the page starts on."""
+    two = not mapa_svg.same_drawing(pack, cfg)
+    data = {"lo": cfg.range_m[0], "hi": cfg.range_m[1], "start": start, "marks": marks,
+            "levels": [_level_json(pack, cfg, lv, two) for lv in pack.levels]}
+    return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+
+
+def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, others: list[dict],
+               station_name: str | None) -> tuple[dict, str]:
+    """Context for mapa.html.j2 and the text of niveles.json."""
+    lo, hi = cfg.range_m
+    levels = pack.levels
+    ref_m, ref_what = _reference_mark(cfg)
+    ref_lv = _level_at(levels, ref_m)
+    if today is not None:
+        today_lv = _level_at([lv for lv in levels if lv["grid"]], today.m)  # Ruling 1: nearest grid level
+        h1 = (f"Con el río como hoy, {people(today_lv['pop'])} personas de {cfg.name} viven en terreno más bajo "
+              f"que el agua. A {_m2(ref_m)} m, {ref_what}, serían {people(ref_lv['pop'])}.")
+        start, start_lv = today.m, today_lv
+        rio_hoy = f"{_m2(today.m)} m, estimado desde {today.station_name}, {_short_day(local_day(today.when_utc))}"
+    else:
+        h1 = (f"A {_m2(ref_m)} m, {ref_what}, {people(ref_lv['pop'])} personas de {cfg.name} vivirían en terreno "
+              "más bajo que el agua.")
+        start, start_lv = ref_m, ref_lv
+        rio_hoy = "sin estimación al día"
+    sat = _satellite_view(gfm, cfg.name)
+
+    marks = ([{"label": f"Hoy, estimado desde {today.station_name}", "m": today.m}] if today else []) + [
+        {"label": mk.label, "m": mk.m} for mk in cfg.marks if lo <= mk.m <= hi]
+    start_mark = next((mk["label"] for mk in marks if abs(mk["m"] - start) < MARK_TOL), "")
+    buttons = [{"text": ("hoy" if label.startswith("hoy") else label) + " " + _m2(v), "m": f"{data_m:g}",
+                "pressed": abs(data_m - start) < MARK_TOL}
+               for v, label, data_m in mapa_svg.staff_groups(cfg, today.m if today else None)]
+
+    contours = sorted({c["m"] for c in pack.layers.get("contours", [])})
+    contour_text = (f" Las curvas punteadas marcan {_join([num(c, 0) for c in contours])} m de esa misma escala."
+                    if contours else "")
+
+    # Notes 2 to 7 of the mockup, then Ruling 1's note and the credits the licences ask for.
+    notes = [
+        Markup("La parte rayada es una estimación: marca el terreno que queda por debajo de la altura elegida y que "
+               "está conectado con el río. Supone el agua plana frente a toda la ciudad; con el río alto, la "
+               "pendiente puede mover el borde unos 40 cm hacia el norte o el sur."),
+        Markup(f'El cero de la escala de {Markup.escape(cfg.name)} se tomó del '
+               f'<a href="{Markup.escape(cfg.zero_source.url)}">relevamiento INA-CARU de 2019</a>, ajustado con '
+               "cuatro puntos medidos en el puerto. Puede estar corrido unos 35 cm."),
+    ]
+    pop_text = "La población sale de una grilla de 100 m y se lee como un piso."
+    if cfg.sinae_check is not None:
+        sc = cfg.sinae_check
+        event = next((mk.label.removeprefix("Pico de ") for mk in cfg.marks
+                      if abs(mk.m - sc.m) < MARK_TOL and mk.label.startswith("Pico de ")), None)
+        lead = f"En {event}, con el río a {_m2(sc.m)} m" if event else f"Con el río a {_m2(sc.m)} m"
+        pop_text += (f' {lead}, el <a href="{Markup.escape(sc.source.url)}">SINAE</a> contó hasta '
+                     f"{num(sc.people, 0)} personas desplazadas; esta estimación da "
+                     f"{people(_level_at(levels, sc.m)['pop'])} para esa altura.")
+    notes.append(Markup(pop_text))
+    if cfg.today is not None:
+        t = cfg.today
+        month = MONTHS[int(t.source.date[5:7]) - 1] if len(t.source.date) >= 7 else ""
+        when = f" en {month}" if month else ""
+        text = (f"No hay escala de {Markup.escape(cfg.name)} con dato en tiempo real. La altura de hoy sale de "
+                f"{Markup.escape(station_name or t.station_id)}, enfrente, menos la "
+                f'<a href="{Markup.escape(t.source.url)}">diferencia entre las dos escalas</a>{when} '
+                f"({_m2(t.offset_range[0])} a {_m2(t.offset_range[1])} m).")
+        if today is None:
+            text += f" Ahora {Markup.escape(station_name or t.station_id)} no tiene dato al día, así que no hay estimación."
+        notes.append(Markup(text))
+    else:
+        notes.append(Markup(f"No hay escala de {Markup.escape(cfg.name)} con dato en tiempo real ni una diferencia "
+                            "con fuente con otra escala, así que la página no estima la altura de hoy."))
+    notes += [
+        Markup(f"Los nombres de barrio son del punto de OpenStreetMap más cercano a cada segmento censal de 2011; "
+               f"{Markup.escape(cfg.name)} no publica límites de barrio."),
+        Markup("El radar casi no ve agua entre edificios ni bajo árboles. Por eso, dentro de la ciudad, el plano se "
+               "apoya en la estimación."),
+    ]
+    if today is not None:
+        notes.append(Markup("Los cálculos van cada 25 cm; la altura de hoy se toma en el más cercano."))
+    remesa = next((p for url in cfg.dtm_urls[:1] for p in url.split("/") if p.startswith("CU_Remesa")), "")
+    dataset = f"MDT ciudad de {Markup.escape(cfg.name)} 1 m" + (f" ({remesa})" if remesa else "")
+    notes.append(Markup(
+        f"Fuentes del plano: terreno de IDE Uruguay, {dataset}, Licencia de Datos Abiertos de Uruguay; remuestreado "
+        "a 2 m y procesado. Población: WorldPop (CC BY 4.0). Zonas: INE, segmentos censales 2011. Manzanas, calles, "
+        f'río y barrios: <a href="{OSM_COPYRIGHT}">© colaboradores de OpenStreetMap</a>. Satélite: contiene '
+        "información modificada del Copernicus Emergency Management Service (GFM)."))
+
+    ctx = {
+        "city": cfg.name,
+        "h1": h1,
+        "cajetin": [("Ciudad", cfg.name), ("Río hoy", rio_hoy), ("Satélite", sat["cajetin"]),
+                    ("Terreno", "IDE, grilla de 1 m"), ("Población", "WorldPop 2026, grilla de 100 m"),
+                    ("Carácter", MAPA_CHARACTER)],
+        "others": others,
+        "contour_text": contour_text,
+        "lo": f"{lo:g}", "hi": f"{hi:g}", "start": f"{start:g}",
+        "start_what": "la altura de hoy" if today is not None else ref_what,
+        "buttons": buttons,
+        "plan_wide": Markup(mapa_svg.plan_svg(pack, cfg, start_lv, sat["polys"], "mapa-wide", "wide")),
+        "plan_movil": Markup(mapa_svg.plan_svg(pack, cfg, start_lv, sat["polys"], "mapa-movil", "movil")),
+        "staff": Markup(mapa_svg.staff_svg(cfg, today.m if today else None, cursor=start)),
+        "read_m": f"{_m2(start)} m", "read_mark": start_mark, "read_pop": people(start_lv["pop"]),
+        "read_ha": _ha_text(start_lv["area_ha"]),
+        "zones": _zone_rows(start_lv),
+        "sat_lines": sat["lines"],
+        "mapa_notes": notes,
+        "cecoed": cfg.name,
+        "sources": MAPA_SOURCES,
+        "character": MAPA_CHARACTER,
+    }
+    return ctx, _niveles_json(pack, cfg, marks, start)
+
+
+def _build_maps(store: Store, out_dir: Path, now_utc: datetime, base: str, mapa_root: Path,
+                gfm_fetch: Callable, catalog: Sequence[Station]) -> list[tuple[CityConfig, dict, str]]:
+    """(config, page context, niveles.json) per city with a pack. A city whose config or pack
+    does not load is logged and left out; a failing satellite fetch never stops the build."""
+    loaded = []
+    for slug in list_cities(mapa_root):
+        try:
+            cfg = load_city(slug, mapa_root)
+            loaded.append((cfg, load_pack(slug, mapa_root)))
+        except Exception:
+            log.exception("mapa: city %s does not load; its page is left out", slug)
+    names = {s.id: s.name for s in catalog}
+    out = []
+    for cfg, pack in loaded:
+        try:
+            gfm = gfm_fetch(cfg.frame_utm, now_utc, out_dir / "rio" / "mapa" / cfg.slug / "satelite.json")
+        except Exception as exc:  # the build goes on without the satellite layer
+            log.warning("mapa: satellite fetch for %s failed (%s: %s)", cfg.slug, type(exc).__name__, exc)
+            gfm = None
+        if gfm is None:
+            from ..mapa.gfm import GfmResult
+            gfm = GfmResult("error", None, None, [])
+        others = [{"name": o.name, "url": f"{base}/rio/mapa/{o.slug}/"} for o, _ in loaded if o.slug != cfg.slug]
+        station = names.get(cfg.today.station_id) if cfg.today else None
+        ctx, niveles = _mapa_view(cfg, pack, today_level(store, cfg, now_utc), gfm, others, station)
+        out.append((cfg, ctx, niveles))
+    return out
+
+
 # ---------------------------------------------------------------- build
 
-SHEETS_TOTAL = 6
+SHEETS_TOTAL = 7
 
 
 def _env() -> Environment:
@@ -930,7 +1225,7 @@ def _common(base: str) -> dict:
         "sources": SOURCES,
         "repo_url": REPO_URL,
         "author_url": AUTHOR_URL,
-        "sheet": None,  # «Hoja n de 6» in the footer; pages outside the numbered set leave it unset
+        "sheet": None,  # «Hoja n de 7» in the footer; pages outside the numbered set leave it unset
         "sheets": SHEETS_TOTAL,
     }
 
@@ -956,8 +1251,13 @@ def build_site(
     outlook_path: Path = OUTLOOK_PATH,
     method_path: Path = METHOD_PATH,
     refs_path: Path = REFS_PATH,
+    mapa_root: Path = MAPA_DIR,
+    gfm_fetch: Callable | None = None,
 ) -> list[Path]:
-    """Write the six pages, the static assets and the crecida CSV into out_dir; returns the pages written."""
+    """Write the pages (one map page per city with a pack), the static assets, the crecida CSV
+    and each map's niveles.json into out_dir; returns the pages written.
+
+    gfm_fetch(frame_utm, now_utc, cache_path) -> GfmResult defaults to the live GFM query."""
     base = base_url.rstrip("/")
     out_dir.mkdir(parents=True, exist_ok=True)
     static_out = out_dir / "static"
@@ -983,6 +1283,11 @@ def build_site(
     lag_results = run_production_lags(store, catalog)
     matrix = crecida.river_matrix(store, catalog, today, partial_last=True)  # ends on today, in progress
     publish.write_crecida_csv(out_dir, matrix, catalog)
+    maps = _build_maps(store, out_dir, now_utc, base, mapa_root, gfm_fetch or _fetch_gfm, catalog)
+    mapa_urls = {cfg.name: f"{base}/rio/mapa/{cfg.slug}/" for cfg, _, _ in maps}
+    city_rows = _city_rows(statuses, catalog, store)
+    for r in city_rows:
+        r["mapa"] = mapa_urls.get(r["city"])
 
     common = {
         **_common(base),
@@ -998,7 +1303,7 @@ def build_site(
             "sheet": 1,
             "headline": river_headline(statuses, catalog),
             "cajetin": _cajetin(statuses, catalog),
-            "city_rows": _city_rows(statuses, catalog, store),
+            "city_rows": city_rows,
             "profile_wide": Markup(charts.profile_plan_svg(statuses, catalog)),
             "profile_phone": Markup(charts.profile_plan_svg(
                 statuses, catalog, width=340, height=560,
@@ -1020,6 +1325,7 @@ def build_site(
                           if last_data else "No hay datos del río al día."),
             "cities": [views[st.id] for st in sorted(catalog, key=lambda s: s.order) if st.represents],
             "cota_line": COTA_SOURCE_LINE,
+            "mapa_urls": mapa_urls,
             "column": _column(views, catalog),
             "table": [views[st.id] for st in sorted(catalog, key=lambda s: s.order)],
             "dam": _dam_view(store, today),
@@ -1036,7 +1342,7 @@ def build_site(
         }),
         "nino/index.html": ("nino.html.j2", {
             "nav": "nino",
-            "sheet": 4,
+            "sheet": 5,
             "headline": _nino_headline(enso_summary(store.indices("RONI") + store.indices("ONI"))),
             "cajetin": _nino_cajetin(store, outlook_path),
             "enso_rows": _enso_rows(store),
@@ -1045,12 +1351,12 @@ def build_site(
         }),
         "rio/metodologia/index.html": ("metodologia.html.j2", {
             "nav": "rio",
-            "sheet": 6,
+            "sheet": 7,
             "doc": _doc_parts(method_path.read_text(encoding="utf-8")),
         }),
         "datos/index.html": ("datos.html.j2", {
             "nav": "datos",
-            "sheet": 5,
+            "sheet": 6,
             "downloads": _downloads(store, catalog, now_utc),
             "source_terms": _source_terms(),
             "licences_url": f"{REPO_URL}/blob/main/{LICENCES_DOC}",
@@ -1060,8 +1366,14 @@ def build_site(
             "today_long": day_long(today),
         }),
     }
+    for cfg, ctx, _ in maps:
+        pages[f"rio/mapa/{cfg.slug}/index.html"] = ("mapa.html.j2", {"nav": "rio", "sheet": MAPA_SHEET, **ctx})
     env = _env()
     written = []
+    for cfg, _, niveles in maps:
+        path = out_dir / "rio" / "mapa" / cfg.slug / "niveles.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(niveles, encoding="utf-8")
     for rel, (template, ctx) in pages.items():
         path = out_dir / rel
         path.parent.mkdir(parents=True, exist_ok=True)

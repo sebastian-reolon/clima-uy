@@ -52,7 +52,7 @@
 <p class="top-warning">{{ disclaimer }} <a href="{{ sinae_url }}">SINAE</a> y el CECOED de tu departamento.</p>
 <p class="stamp">{{ generated }} {{ last_data }} <a href="{{ snapshot_url }}">Ver la foto de hoy</a></p>
 <nav class="cities" aria-label="Ciudades uruguayas">Ir a:
-{% for c in cities %}<a href="#estacion-{{ c.station.id }}">{{ c.title }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+{% for c in cities %}<a href="#estacion-{{ c.station.id }}">{{ c.title }}</a>{% if mapa_urls.get(c.title) %} (<a href="{{ mapa_urls.get(c.title) }}">ver el mapa</a>){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
 </nav>
 <figure class="profile">
 {{ profile }}

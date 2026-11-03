@@ -14,8 +14,8 @@ from climauy.store import Forecast, IndexValue, Obs, Store
 NOW = datetime(2026, 11, 1, 21, 5, tzinfo=timezone.utc)  # 18:05 in Montevideo
 PAGES = ["index.html", "rio/index.html", "rio/crecida/index.html", "nino/index.html", "rio/metodologia/index.html",
          "datos/index.html"]
-SHEETS = {"index.html": 1, "rio/index.html": 2, "rio/crecida/index.html": 3, "nino/index.html": 4,
-          "datos/index.html": 5, "rio/metodologia/index.html": 6}
+SHEETS = {"index.html": 1, "rio/index.html": 2, "rio/crecida/index.html": 3, "rio/mapa/paysandu/index.html": 4,
+          "nino/index.html": 5, "datos/index.html": 6, "rio/metodologia/index.html": 7}
 ALLOWED_ACRONYMS = {
     "INA", "ANA", "CTM", "SINAE", "CECOED", "INUMET", "NOAA", "RONI", "ONI", "CPC", "CARU", "DINAGUA",
     "UTC", "CSV", "JSON",
@@ -586,10 +586,10 @@ def test_sheet_number_in_footer(site, tmp_path):
     from climauy.site.build import render_snapshot_index
 
     out, _ = site
-    assert "Hoja 2 de 6" in _flat(_read(out, "rio/index.html"))
+    assert "Hoja 2 de 7" in _flat(_read(out, "rio/index.html"))
     for page, n in SHEETS.items():
         footer = re.search(r'<footer class="pie">.*?</footer>', _read(out, page), flags=re.S).group(0)
-        assert f"Hoja {n} de 6" in _flat(footer), page
+        assert f"Hoja {n} de 7" in _flat(footer), page
     index = render_snapshot_index(tmp_path, [date(2026, 11, 1)], base_url="/clima-uy")
     assert "Hoja" not in _flat(index.read_text(encoding="utf-8"))
 
@@ -744,7 +744,8 @@ def test_home_city_rows(home):
     html, statuses = home
     by = {s.station_id: s for s in statuses}
     rows = _rows(_table(html, "ciu"))
-    assert [r[1] for r in rows] == ["Bella Unión", "Artigas", "Salto", "Paysandú", "Fray Bentos"]
+    # Paysandú has a flood map: its row header carries the «ver el mapa» link (Ruling 5).
+    assert [r[1] for r in rows] == ["Bella Unión", "Artigas", "Salto", "Paysandú ver el mapa", "Fray Bentos"]
     bu, artigas, salto, paysandu, fray = rows
     # Bella Unión: Monte Caseros level, cota 7,50.
     mc = by["ina_74"]
@@ -912,7 +913,8 @@ def test_home_with_empty_store(tmp_path):
     caj = _flat(re.search(r'<dl class="cajetin">(.*?)</dl>', html, flags=re.S).group(1))
     assert "sin datos al día" in caj and "0 con dato, 37 sin" in caj
     rows = _rows(_table(html, "ciu"))
-    assert [r[1] for r in rows] == ["Bella Unión", "Artigas", "Salto", "Paysandú", "Fray Bentos"]
+    # Paysandú has a flood map: its row header carries the «ver el mapa» link (Ruling 5).
+    assert [r[1] for r in rows] == ["Bella Unión", "Artigas", "Salto", "Paysandú ver el mapa", "Fray Bentos"]
     assert rows[0][2][1] == "sin datos"
     assert rows[4][2] == ["sin regla pública", "sin estación cercana con datos al día"]
     assert "No hay estaciones con datos al día." in flat

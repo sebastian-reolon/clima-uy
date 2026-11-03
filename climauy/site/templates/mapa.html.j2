@@ -1,0 +1,134 @@
+{% extends "base.html.j2" %}
+{# Sheet 4: a city's flood map. Ported from the approved mockup E «Plancheta» (e-plancheta.html, 2026-11-03).
+   The start level (today's, or the evacuation mark) is drawn in the HTML so the page reads without
+   JavaScript; the script loads niveles.json and redraws on the user's input only. #}
+{% block title %}Plano de crecida de {{ city }} | clima-uy{% endblock %}
+{% block description %}{{ h1 }}{% endblock %}
+{% block main %}
+<div class="cab"><section class="resp"><h1>{{ h1 }}</h1>
+<p>Mové la altura del río y el plano marca el terreno que quedaría por debajo, con cuánta gente vive ahí. Es una estimación hecha con el relieve de la ciudad, no una foto del agua.</p>
+<p class="crumb"><a href="{{ base }}/rio/">El río estación por estación</a>{% if others %}. Otros planos: {% for o in others %}<a href="{{ o.url }}">{{ o.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</p>
+</section>
+<dl class="cajetin">
+{% for label, value in cajetin %}
+<dt>{{ label }}</dt><dd>{{ value }}</dd>
+{% endfor %}
+</dl>
+</div>
+<section class="sec"><h2>Plano</h2>
+<p class="que">{{ city }} frente al río, con el terreno que queda por debajo de la altura elegida en la escala del puerto.{{ contour_text }}</p>
+<div class="phone-only"><div class="nivel"><label for="nv">Río</label><input id="nv" data-in="m" type="range" min="{{ lo }}" max="{{ hi }}" step="0.25" value="{{ start }}"><output data-out="m">{{ read_m }}</output></div></div>
+<ul class="marcas" aria-label="Alturas de referencia">{% for b in buttons %}<li><button type="button" data-m="{{ b.m }}" aria-pressed="{{ 'true' if b.pressed else 'false' }}">{{ b.text }}</button></li>{% endfor %}</ul>
+<noscript><p>Para elegir otra altura hace falta JavaScript. Sin él, el plano y la tabla muestran {{ start_what }}.</p></noscript>
+<div class="plancheta">
+<div>{{ plan_wide }}{{ plan_movil }}<p class="ley2">
+<span><svg viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="14" fill="var(--water-2)" stroke="var(--water)"/></svg>río en su cauce</span>
+<span><svg viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="14" fill="var(--water)"/></svg>agua fuera del cauce vista por el satélite</span>
+<span><svg viewBox="0 0 22 14" aria-hidden="true"><defs><pattern id="lh" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="var(--water)" stroke-width="1.6"/></pattern></defs><rect width="22" height="14" fill="url(#lh)" stroke="var(--water)"/></svg>terreno por debajo de la altura elegida (estimación)</span>
+<span><svg viewBox="0 0 22 14" aria-hidden="true"><line x1="0" y1="7" x2="22" y2="7" stroke="var(--ink-2)" stroke-dasharray="3 3"/></svg>curva de nivel en metros de la escala</span>
+<span><svg viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="14" fill="var(--grid)"/></svg>manzana</span>
+</p></div>
+<aside class="lado"><div class="staff-wrap">{{ staff }}</div>
+<div class="lectura"><dl>
+<dt>Río</dt><dd class="big" data-out="m">{{ read_m }}</dd>
+<dd class="mk" data-out="mark">{{ read_mark }}</dd>
+<dt>Personas por debajo</dt><dd data-out="pop">{{ read_pop }}</dd>
+<dt>Terreno por debajo</dt><dd data-out="ha">{{ read_ha }}</dd>
+</dl></div></aside>
+</div></section>
+<div class="dos"><section class="sec"><h2>Dónde vive esa gente</h2><p class="que">Por zona, a la altura elegida. Las zonas llevan el nombre del barrio más cercano.</p>
+<table class="zonas"><thead><tr><th>Zona, por el barrio más cercano</th><th class="n">Personas</th></tr></thead><tbody data-out="zones">
+{% for name, n in zones %}
+<tr><th>{{ name }}</th><td class="n">{{ n }}</td></tr>
+{% else %}
+<tr><td colspan="2">Ninguna zona con gente por debajo de esta altura.</td></tr>
+{% endfor %}
+</tbody></table></section>
+<section class="sec"><h2>Hoy en el satélite</h2><p class="que">{{ sat_lines[0] }}</p>
+{% for line in sat_lines[1:] %}
+<p>{{ line }}</p>
+{% endfor %}
+</section></div>
+{% endblock %}
+{% block notes %}
+{% for n in mapa_notes %}
+<li>{{ n }}</li>
+{% endfor %}
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  "use strict";
+  var L = [], M = [], lo = {{ lo }}, hi = {{ hi }};
+  function fmt(v) { return v.toFixed(2).replace(".", ","); }
+  function thousands(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+  function half(x) { return Math.floor(x + 0.5); }
+  function people(n) { if (n < 15) return "menos de 15"; var r = n < 1000 ? 10 : 100; return "unas " + thousands(half(n / r) * r); }
+  // A level exactly at m (a mark), else the nearest grid level, the first on a tie: as the build does.
+  function levelAt(m) {
+    var i, b = null;
+    for (i = 0; i < L.length; i++) if (Math.abs(L[i].m - m) < 0.005) return L[i];
+    for (i = 0; i < L.length; i++) if (L[i].grid && (b === null || Math.abs(L[i].m - m) < Math.abs(b.m - m))) b = L[i];
+    return b;
+  }
+  function markAt(m) { for (var i = 0; i < M.length; i++) if (Math.abs(M[i].m - m) < 0.005) return M[i]; return null; }
+  function each(sel, fn) { var n = document.querySelectorAll(sel); for (var i = 0; i < n.length; i++) fn(n[i]); }
+  function set(m) {
+    var lv = levelAt(m), mk = markAt(m);
+    if (!lv) return;
+    each("svg.mapa", function (s) {
+      var d = s.classList.contains("movil") && lv.dm != null ? lv.dm : lv.d;
+      s.querySelector(".est").setAttribute("d", d);
+      s.querySelector(".estl").setAttribute("d", d);
+    });
+    each("[data-out=m]", function (e) { e.textContent = fmt(m) + " m"; });
+    each("[data-out=pop]", function (e) { e.textContent = people(lv.pop); });
+    each("[data-out=ha]", function (e) { e.textContent = thousands(half(lv.ha)) + " ha"; });
+    each("[data-out=mark]", function (e) { e.textContent = mk ? mk.label : ""; });
+    each("[data-out=zones]", function (tb) {
+      while (tb.firstChild) tb.removeChild(tb.firstChild);
+      var tr, c;
+      if (!lv.z.length) {
+        tr = document.createElement("tr"); c = document.createElement("td"); c.colSpan = 2;
+        c.textContent = "Ninguna zona con gente por debajo de esta altura."; tr.appendChild(c); tb.appendChild(tr); return;
+      }
+      lv.z.forEach(function (z) {
+        tr = document.createElement("tr");
+        c = document.createElement("th"); c.textContent = z[0]; tr.appendChild(c);
+        c = document.createElement("td"); c.className = "n"; c.textContent = people(z[1]); tr.appendChild(c);
+        tb.appendChild(tr);
+      });
+    });
+    each("input[data-in=m]", function (i) { i.value = m; });
+    each(".marcas button", function (b) { b.setAttribute("aria-pressed", Math.abs(+b.dataset.m - m) < 0.005 ? "true" : "false"); });
+    each("svg.staff", function (s) {
+      var top = +s.dataset.top, bot = +s.dataset.bot, v = Math.max(lo, Math.min(hi, m));
+      s.querySelector(".cur").setAttribute("transform", "translate(0," + (bot - (v - lo) / (hi - lo) * (bot - top)).toFixed(1) + ")");
+    });
+  }
+  function init(D) {
+    L = D.levels; M = D.marks; lo = D.lo; hi = D.hi;
+    each("input[data-in=m]", function (i) { i.addEventListener("input", function () { set(+i.value); }); });
+    each(".marcas button", function (b) { b.addEventListener("click", function () { set(+b.dataset.m); }); });
+    each("svg.staff", function (s) {
+      var drag = false, top = +s.dataset.top, bot = +s.dataset.bot;
+      function at(e) {
+        var r = s.getBoundingClientRect(), y = (e.clientY - r.top) / r.height * s.viewBox.baseVal.height;
+        var m = lo + (bot - y) / (bot - top) * (hi - lo);
+        set(Math.max(lo, Math.min(hi, Math.round(m * 4) / 4)));
+      }
+      s.querySelector(".hit").addEventListener("pointerdown", function (e) { drag = true; s.setPointerCapture(e.pointerId); at(e); });
+      s.addEventListener("pointermove", function (e) { if (drag) at(e); });
+      s.addEventListener("pointerup", function () { drag = false; });
+      var mk = s.querySelectorAll(".mkt");
+      for (var k = 0; k < mk.length; k++) mk[k].addEventListener("click", function () { set(+this.dataset.m); });
+    });
+    var hm = /m=([0-9.]+)/.exec(location.hash), h = hm ? +hm[1] : NaN;
+    set(isFinite(h) ? Math.max(lo, Math.min(hi, h)) : D.start);
+  }
+  if (!window.fetch) return;
+  fetch("niveles.json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(init)
+    .catch(function () { /* the drawn start level stays */ });
+})();
+</script>
+{% endblock %}

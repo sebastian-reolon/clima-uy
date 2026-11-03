@@ -233,8 +233,10 @@ def test_snapshot_links_stay_inside_snapshot(built):
         assert 'Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>' in page.read_text(
             encoding="utf-8"), page
         for rel in _targets(page, out):
-            # The Datos menu entry goes to the list of snapshots: the Datos page itself is live.
-            assert rel.startswith(day) or rel.startswith("static/") or rel == "snapshots/", f"{page}: {rel}"
+            # The Datos menu entry goes to the list of snapshots: the Datos page itself is live,
+            # and so are the city maps, which snapshots do not copy.
+            assert (rel.startswith(day) or rel.startswith("static/") or rel == "snapshots/"
+                    or rel.startswith("rio/mapa/")), f"{page}: {rel}"
             assert _resolves(out, rel), f"{page}: {rel}"
     index = (out / "snapshots/index.html").read_text(encoding="utf-8")
     assert 'Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a>' in index

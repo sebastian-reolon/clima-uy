@@ -16,7 +16,7 @@
 {% block main %}{% endblock %}
 <section class="sec"><h2>Notas</h2>
 <ol class="notas">
-<li>Esto no es una alerta oficial. Para alertas y evacuaciones: <a href="{{ sinae_url }}">SINAE</a> y el CECOED de tu departamento.</li>
+<li>Esto no es una alerta oficial. Para alertas y evacuaciones: <a href="{{ sinae_url }}">SINAE</a> y el CECOED de {{ cecoed | default("tu departamento") }}.</li>
 {% block notes %}{% endblock %}
 </ol></section>
 </main>

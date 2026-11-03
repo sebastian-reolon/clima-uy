@@ -78,6 +78,19 @@ GloFAS es un modelo global sin corregir para este río: sirve para ver la tenden
 
 Las frases que resumen la situación salen de plantillas fijas a partir de los datos. Ningún modelo de lenguaje escribe texto publicado: la misma situación da siempre la misma frase.
 
+## El plano de crecida de cada ciudad
+
+Cada ciudad con plano (por ahora Paysandú) tiene una página que muestra qué terreno queda por debajo del río a una altura elegida, y cuánta gente vive ahí. Es una estimación hecha con el relieve, no una observación.
+
+- **Relieve:** el modelo digital del terreno de 1 m de la IDE Uruguay, llevado a celdas de 2 m. El cero de la escala de la ciudad se pasa al mismo datum con una fuente citada.
+- **Agua:** se supone plana frente a toda la ciudad, a la altura elegida sobre ese cero. Se marca el terreno más bajo que esa superficie y conectado con el río; el cauce no cuenta. Los cálculos van cada 25 cm de la escala, más uno exacto en cada marca con fuente (alerta, evacuación, picos pasados).
+- **Gente:** la grilla de población de WorldPop 2026, de 100 m, repartida en partes iguales dentro de cada celda. Se lee como un piso y se escribe redondeada («unas 300»); por debajo de 15 personas dice «menos de 15».
+- **Zonas:** los segmentos censales del INE de 2011, cada uno con el nombre del barrio de OpenStreetMap más cercano. No son límites oficiales.
+- **Altura de hoy:** ninguna de estas ciudades tiene una escala uruguaya con dato en tiempo real. Se toma la escala argentina de enfrente y se le resta la diferencia entre las dos escalas medida en informes de la CARU. Es la única excepción a la regla de no pasar cotas de una escala a otra, y la página lo dice. Si esa estación no tiene dato al día, la página no estima la altura de hoy.
+- **Satélite:** la mancha de agua que vio el radar de Sentinel-1 en la última pasada de los últimos 10 días, del servicio GFM de Copernicus. Se consulta en cada actualización; si no responde, se muestra la última pasada guardada o se dice que no se pudo consultar.
+
+El relieve, la población y las zonas se procesan una vez, fuera del servidor, y quedan en el repositorio. En cada actualización solo cambian la altura de hoy y el satélite.
+
 ## Límites
 
 - Esto no es una alerta oficial ni reemplaza a SINAE ni a los CECOED.

@@ -97,13 +97,30 @@ red = alert. Everything else is ink.
   leaders); the diagram reads in full without JavaScript, and the selection
   outline and the row pointer only appear with it. The last row is today,
   marked «(hoy, parcial)».
+- Plano de ciudad (`/rio/mapa/<city>/`, approved mockup E «Plancheta» of
+  2026-11-03): a technical city plan, 10 m per unit, north up, with blocks
+  in `--grid`, main streets in ink-2, dashed contours in metres of the
+  city's gauge, barrio names in ink with a paper halo, the river in
+  `--water-2` ringed in `--water`, a 1 km scale bar, a north arrow and
+  1 km ticks on the frame. The ground below the chosen height is hatched
+  in `--water` at 45° (an estimate); what the Sentinel-1 radar saw is solid
+  `--water` (an observation), so the two never read alike. Beside it, a
+  vertical gauge staff (drag it, or tap a mark) and a reading ruled in ink:
+  height, mark name, people and hectares below. Buttons for the cited
+  marks above the plan; «hoy» is pressed when the page opens. On phones
+  (48em and below) the staff gives way to a range input labelled «Río» and
+  the plan is a crop of the riverside (480 units wide, at most 32rem),
+  labels drawn at 11 px or more at 320 px. Without JavaScript the plan,
+  the reading and the zones table show today's height (or the evacuation
+  mark) and a noscript line says choosing another height needs it.
+  People are always «unas N» (rounded) or «menos de 15», never exact.
 - Notes: ordered list, small, ink-2.
 - Footer: credit «Hecho por Sebastián Reolon», repo link, «Hoja n de N».
 
 ## Motion
 
-None. Only `<details>` opening and the crecida page's day selector, which
-redraws on input without animating. The old profile's grow-in script
+None. Only `<details>` opening, the crecida page's day selector and the
+city map's height selector, which redraw on input without animating. The old profile's grow-in script
 (`static/js/morph.js`) is no longer loaded by `/rio/`; it stays for the frozen
 snapshots that link it.
 

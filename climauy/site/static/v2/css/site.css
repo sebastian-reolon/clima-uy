@@ -288,3 +288,66 @@ table.outlook .rest{display:block;font-size:.78rem;color:var(--ink-2)}
 @media (max-width:40em){
   .hov{display:none}.hov.movil{display:block}
 }
+
+/* /rio/mapa/<city>/: the city flood map (approved mockup E «Plancheta», 2026-11-03).
+   One plan per screen size, like the profile: the phone one is cropped to the riverside. */
+.mapa{display:block;width:100%;height:auto}
+.mapa .paper{fill:var(--paper)}
+.mapa .frame{fill:none;stroke:var(--ink);stroke-width:1.5}
+.mapa .tk{stroke:var(--ink);stroke-width:1}
+.mapa .rio{fill:var(--water-2);stroke:var(--water);stroke-width:1}
+.mapa .obs{fill:var(--water)}
+.mapa .est{stroke:none}
+.mapa .hl{stroke:var(--water);stroke-width:1.6}
+.mapa .estl{fill:none;stroke:var(--water);stroke-width:1.2}
+.mapa .blk{fill:var(--grid);stroke:none}
+.mapa .dl{fill:var(--ink-2);opacity:.45}
+.mapa .st1{fill:none;stroke:var(--ink-2);stroke-width:1.4}
+.mapa .st2{fill:none;stroke:var(--grid-2);stroke-width:1}
+.mapa .iso{fill:none;stroke:var(--ink-2);stroke-width:.8;stroke-dasharray:3 3;opacity:.8}
+.mapa .isol{font:600 11px var(--sans);fill:var(--ink-2);paint-order:stroke;stroke:var(--paper);stroke-width:4px}
+.mapa .bl{font:500 12px var(--sans);fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:4px;text-anchor:middle}
+.mapa .pl{font:600 15px var(--sans);fill:var(--water);letter-spacing:.04em}
+.mapa .pl2{font:700 15px var(--sans);fill:var(--ink)}
+.mapa .deco line{stroke:var(--ink);stroke-width:1.5}.mapa .deco path{fill:var(--ink)}.mapa .deco text{font:600 12px var(--sans);fill:var(--ink)}
+.mapa.movil{display:none}
+.plancheta{display:grid;grid-template-columns:minmax(0,1fr) 13rem;gap:var(--s5);align-items:start}
+.lado{position:sticky;top:var(--s4)}
+.staff{display:block;width:100%;height:auto;touch-action:none;user-select:none}
+.staff .stf{fill:var(--paper);stroke:var(--ink);stroke-width:1.5}
+.staff .stt{stroke:var(--ink);stroke-width:1}
+.staff .stn{font:600 13px var(--sans);fill:var(--ink)}
+.staff .mk{stroke:var(--ink-2);stroke-width:1}
+.staff .mkt{font:500 12px var(--sans);fill:var(--ink-2);cursor:pointer}
+.staff .mkt.hoy{fill:var(--ink);font-weight:700}
+.staff .cur line{stroke:var(--water);stroke-width:3}.staff .cur path{fill:var(--water)}
+.staff .hit{fill:transparent;cursor:ns-resize}
+.lectura{border-top:1.5px solid var(--ink);margin-top:var(--s3);padding-top:var(--s2)}
+.lectura dl{display:grid;grid-template-columns:auto 1fr;gap:var(--s1) var(--s3);margin:0}
+.lectura dt{color:var(--ink-2);font-size:.85rem}.lectura dd{margin:0;text-align:right;font-weight:600}
+.lectura dd.mk{grid-column:1/-1;color:var(--ink-2);font-weight:500;font-size:.85rem;margin-top:-.2rem}
+.lectura dd.big{font-size:1.6rem;font-weight:700;line-height:1.1}
+.nivel{display:flex;align-items:center;gap:var(--s3);margin:var(--s3) 0}
+.nivel label{font-weight:700}
+.nivel input{flex:1;accent-color:var(--water)}
+.nivel output{font-weight:700;min-width:4.5rem;text-align:right}
+.marcas{display:flex;flex-wrap:wrap;gap:var(--s2);margin:0 0 var(--s3);padding:0;list-style:none}
+.marcas button{font:500 .85rem var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--ink);padding:.3rem .55rem;cursor:pointer}
+.marcas button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.ley2{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5);font-size:.85rem;color:var(--ink-2);margin:var(--s3) 0 0}
+.ley2 span{display:inline-flex;align-items:center;gap:.45rem}
+.ley2 svg{width:22px;height:14px;flex:none}
+.phone-only{display:none}
+.vm{font-weight:400;font-size:.82rem;white-space:nowrap}
+@media (max-width:48em){
+ .plancheta{grid-template-columns:1fr}
+ .lado{position:static}
+ .staff-wrap{display:none}
+ .phone-only{display:block}
+ .mapa{display:none}.mapa.movil{display:block;max-width:32rem}
+ /* the phone plan is 480 units wide: at 320 px these still draw at 11 px or more */
+ .mapa .bl{font-size:21px;stroke-width:6px}
+ .mapa .isol{font-size:21px;stroke-width:6px}
+ .mapa .pl,.mapa .pl2{font-size:24px}
+ .mapa .deco text{font-size:21px}
+}

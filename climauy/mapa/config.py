@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -225,3 +226,30 @@ def list_cities(root: Path = MAPA_DIR) -> list[str]:
         return []
     return sorted(p.name for p in root.iterdir()
                   if (p / "config.json").is_file() and (p / "pack.json.gz").is_file())
+
+
+@dataclass(frozen=True)
+class TodayLevel:
+    """Today's river height on the city's gauge, estimated from another station."""
+    m: float
+    station_name: str
+    when_utc: datetime
+
+
+def today_level(store, cfg: CityConfig, now_utc: datetime) -> TodayLevel | None:
+    """Latest level of cfg.today's station minus its offset; None without a `today` config,
+    an unknown station, no readings, or a reading stale by the home page's station rule."""
+    from climauy.analysis.daily import station_readings
+    from climauy.analysis.status import stale_after
+    from climauy.catalog import load_catalog
+
+    if cfg.today is None:
+        return None
+    st = next((s for s in load_catalog() if s.id == cfg.today.station_id), None)
+    if st is None:
+        return None
+    readings = station_readings(store, st, "level")
+    if not readings or now_utc - readings[-1].time_utc > stale_after(readings):
+        return None
+    last = readings[-1]
+    return TodayLevel(m=round(last.value - cfg.today.offset_m, 2), station_name=st.name, when_utc=last.time_utc)

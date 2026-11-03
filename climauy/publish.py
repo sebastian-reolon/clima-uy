@@ -269,6 +269,7 @@ def write_crecida_csv(out_dir: Path, matrix: RiverMatrix, catalog: Sequence[Stat
 # ---------------------------------------------------------------- snapshot
 
 SNAPSHOT_PAGES = ("index.html", "rio", "rio/crecida", "nino")  # "rio" already holds "rio/crecida"; listed to be explicit
+SNAPSHOT_SKIP = ("mapa",)  # map pages stay out of the snapshots (their level data is heavy); links go live
 SNAPSHOT_DATA = ("data/rio/latest.json", "data/rio/stations.csv", CRECIDA_CSV)
 _DAY_DIR = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -276,8 +277,9 @@ _DAY_DIR = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 def _rewrite_links(html: str, base: str, day: str) -> str:
     """Point site links at this snapshot's own copies.
 
-    Static assets stay shared, links to other snapshots stay, and the Datos
-    page (live by nature) is replaced by the list of snapshots.
+    Static assets stay shared, links to other snapshots stay, the Datos
+    page (live by nature) is replaced by the list of snapshots, and the city
+    maps (not copied, see SNAPSHOT_SKIP) are linked live.
     """
     pattern = re.compile(r'\b(href|src)="' + re.escape(base) + r'/([^"]*)"')
 
@@ -287,6 +289,8 @@ def _rewrite_links(html: str, base: str, day: str) -> str:
             target = rest
         elif rest.startswith("datos/"):
             target = "snapshots/"
+        elif rest.startswith("rio/mapa/"):
+            target = rest  # the city maps are not copied into snapshots: link the live page
         else:
             target = f"snapshots/{day}/{rest}"
         return f'{attr}="{base}/{target}"'
@@ -314,7 +318,8 @@ def write_snapshot(out_dir: Path, day_local: date, base_url: str = "/clima-uy") 
         if (tmp / rel).exists():  # already copied with its parent folder
             continue
         if src.is_dir():
-            shutil.copytree(src, tmp / rel)
+            shutil.copytree(src, tmp / rel, ignore=lambda d, names: [n for n in names if n in SNAPSHOT_SKIP]
+                            if Path(d) == out_dir / "rio" else [])
         else:
             (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, tmp / rel)

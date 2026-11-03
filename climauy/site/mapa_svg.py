@@ -120,19 +120,39 @@ def _place_labels(cfg: CityConfig, origin: tuple[float, float], frame: Frame, un
     return "".join(out)
 
 
+def variant_frame(pack: Pack, cfg: CityConfig, variant: str = "wide") -> tuple[Frame, float]:
+    """(frame in pack coordinates, metres per SVG unit) of a plan variant: the whole pack
+    frame for «wide», cfg.phone_frame_utm drawn about PHONE_UNITS_WIDE units wide for «movil»."""
+    ox, oy = pack.frame[0], pack.frame[1]
+    if variant == "movil":
+        px0, py0, px1, py1 = cfg.phone_frame_utm
+        return (px0 - ox, py0 - oy, px1 - ox, py1 - oy), (px1 - px0) / PHONE_UNITS_WIDE
+    return (0.0, 0.0, float(pack.frame[2] - ox), float(pack.frame[3] - oy)), WIDE_UNIT_M
+
+
+def same_drawing(pack: Pack, cfg: CityConfig) -> bool:
+    """True when the phone plan maps metres to SVG units exactly as the wide one (same left
+    edge, top edge and unit), so one level path serves both drawings."""
+    (wf, wu), (mf, mu) = variant_frame(pack, cfg, "wide"), variant_frame(pack, cfg, "movil")
+    return (wf[0], wf[3], wu) == (mf[0], mf[3], mu)
+
+
+def level_path(pack: Pack, cfg: CityConfig, level: dict, variant: str = "wide") -> str:
+    """SVG path of a level's area for a variant. When both variants share their drawing
+    (same_drawing), the phone gets the wide path too: the page's data then needs one path."""
+    if variant == "movil" and same_drawing(pack, cfg):
+        variant = "wide"
+    frame, unit = variant_frame(pack, cfg, variant)
+    return ring_path(level.get("poly", []), frame, unit)
+
+
 def plan_svg(pack: Pack, cfg: CityConfig, level: dict, gfm: list | None, ident: str,
              variant: str = "wide") -> str:
     """The city plan: blocks, streets, contours, the level's hatched area, river and the
     satellite's flood extent. `level` is a pack level; `gfm` is a list of rings in the
     same frame coordinates (or None). variant «movil» crops to cfg.phone_frame_utm."""
     ox, oy = pack.frame[0], pack.frame[1]
-    if variant == "movil":
-        px0, py0, px1, py1 = cfg.phone_frame_utm
-        frame: Frame = (px0 - ox, py0 - oy, px1 - ox, py1 - oy)
-        unit = (px1 - px0) / PHONE_UNITS_WIDE
-    else:
-        frame = (0.0, 0.0, float(pack.frame[2] - ox), float(pack.frame[3] - oy))
-        unit = WIDE_UNIT_M
+    frame, unit = variant_frame(pack, cfg, variant)
     w, h = (frame[2] - frame[0]) / unit, (frame[3] - frame[1]) / unit
     layers = pack.layers
 
@@ -178,11 +198,11 @@ def plan_svg(pack: Pack, cfg: CityConfig, level: dict, gfm: list | None, ident: 
                      f'<line class="tk" x1="{w:g}" y1="{sy:.1f}" x2="{w - 8:g}" y2="{sy:.1f}"/>')
         y_abs += 1000
 
-    est_d = ring_path(level.get("poly", []), frame, unit)
+    est_d = level_path(pack, cfg, level, variant)
     obs_d = ring_path(gfm or [], frame, unit)
     title = escape(f"Plano de {cfg.name} con el agua por debajo de la altura elegida")
     ev = 'fill-rule="evenodd"'
-    return f'''<svg class="mapa" id="{ident}" viewBox="0 0 {w:.0f} {h:.0f}" role="img" aria-labelledby="{ident}-t">
+    return f'''<svg class="mapa{" movil" if variant == "movil" else ""}" id="{ident}" viewBox="0 0 {w:.0f} {h:.0f}" role="img" aria-labelledby="{ident}-t">
 <title id="{ident}-t">{title}</title>
 <defs><pattern id="{ident}-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" class="hl"/></pattern>
 <pattern id="{ident}-dots" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r=".8" class="dl"/></pattern></defs>
@@ -201,7 +221,7 @@ def plan_svg(pack: Pack, cfg: CityConfig, level: dict, gfm: list | None, ident: 
 </svg>'''
 
 
-def _staff_groups(cfg: CityConfig, today: float | None) -> list[tuple[float, str, float]]:
+def staff_groups(cfg: CityConfig, today: float | None) -> list[tuple[float, str, float]]:
     """(value, label text, data-m) per staff label, ascending: today absorbs marks within
     0.1 m («hoy, y alerta»); other marks within 0.1 m of each other share a label."""
     lo, hi = cfg.range_m
@@ -224,9 +244,10 @@ def _staff_groups(cfg: CityConfig, today: float | None) -> list[tuple[float, str
     return sorted(out, key=lambda t: t[0])
 
 
-def staff_svg(cfg: CityConfig, today: float | None) -> str:
+def staff_svg(cfg: CityConfig, today: float | None, cursor: float | None = None) -> str:
     """Vertical gauge staff over cfg.range_m: ticks every 0.25 m, whole-metre numbers,
-    one leader and label per mark group. The page script moves the `.cur` cursor."""
+    one leader and label per mark group. The `.cur` cursor starts at `cursor` (clamped to
+    the range) so the staff reads without JavaScript; the page script moves it."""
     lo, hi = cfg.range_m
     top, bot, x = 20, 620, 70
 
@@ -244,7 +265,7 @@ def staff_svg(cfg: CityConfig, today: float | None) -> str:
         if whole:
             t.append(f'<text class="stn" x="{x - 16}" y="{y(m) + 4:.1f}" text-anchor="end">{int(round(m))}</text>')
     used: list[float] = []
-    for v, label, data_m in _staff_groups(cfg, today):
+    for v, label, data_m in staff_groups(cfg, today):
         ty = y(v) + 4
         while any(abs(ty - u) < STAFF_LABEL_GAP for u in used):
             ty -= STAFF_LABEL_GAP
@@ -252,7 +273,8 @@ def staff_svg(cfg: CityConfig, today: float | None) -> str:
         cls = "mkt hoy" if label.startswith("hoy") else "mkt"
         t.append(f'<line class="mk" x1="{x + 10}" y1="{y(v):.1f}" x2="{x + 22}" y2="{ty - 4:.1f}"/>'
                  f'<text class="{cls}" x="{x + 26}" y="{ty:.1f}" data-m="{data_m:g}">{escape(label)} {_fmt(v)}</text>')
-    t.append(f'<g class="cur"><line x1="{x - 18}" x2="{x + 10}" y1="0" y2="0"/>'
+    cur = "" if cursor is None else f' transform="translate(0,{y(min(max(cursor, lo), hi)):.1f})"'
+    t.append(f'<g class="cur"{cur}><line x1="{x - 18}" x2="{x + 10}" y1="0" y2="0"/>'
              f'<path d="M{x - 26},-6L{x - 18},0L{x - 26},6Z"/></g>')
     aria = escape(f"Escala del río en {cfg.name}, de {lo:g} a {hi:g} metros")
     return (f'<svg class="staff" viewBox="0 0 215 640" role="img" aria-label="{aria}" '

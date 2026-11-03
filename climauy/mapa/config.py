@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -15,6 +15,7 @@ CONTENT_DIR = REPO_ROOT / "content"
 MAPA_DIR = CONTENT_DIR / "mapa"
 
 MARK_KINDS = ("oficial", "pico")
+PLACE_KINDS = ("lugar", "rio")
 _DATE = re.compile(r"^\d{4}(-\d{2}(-\d{2})?)?$")
 
 
@@ -60,6 +61,17 @@ class RiverCfg:
 
 
 @dataclass(frozen=True)
+class PlaceLabel:
+    """A name drawn on the plan at a UTM position: kind «lugar» (place name) or
+    «rio» (river name, optionally rotated, degrees)."""
+    name: str
+    x: float
+    y: float
+    kind: str
+    rotate: float = 0.0
+
+
+@dataclass(frozen=True)
 class CityConfig:
     slug: str
     name: str
@@ -73,6 +85,7 @@ class CityConfig:
     marks: list[Mark]
     today: TodayCfg | None
     sinae_check: SinaeCheck | None
+    place_labels: list[PlaceLabel] = field(default_factory=list)
 
 
 def _get(d: dict, key: str, field: str):
@@ -165,6 +178,18 @@ def parse_city(raw: dict) -> CityConfig:
             raise ValueError("sinae_check.people: expected a non-negative integer")
         sinae = SinaeCheck(m=_num(s, "m", "sinae_check.m"), people=people,
                            source=_source(s, "source", "sinae_check.source"))
+    places_raw = raw.get("place_labels") or []
+    if not isinstance(places_raw, list):
+        raise ValueError("place_labels: expected a list")
+    places = []
+    for i, pl in enumerate(places_raw):
+        f = f"place_labels[{i}]"
+        kind = _str(pl, "kind", f"{f}.kind")
+        if kind not in PLACE_KINDS:
+            raise ValueError(f"{f}.kind: expected one of {PLACE_KINDS}")
+        rot = _num(pl, "rotate", f"{f}.rotate") if pl.get("rotate") is not None else 0.0
+        places.append(PlaceLabel(name=_str(pl, "name", f"{f}.name"), x=_num(pl, "x", f"{f}.x"),
+                                 y=_num(pl, "y", f"{f}.y"), kind=kind, rotate=rot))
     urls = _get(raw, "dtm_urls", "dtm_urls")
     if not isinstance(urls, list) or not urls or not all(isinstance(u, str) and u.startswith("http") for u in urls):
         raise ValueError("dtm_urls: expected a non-empty list of URLs")
@@ -181,6 +206,7 @@ def parse_city(raw: dict) -> CityConfig:
         marks=marks,
         today=today,
         sinae_check=sinae,
+        place_labels=places,
     )
 
 

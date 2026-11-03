@@ -150,3 +150,46 @@ def test_staff_ticks_and_labels(city):
     assert 'data-lo="3' in svg and 'data-hi="12' in svg
     assert 'class="cur"' in svg and 'class="hit"' in svg
     assert "NaN" not in svg
+
+
+def _text_at(svg, cls):
+    return [(float(x), float(y), t) for x, y, t in
+            re.findall(rf'<text class="{cls}" x="([\d.]+)" y="([\d.]+)"[^>]*>([^<]*)</text>', svg)]
+
+
+def test_place_labels_wide_paysandu(city):
+    cfg, pack = city
+    svg = plan_svg(pack, cfg, _level(pack, 6), None, "m")
+    # mockup positions: Centro (399600, 6424700), Río Uruguay (394550, 6425200) rotated -82
+    assert _text_at(svg, "pl2") == [(610.0, 620.0, "Centro")]
+    assert _text_at(svg, "pl") == [(105.0, 570.0, "Río Uruguay")]
+    assert 'rotate(-82 105.0 570.0)' in svg
+
+
+def test_place_labels_movil_skips_outside_frame(city):
+    cfg, pack = city
+    svg = plan_svg(pack, cfg, _level(pack, 6), None, "m", variant="movil")
+    assert _text_at(svg, "pl") == [(105.0, 570.0, "Río Uruguay")]  # inside the phone crop
+    assert "Centro" not in svg  # x=399600 is east of the phone frame (398300)
+
+
+def test_no_place_labels_no_text(city):
+    cfg, pack = city
+    svg = plan_svg(pack, replace(cfg, place_labels=[]), _level(pack, 6), None, "m")
+    assert 'class="pl' not in svg
+
+
+def test_place_labels_validation(tmp_path):
+    import copy
+    import json
+    from climauy.mapa.config import load_city
+    from tests.test_mapa_pack import BASE, _write_cfg
+    for bad, field in (({"name": "X", "x": 1, "y": 2, "kind": "mar"}, "place_labels[0].kind"),
+                       ({"name": "X", "x": "a", "y": 2, "kind": "lugar"}, "place_labels[0].x"),
+                       ({"x": 1, "y": 2, "kind": "lugar"}, "place_labels[0].name"),
+                       ({"name": "X", "x": 1, "y": 2, "kind": "rio", "rotate": "r"}, "place_labels[0].rotate")):
+        raw = copy.deepcopy(BASE)
+        raw["place_labels"] = [bad]
+        _write_cfg(tmp_path, raw)
+        with pytest.raises(ValueError, match=re.escape(field)):
+            load_city(raw["slug"], tmp_path)

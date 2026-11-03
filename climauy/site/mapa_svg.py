@@ -103,21 +103,21 @@ def _contour_labels(contours: list, frame: Frame, unit: float, w: float, h: floa
     return out
 
 
-def _river_label(river: list, frame: Frame, unit: float, w: float, h: float) -> str:
-    """«Río Uruguay» rotated along the river, anchored on the river vertices at mid height."""
-    mid = (frame[1] + frame[3]) / 2
-    band = (frame[3] - frame[1]) * 0.05
-    xs = []
-    for r in river:
-        for i in range(0, len(r) - 1, 2):
-            if frame[0] <= r[i] <= frame[2] and abs(r[i + 1] - mid) <= band:
-                xs.append(r[i])
-    if not xs:
-        return ""
-    sx = (sum(xs) / len(xs) - frame[0]) / unit
-    sy = h / 2
-    return (f'<text class="pl" x="{sx:.1f}" y="{sy:.1f}" text-anchor="middle" '
-            f'transform="rotate(-82 {sx:.1f} {sy:.1f})">Río Uruguay</text>')
+def _place_labels(cfg: CityConfig, origin: tuple[float, float], frame: Frame, unit: float,
+                  w: float, h: float) -> str:
+    """Configured names at their UTM positions; those outside this variant's frame are skipped."""
+    out = []
+    for pl in cfg.place_labels:
+        sx = (pl.x - origin[0] - frame[0]) / unit
+        sy = (frame[3] - (pl.y - origin[1])) / unit
+        if not (0 < sx < w and 0 < sy < h):
+            continue
+        if pl.kind == "rio":
+            rot = f' transform="rotate({pl.rotate:g} {sx:.1f} {sy:.1f})"' if pl.rotate else ""
+            out.append(f'<text class="pl" x="{sx:.1f}" y="{sy:.1f}" text-anchor="middle"{rot}>{escape(pl.name)}</text>')
+        else:
+            out.append(f'<text class="pl2" x="{sx:.1f}" y="{sy:.1f}" text-anchor="middle">{escape(pl.name)}</text>')
+    return "".join(out)
 
 
 def plan_svg(pack: Pack, cfg: CityConfig, level: dict, gfm: list | None, ident: str,
@@ -196,7 +196,7 @@ def plan_svg(pack: Pack, cfg: CityConfig, level: dict, gfm: list | None, ident: 
 <path class="obs" d="{obs_d}" {ev}/>
 {"".join(clabels)}
 {"".join(labs)}
-{_river_label(layers.get("river", []), frame, unit, w, h)}{deco}{"".join(ticks)}
+{_place_labels(cfg, (ox, oy), frame, unit, w, h)}{deco}{"".join(ticks)}
 <rect class="frame" width="{w:.0f}" height="{h:.0f}"/>
 </svg>'''
 

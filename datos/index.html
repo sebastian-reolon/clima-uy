@@ -25,9 +25,11 @@
   <ul class="downloads">
     <li><a href="/clima-uy/data/rio/latest.json">Estado de hoy de todas las estaciones y la frase del día (JSON)</a></li>
     <li><a href="/clima-uy/data/rio/stations.csv">Catálogo de estaciones (CSV)</a></li>
+    <li><a href="/clima-uy/data/rio/crecida-60d.csv">La crecida de los últimos 60 días, estación por estación y día (CSV)</a></li>
     <li><a href="/clima-uy/data/enso/indices.csv">Índices RONI, ONI y Niño 3.4 semanal (CSV)</a></li>
   </ul>
   <p>En el estado de hoy, <code>last_data_utc</code> es la hora del dato más nuevo entre las estaciones al día (vacío si no hay ninguna), y cada estación dice la hora de su último dato (<code>latest_time_utc</code>) y de qué fuente es (<code>latest_source</code>).</p>
+  <p>En la crecida de 60 días hay una fila por estación del río Uruguay y día con dato: <code>date</code> (día de Montevideo), <code>station_id</code> y <code>station</code>, <code>km</code> desde Machadinho, <code>variable</code> (<code>level</code> en metros o <code>discharge</code> en m³/s), <code>value</code> (media del día) y <code>percentile</code> contra la historia de la estación antes de la ventana. La columna <code>partial</code> vale 1 en el último día, que es hoy: su media cambia hasta que termina el día. Es la matriz de <a href="/clima-uy/rio/crecida/">la crecida, día por día</a> y se rehace en cada actualización.</p>
   <h3>Lecturas crudas y pronósticos, por mes</h3>
   <p>Una fila por lectura o por valor pronosticado, desde el 1 de noviembre de 2026, que es cuando empezó el archivo. La columna <code>source</code> dice de qué fuente es cada valor; citala junto con este sitio (ver <a href="#licencias">licencias</a>). Cada mes se actualiza hasta el primer día del mes siguiente y después queda fijo.</p>
   <ul class="downloads">
@@ -264,7 +266,7 @@
 <li>Esto no es una alerta oficial. Para alertas y evacuaciones: <a href="https://www.gub.uy/sistema-nacional-emergencias/">SINAE</a> y el CECOED de tu departamento.</li>
 </ol></section>
 </main>
-<footer class="pie"><span class="credit">Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a></span><span>Código y datos en <a href="https://github.com/sebastian-reolon/clima-uy">el repositorio público</a></span><span>Fuentes: <a href="https://telemetriaws1.ana.gov.br/ServiceANA.asmx">ANA (Brasil)</a>, <a href="https://alerta.ina.gob.ar/a5">INA y Prefectura Naval Argentina</a>, <a href="https://www.saltogrande.org/docs/hidrologia/CaudalesNiveles.pdf">CTM Salto Grande</a>, <a href="https://open-meteo.com/en/docs/flood-api">GloFAS vía Open-Meteo</a>, <a href="https://www.cpc.ncep.noaa.gov/data/indices/">NOAA CPC</a>, <a href="https://www.inumet.gub.uy/">INUMET</a></span><span>Hoja 4 de 5</span></footer>
+<footer class="pie"><span class="credit">Hecho por <a href="https://github.com/sebastian-reolon">Sebastián Reolon</a></span><span>Código y datos en <a href="https://github.com/sebastian-reolon/clima-uy">el repositorio público</a></span><span>Fuentes: <a href="https://telemetriaws1.ana.gov.br/ServiceANA.asmx">ANA (Brasil)</a>, <a href="https://alerta.ina.gob.ar/a5">INA y Prefectura Naval Argentina</a>, <a href="https://www.saltogrande.org/docs/hidrologia/CaudalesNiveles.pdf">CTM Salto Grande</a>, <a href="https://open-meteo.com/en/docs/flood-api">GloFAS vía Open-Meteo</a>, <a href="https://www.cpc.ncep.noaa.gov/data/indices/">NOAA CPC</a>, <a href="https://www.inumet.gub.uy/">INUMET</a></span><span>Hoja 5 de 6</span></footer>
 </div></div>
 </body>
 </html>

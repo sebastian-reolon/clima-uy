@@ -30,6 +30,13 @@
   --water-2: oklch(48% 0.13 245 / .12);
   --alert: oklch(54% 0.2 28);
   --focus: oklch(48% 0.13 245);
+  /* /rio/crecida/ percentile bands, light to dark: <50, 50-75, 75-90, 90-95, 95-99, >=99 */
+  --hov-0: oklch(96% 0.01 240);
+  --hov-1: oklch(89% 0.035 240);
+  --hov-2: oklch(78% 0.07 242);
+  --hov-3: oklch(65% 0.1 245);
+  --hov-4: oklch(50% 0.12 250);
+  --hov-5: oklch(35% 0.11 260);
   --sans: "Barlow", system-ui, sans-serif;
   --mono: "Barlow", system-ui, sans-serif;
   --s1:.25rem;--s2:.5rem;--s3:.75rem;--s4:1rem;--s5:1.5rem;--s6:2rem;--s7:3rem;
@@ -243,3 +250,41 @@ table.outlook .rest{display:block;font-size:.78rem;color:var(--ink-2)}
 .changelog{padding-left:1.1rem}
 .doc ul,.doc ol{padding-left:1.1rem}
 .doc li{margin-bottom:var(--s1)}
+
+/* /rio/crecida/: the river day by day (approved mockup d-crecida.html). One drawing per
+   screen size, like the profile: the phone one is drawn 360 wide. */
+.hov{width:100%;height:auto;display:block}
+.hov .b0,.escala .h0{fill:var(--hov-0);background:var(--hov-0)}
+.hov .b1,.escala .h1{fill:var(--hov-1);background:var(--hov-1)}
+.hov .b2,.escala .h2{fill:var(--hov-2);background:var(--hov-2)}
+.hov .b3,.escala .h3{fill:var(--hov-3);background:var(--hov-3)}
+.hov .b4,.escala .h4{fill:var(--hov-4);background:var(--hov-4)}
+.hov .b5,.escala .h5{fill:var(--hov-5);background:var(--hov-5)}
+.hov .crestpt{fill:var(--paper);stroke:var(--alert);stroke-width:1.6}
+.hov .ax{font:400 12px var(--sans);fill:var(--ink-2)}
+.hov .axl{font:500 12px var(--sans);fill:var(--water)}
+.hov .tick,.hov .lead{stroke:var(--ink);stroke-width:1}
+.hov .uyline{stroke:var(--water);stroke-width:2}
+.hov .cn{font:700 13px var(--sans);fill:var(--ink)}
+.hov .hit{fill:transparent}
+.hov .sel{display:none}
+/* The day selector only works with JavaScript: its script sets .js on <html>. */
+.js .hov .hit{cursor:pointer}
+.js .hov .sel{display:inline;fill:none;stroke:var(--ink);stroke-width:1.5;pointer-events:none}
+.hov.movil{display:none}
+.escala{display:flex;flex-wrap:wrap;gap:var(--s1) 0;margin:var(--s3) 0 0;font-size:.82rem;color:var(--ink-2)}
+.sec p.escala{max-width:none;margin:var(--s3) 0 0}
+.escala span{display:flex;align-items:center;gap:6px;margin-right:var(--s4)}
+.escala i{width:22px;height:12px;display:inline-block;outline:1px solid var(--grid-2)}
+.dia{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--s3);margin:var(--s4) 0 var(--s2)}
+.dia[hidden],#dia-perfil[hidden]{display:none}
+.dia input{flex:1 1 8rem;min-width:0;accent-color:var(--ink)}
+.perfil-dia{width:100%;height:auto;display:block}
+.perfil-dia .ln{fill:none;stroke:var(--ink);stroke-width:2}
+.perfil-dia .g{stroke:var(--grid-2)}
+.perfil-dia .ax{font:400 12px var(--sans);fill:var(--ink-2)}
+.perfil-dia .pt{fill:var(--paper);stroke:var(--ink);stroke-width:2}
+.perfil-dia .lead{stroke:var(--ink-2);stroke-width:1}
+@media (max-width:40em){
+  .hov{display:none}.hov.movil{display:block}
+}

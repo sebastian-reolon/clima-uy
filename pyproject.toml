@@ -7,7 +7,7 @@ dependencies = ["numpy", "jinja2", "pypdf"]
 
 [project.optional-dependencies]
 dev = ["pytest"]
-mapa = ["rasterio", "shapely", "pyproj"]
+mapa = ["rasterio", "shapely>=2", "pyproj"]
 mapa-pack = ["clima-uy[mapa]", "scipy", "scikit-image", "osmium", "pyshp"]
 
 [build-system]

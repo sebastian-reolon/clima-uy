@@ -56,7 +56,7 @@ def _deps():
         import pyproj  # noqa: F401
         import rasterio  # noqa: F401
         import shapely  # noqa: F401
-    except ImportError:
+    except Exception:  # a broken install can fail with ValueError (numpy ABI) or OSError (GDAL), not just ImportError
         return None
     return True
 
@@ -175,7 +175,7 @@ def latest_flood(frame_utm: tuple, now_utc: datetime, *,
     frame_utm, timeout) -> Window or None. Never raises.
     """
     if _deps() is None:
-        log.warning("gfm: rasterio/shapely/pyproj not installed (mapa extra); skipping the satellite scene")
+        log.warning("gfm: rasterio/shapely/pyproj missing or broken (mapa extra); skipping the satellite scene")
         return GfmResult("error", None, None, [])
     search = search or stac_search
     read_window = read_window or read_flood_window
@@ -220,7 +220,7 @@ def _write_cache(path: Path, res: GfmResult, now_utc: datetime) -> None:
         tmp = path.with_name(path.name + ".tmp")
         tmp.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
         tmp.replace(path)
-    except OSError as exc:
+    except Exception as exc:
         log.warning("gfm: could not write the cache (%s)", exc)
 
 
@@ -239,18 +239,22 @@ def _read_cache(path: Path, now_utc: datetime, days: int) -> GfmResult | None:
         if not all(isinstance(r, list) and all(type(v) is int for v in r) for r in polys):
             return None
         return GfmResult(status, d.get("item_id"), when, polys, stale=True)
-    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+    except Exception:  # unreadable, corrupt, or absurdly nested (RecursionError) cache
         return None
 
 
 def latest_flood_cached(frame_utm: tuple, now_utc: datetime, cache_path: Path, **kw) -> GfmResult:
     """latest_flood, remembering the last "ok"/"none" so a failed fetch can show it (stale=True)."""
-    res = latest_flood(frame_utm, now_utc, **kw)
-    if res.status in ("ok", "none"):
-        _write_cache(Path(cache_path), res, now_utc)
+    try:
+        res = latest_flood(frame_utm, now_utc, **kw)
+        if res.status in ("ok", "none"):
+            _write_cache(Path(cache_path), res, now_utc)
+            return res
+        cached = _read_cache(Path(cache_path), now_utc, kw.get("days", 10))
+        if cached is not None:
+            log.warning("gfm: serving the cached %s result after a failed fetch", cached.status)
+            return cached
         return res
-    cached = _read_cache(Path(cache_path), now_utc, kw.get("days", 10))
-    if cached is not None:
-        log.warning("gfm: serving the cached %s result after a failed fetch", cached.status)
-        return cached
-    return res
+    except Exception as exc:  # the build must go on
+        log.warning("gfm: unexpected failure (%s: %s)", type(exc).__name__, exc)
+        return GfmResult("error", None, None, [])

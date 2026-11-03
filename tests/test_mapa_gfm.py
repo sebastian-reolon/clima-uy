@@ -12,6 +12,19 @@ NOW = datetime(2026, 11, 3, 12, 0, tzinfo=timezone.utc)
 FRAME = (393500.0, 6419500.0, 400300.0, 6430900.0)
 
 
+NO_EXTRA_TESTS = {"test_missing_extra_is_an_error_not_a_crash", "test_broken_extra_import_is_an_error_not_a_crash",
+                  "test_cached_none_ages_by_write_time", "test_extra_missing_serves_fresh_cache_stale",
+                  "test_cache_helpers_never_raise"}
+
+
+@pytest.fixture(autouse=True)
+def _need_extra(request):
+    """Everything but the no-extra checks needs rasterio, shapely and pyproj."""
+    if request.node.name not in NO_EXTRA_TESTS:
+        for mod in ("rasterio", "shapely", "pyproj"):
+            pytest.importorskip(mod)
+
+
 def _items():
     return json.loads(FIXTURE.read_text())["features"]
 
@@ -302,3 +315,37 @@ def test_corrupt_cache_is_ignored(tmp_path):
         cache.write_text(junk)
         res = gfm.latest_flood_cached(FRAME, NOW, cache, search=_fail)
         assert res.status == "error" and res.stale is False
+
+
+def test_broken_extra_import_is_an_error_not_a_crash(monkeypatch, caplog):
+    import builtins
+    real = builtins.__import__
+
+    def bad(name, *a, **k):
+        if name == "rasterio":
+            raise ValueError("numpy.dtype size changed")
+        return real(name, *a, **k)
+
+    monkeypatch.setattr(builtins, "__import__", bad)
+    with caplog.at_level("WARNING"):
+        res = latest_flood(FRAME, NOW, search=lambda *a, **k: pytest.fail("search"))
+    assert res == GfmResult("error", None, None, [])
+    assert len([r for r in caplog.records if "gfm" in r.getMessage()]) == 1
+
+
+def test_extra_missing_serves_fresh_cache_stale(monkeypatch, tmp_path):
+    cache = tmp_path / "gfm.json"
+    when = NOW - timedelta(days=1)
+    gfm._write_cache(cache, GfmResult("ok", "I", when, [[0, 0, 10, 0, 10, 10]]), NOW)
+    monkeypatch.setattr(gfm, "_deps", lambda: None)
+    res = gfm.latest_flood_cached(FRAME, NOW, cache)
+    assert res == GfmResult("ok", "I", when, [[0, 0, 10, 0, 10, 10]], stale=True)
+
+
+def test_cache_helpers_never_raise(monkeypatch, tmp_path):
+    cache = tmp_path / "gfm.json"
+    cache.write_text("[" * 100000)  # RecursionError in the JSON parser
+    assert gfm._read_cache(cache, NOW, 10) is None
+    gfm._write_cache(cache, GfmResult("ok", "I", NOW, [object()]), NOW)  # TypeError in json.dumps
+    monkeypatch.setattr(gfm, "latest_flood", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+    assert gfm.latest_flood_cached(FRAME, NOW, cache) == GfmResult("error", None, None, [])

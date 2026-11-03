@@ -98,7 +98,7 @@ Qué se usa: el MDT de 1 m por ciudad de la Infraestructura de Datos Espaciales,
 
 Qué dice: los datos se publican bajo la Licencia de Datos Abiertos de Uruguay, versión 0.1 (<https://visualizador.ide.uy/descargas/datos/00_Licencia_de_datos_abiertos.pdf>). Todo uso tiene que citar al proveedor, la licencia y el conjunto de datos, y decir qué se modificó.
 
-Qué publica el sitio: no publica el terreno, solo lo que sale de él (el agua a cada altura y las curvas de nivel), con la cita «Fuente: IDE Uruguay, MDT ciudad de Paysandú 1 m (CU_Remesa_09), Licencia de Datos Abiertos – Uruguay; remuestreado a 2 m y procesado».
+Qué publica el sitio: no publica el terreno, solo lo que sale de él (el agua a cada altura y las curvas de nivel), con la cita «Fuente: IDE Uruguay, MDT ciudad de Paysandú 1 m (CU_Remesa_09), Licencia de Datos Abiertos de Uruguay; remuestreado a 2 m y procesado».
 
 ### GFM, Global Flood Monitoring (Copernicus)
 

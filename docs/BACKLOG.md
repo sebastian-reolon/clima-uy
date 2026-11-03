@@ -38,3 +38,31 @@ Lo que quedó para después, con el motivo.
   - **Qué haría falta:** para cada ciudad, el cero medido en un datum (IGN o el oficial uruguayo) y al menos tres puntos en tierra, dentro del relieve de la ciudad, con su altura en ese mismo datum (por ejemplo, puntos de nivelación del Instituto Geográfico Militar con monografía, o un relevamiento GNSS como el de Paysandú). No se puede usar el +0,39 de Paysandú: la diferencia entre el relieve y el datum se midió solo ahí.
 - **Barrios con límites oficiales.** Las zonas se nombran por el punto de barrio de OpenStreetMap más cercano. Si las Intendencias publican polígonos de barrio, usarlos en lugar de esa aproximación.
 - **Peso de la página del plano.** `rio/mapa/paysandu/index.html` pesa unos 780 KB (270 KB comprimida) porque lleva dibujados dos planos, el ancho y el del celular, con las mismas manzanas y calles. Si pesa, dibujar las capas fijas una sola vez y recortarlas con `viewBox`.
+
+### Mapa de ciudad
+
+Detalles chicos que quedaron de la revisión del plano (3 de noviembre de 2026).
+
+- **Controles cruzados de la configuración.** Al cargar una ciudad no se revisa que el recorte del celular quede dentro del marco, que la diferencia entre escalas esté dentro de su rango ni que las marcas caigan dentro de `range_m`.
+- **Archivos bajados que no se renuevan.** El armado del paquete reusa lo que ya bajó (relieve, OpenStreetMap, WorldPop, INE) y nunca lo vuelve a pedir. Para tomar una versión nueva hay que borrar esos archivos a mano.
+- **Lagunas tierra adentro.** El plano ya no dibuja el agua de OpenStreetMap que no es el río (lagunas, tajamares).
+- **Control de la semilla del río.** La comparación con el agua de OpenStreetMap solo avisa si la semilla quedó demasiado chica, no si se pasó.
+- **Estilo de «hoy» en la escala.** La etiqueta de hoy se reconoce porque su texto empieza con «hoy». Mejor marcarla con un dato propio.
+- **Etiquetas de la escala que se apilan.** Cuando hay muchas marcas juntas, las etiquetas se corren hacia arriba sin límite y podrían salirse del dibujo.
+- **Tolerancias distintas en la escala.** Para juntar una marca con hoy se usa «hasta 10 cm» y entre marcas «menos de 10 cm». Usar la misma regla.
+- **Orden de las etiquetas de las curvas.** Se ubican en el orden en que vienen; si no entran todas, gana la primera y no la más útil.
+- **Pruebas del dibujo.** Faltan casos con el río vacío y con etiquetas de curvas que caen fuera del marco.
+- **Tiempo tope de la consulta al satélite.** El tope se revisa después de cada pedido, así que una respuesta lenta puede pasarse.
+- **Una pasada rota corta la consulta.** Si un ítem del catálogo del satélite viene mal armado, falla toda la consulta en vez de saltear ese ítem.
+- **Archivo temporal que queda.** Si falla la escritura del caché del satélite, queda un `.tmp` en la carpeta.
+- **Hectáreas que difieren en una.** Sin JavaScript la página redondea las hectáreas exactas y el script redondea el valor con un decimal de `niveles.json`; pueden diferir en 1 ha.
+- **Regla de dato vencido repetida.** `today_level` repite la regla de la portada para saber si una lectura está vencida en vez de usar la misma función.
+- **«Sin pasadas» guardado tapa una falla.** Si la consulta al satélite falla y el caché dice que no hubo pasadas, la página muestra eso y no avisa que no se pudo consultar.
+- **Planos viejos que quedan en línea.** Si una ciudad deja de armarse (falla su paquete o su página), su carpeta en `rio/mapa/` no se borra y sigue publicada, aunque ya nada la enlace.
+- **`satelite.json` sin listar.** Se publica junto a cada plano pero no figura en la página de datos.
+- **Sangría de las notas en la configuración.** Las notas de `config.json` tienen sangría despareja; ordenarla.
+- **Fuente de los 40 y 35 cm.** Las notas de la pendiente y del cero dan esas cifras sin un campo de fuente propio en la configuración.
+- **Expresión regular repetida.** El link de la nota del cero (`[texto]`) se reconoce con la misma expresión en `climauy/site/build.py` y en `climauy/mapa/config.py`. Dejar una sola.
+- **Plano en el celular.** El recorte del celular no es igual al de la maqueta, las etiquetas quedan en 21 px (la maqueta usa 19 y 20) y el plano tiene un ancho tope de 32rem. Revisarlo con el dueño del sitio.
+- **Nombres de barrio sin tilde.** Algunos nombres de OpenStreetMap vienen sin tilde. Hace falta una lista de alias para corregirlos.
+- **Licencia en el paquete de Paysandú.** El `meta` de `content/mapa/paysandu/pack.json.gz` todavía dice «Licencia de Datos Abiertos - Uruguay». No se muestra en ninguna página; se corrige solo la próxima vez que se arme el paquete.

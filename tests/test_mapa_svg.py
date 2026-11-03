@@ -116,8 +116,9 @@ def test_staff_merges_today_with_alerta(city):
 def test_staff_merges_near_marks_without_today(city):
     cfg, _ = city
     svg = staff_svg(cfg, None)
-    assert "2009 y 2015/16 9,07" in svg
-    assert ">2015/16" not in svg
+    # each merged mark keeps its own height; the label points at the first one
+    assert re.search(r'<text class="mkt" x="[\d.]+" y="[\d.]+" data-m="9.07">2009 9,07 y 2015/16 9,12</text>', svg)
+    assert "2009 y 2015/16" not in svg and ">2015/16" not in svg
     assert "hoy" not in svg
     assert ">alerta 4,39<" in svg
 

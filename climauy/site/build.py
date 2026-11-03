@@ -950,6 +950,24 @@ def people(n: float) -> str:
     return "unas " + num(_half_up(n / r) * r, 0)
 
 
+def _people_bound(n: float, side: str) -> str:
+    """People past the pack's range, with people()'s steps (15; then 10; 100 from 1.000):
+    «menos de N» rounded up when the river is under it, «más de N» rounded down when over.
+    The page script does the same."""
+    r = 10 if n < 1000 else 100
+    if side == "below":
+        return "menos de 15" if n < 15 else "menos de " + num(math.ceil(n / r) * r, 0)
+    return "más de " + num(math.floor(n / r) * r, 0)
+
+
+def _ha_bound(ha: float, side: str) -> str:
+    """Hectares past the range, from the 0.1 ha the page data carries so the script agrees."""
+    ha = round(ha, 1)
+    if side == "below":
+        return "menos de " + num(math.ceil(ha), 0) + " ha"
+    return "más de " + num(math.floor(ha), 0) + " ha"
+
+
 def _m2(v: float) -> str:
     return f"{v:.2f}".replace(".", ",")
 
@@ -1044,8 +1062,10 @@ def _join(items: list[str]) -> str:
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " y " + items[-1]
 
 
-def _zone_rows(level: dict) -> list[tuple[str, str]]:
-    return [(name, people(v)) for name, v in level["zones"][:ZONE_ROWS] if v >= 1]
+def _zone_rows(level: dict, side: str | None = None) -> list[tuple[str, str]]:
+    """Zone rows of a level; past the range (side «below» or «above») the counts are bounds."""
+    text = (lambda v: _people_bound(v, side)) if side else people
+    return [(name, text(v)) for name, v in level["zones"][:ZONE_ROWS] if v >= 1]
 
 
 def _level_json(pack: Pack, cfg: CityConfig, lv: dict, two_paths: bool) -> dict:
@@ -1068,17 +1088,23 @@ def _niveles_json(pack: Pack, cfg: CityConfig) -> str:
     return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
 
-def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, others: list[dict],
+def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm,
                station_name: str | None) -> tuple[dict, str]:
-    """Context for mapa.html.j2 and the text of niveles.json."""
+    """Context for mapa.html.j2 and the text of niveles.json. «others» (links to the other
+    cities' maps) is left empty: _build_maps fills it once it knows which pages are written."""
     lo, hi = cfg.range_m
     levels = pack.levels
     ref_m, ref_what = _reference_mark(cfg)
     ref_lv = _level_at(levels, ref_m)
+    # Past the pack's range the page counts from the edge level, as bounds: under lo nothing is
+    # drawn («menos de»), over hi the top level is («más de»). The script does the same.
+    side = None
     if today is not None:
+        side = "below" if today.m < lo else "above" if today.m > hi else None
         # Ruling 1: the nearest grid level, unless today falls on a mark's exact level (as the script does)
-        today_lv = _level_at(levels, today.m)
-        h1 = (f"Con el río como hoy, {people(today_lv['pop'])} personas de {cfg.name} viven en terreno más bajo "
+        today_lv = _level_at(levels, {"below": lo, "above": hi}.get(side, today.m))
+        today_pop = _people_bound(today_lv["pop"], side) if side else people(today_lv["pop"])
+        h1 = (f"Con el río como hoy, {today_pop} personas de {cfg.name} viven en terreno más bajo "
               f"que el agua. A {_m2(ref_m)} m, {ref_what}, serían {people(ref_lv['pop'])}.")
         start, start_lv = today.m, today_lv
         rio_hoy = f"{_m2(today.m)} m, estimado desde {today.station_name}, {_short_day(local_day(today.when_utc))}"
@@ -1093,9 +1119,9 @@ def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, other
     marks = ([{"label": hoy_label, "m": today.m}] if today else []) + [
         {"label": mk.label, "m": mk.m} for mk in cfg.marks if lo <= mk.m <= hi]
     start_mark = next((mk["label"] for mk in marks if abs(mk["m"] - start) < MARK_TOL), "")
-    buttons = [{"text": ("hoy" if label.startswith("hoy") else label) + " " + _m2(v), "m": f"{data_m:g}",
+    buttons = [{"text": "hoy " + _m2(v) if text.startswith("hoy") else text, "m": f"{data_m:g}",
                 "pressed": abs(data_m - start) < MARK_TOL}
-               for v, label, data_m in mapa_svg.staff_groups(cfg, today.m if today else None)]
+               for v, text, data_m in mapa_svg.staff_groups(cfg, today.m if today else None)]
 
     contours = sorted({c["m"] for c in pack.layers.get("contours", [])})
     contour_text = (f" Las curvas punteadas marcan {_join([num(c, 0) for c in contours])} m de esa misma escala."
@@ -1116,7 +1142,8 @@ def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, other
         sc = cfg.sinae_check
         event = next((mk.label.removeprefix("Pico de ") for mk in cfg.marks
                       if abs(mk.m - sc.m) < MARK_TOL and mk.label.startswith("Pico de ")), None)
-        lead = f"En {event}, con el río a {_m2(sc.m)} m" if event else f"Con el río a {_m2(sc.m)} m"
+        lead = (f"En {Markup.escape(event)}, con el río a {_m2(sc.m)} m" if event
+                else f"Con el río a {_m2(sc.m)} m")
         pop_text += (f' {lead}, el <a href="{Markup.escape(sc.source.url)}">SINAE</a> contó hasta '
                      f"{num(sc.people, 0)} personas desplazadas; esta estimación da "
                      f"{people(_level_at(levels, sc.m)['pop'])} para esa altura.")
@@ -1141,7 +1168,13 @@ def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, other
         Markup("El radar casi no ve agua entre edificios ni bajo árboles. Por eso, dentro de la ciudad, el plano se "
                "apoya en la estimación."),
     ]
-    if today is not None:
+    if side == "below":
+        notes.append(Markup(f"Con el río por debajo de {meters(lo)} el plano no dibuja el agua: los cálculos "
+                            f"empiezan en {meters(lo)}."))
+    elif side == "above":
+        notes.append(Markup(f"Con el río por encima de {meters(hi)} el plano dibuja el agua a {meters(hi)}. "
+                            f"Los cálculos llegan hasta {meters(hi)}."))
+    elif today is not None:
         notes.append(Markup("Los cálculos van cada 25 cm; la altura de hoy se toma en el más cercano."))
     remesa = next((p for url in cfg.dtm_urls[:1] for p in url.split("/") if p.startswith("CU_Remesa")), "")
     dataset = f"MDT ciudad de {Markup.escape(cfg.name)} 1 m" + (f" ({remesa})" if remesa else "")
@@ -1151,24 +1184,27 @@ def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, other
         f'río y barrios: <a href="{OSM_COPYRIGHT}">© colaboradores de OpenStreetMap</a>. Satélite: contiene '
         "información modificada del Copernicus Emergency Management Service (GFM)."))
 
+    drawn_lv = {"poly": []} if side == "below" else start_lv
     ctx = {
         "city": cfg.name,
         "h1": h1,
         "cajetin": [("Ciudad", cfg.name), ("Río hoy", rio_hoy), ("Satélite", sat["cajetin"]),
                     ("Terreno", "IDE, grilla de 1 m"), ("Población", "WorldPop 2026, grilla de 100 m"),
                     ("Carácter", MAPA_CHARACTER)],
-        "others": others,
+        "others": [],
         "contour_text": contour_text,
         "lo": f"{lo:g}", "hi": f"{hi:g}", "start": f"{start:g}",
         "hoy": {"m": f"{today.m:g}", "label": hoy_label} if today else None,
         "start_what": "la altura de hoy" if today is not None else ref_what,
         "buttons": buttons,
-        "plan_wide": Markup(mapa_svg.plan_svg(pack, cfg, start_lv, sat["polys"], "mapa-wide", "wide")),
-        "plan_movil": Markup(mapa_svg.plan_svg(pack, cfg, start_lv, sat["polys"], "mapa-movil", "movil")),
+        "sat_polys": bool(sat["polys"]),
+        "plan_wide": Markup(mapa_svg.plan_svg(pack, cfg, drawn_lv, sat["polys"], "mapa-wide", "wide")),
+        "plan_movil": Markup(mapa_svg.plan_svg(pack, cfg, drawn_lv, sat["polys"], "mapa-movil", "movil")),
         "staff": Markup(mapa_svg.staff_svg(cfg, today.m if today else None, cursor=start)),
-        "read_m": f"{_m2(start)} m", "read_mark": start_mark, "read_pop": people(start_lv["pop"]),
-        "read_ha": _ha_text(start_lv["area_ha"]),
-        "zones": _zone_rows(start_lv),
+        "read_m": f"{_m2(start)} m", "read_mark": start_mark,
+        "read_pop": _people_bound(start_lv["pop"], side) if side else people(start_lv["pop"]),
+        "read_ha": _ha_bound(start_lv["area_ha"], side) if side else _ha_text(start_lv["area_ha"]),
+        "zones": _zone_rows(start_lv, side),
         "sat_lines": sat["lines"],
         "mapa_notes": notes,
         "cecoed": cfg.name,
@@ -1200,10 +1236,15 @@ def _build_maps(store: Store, out_dir: Path, now_utc: datetime, base: str, mapa_
         if gfm is None:
             from ..mapa.gfm import GfmResult
             gfm = GfmResult("error", None, None, [])
-        others = [{"name": o.name, "url": f"{base}/rio/mapa/{o.slug}/"} for o, _ in loaded if o.slug != cfg.slug]
         station = names.get(cfg.today.station_id) if cfg.today else None
-        ctx, niveles = _mapa_view(cfg, pack, today_level(store, cfg, now_utc), gfm, others, station)
+        try:
+            ctx, niveles = _mapa_view(cfg, pack, today_level(store, cfg, now_utc), gfm, station)
+        except Exception:  # a pack that loads can still break the page: leave the city out, not the site
+            log.exception("mapa: page for %s failed; it is left out", cfg.slug)
+            continue
         out.append((cfg, ctx, niveles))
+    for cfg, ctx, _ in out:  # link only the pages that are written
+        ctx["others"] = [{"name": o.name, "url": f"{base}/rio/mapa/{o.slug}/"} for o, _, _ in out if o.slug != cfg.slug]
     return out
 
 

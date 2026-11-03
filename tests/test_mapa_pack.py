@@ -159,6 +159,29 @@ def test_pack_rejects_float_coordinates(tmp_path):
         write_pack(tmp_path / "p.json.gz", bad)
 
 
+def test_pack_rejects_a_contour_without_height(tmp_path):
+    bad = _tiny_pack()
+    del bad["layers"]["contours"][0]["m"]
+    with pytest.raises(ValueError, match=r"contours\[0\]"):
+        write_pack(tmp_path / "p.json.gz", bad)
+    bad["layers"]["contours"][0]["m"] = "4"
+    with pytest.raises(ValueError, match=r"contours\[0\]"):
+        write_pack(tmp_path / "p.json.gz", bad)
+
+
+def test_pack_needs_a_grid_level(tmp_path):
+    bad = _tiny_pack()
+    bad["levels"] = [lv for lv in bad["levels"] if not lv["grid"]]
+    with pytest.raises(ValueError, match="grid"):
+        write_pack(tmp_path / "p.json.gz", bad)
+
+
+def test_committed_paysandu_pack_loads():
+    p = load_pack("paysandu")
+    assert any(lv["grid"] for lv in p.levels)
+    assert all(isinstance(c["m"], (int, float)) for c in p.layers["contours"])
+
+
 def test_list_cities_needs_config_and_pack(tmp_path):
     _write_cfg(tmp_path, BASE)
     assert list_cities(tmp_path) == []
@@ -167,9 +190,8 @@ def test_list_cities_needs_config_and_pack(tmp_path):
 
 
 def test_committed_city_files_have_no_infra_strings(tmp_path):
+    assert (CONTENT_DIR / "mapa" / "paysandu" / "pack.json.gz").exists()
     files = sorted((CONTENT_DIR / "mapa").glob("*/*"))
-    if not any(f.name == "pack.json.gz" for f in files):
-        pytest.skip("no city pack built yet")
     plain = []
     for f in files:
         if f.suffix == ".gz":  # scan the decompressed text, not the gzip bytes
@@ -184,8 +206,7 @@ def test_committed_city_files_have_no_infra_strings(tmp_path):
 
 
 def test_committed_paysandu_config_loads():
-    if not (CONTENT_DIR / "mapa" / "paysandu" / "config.json").exists():
-        pytest.skip("no Paysandú config yet")
+    assert (CONTENT_DIR / "mapa" / "paysandu" / "config.json").exists()
     c = load_city("paysandu")
     assert c.zero_m == 0.43 and c.range_m == (3.0, 12.0)
     assert [m.m for m in c.marks if m.short == "evacuación"] == [6.89]

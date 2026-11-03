@@ -1,6 +1,8 @@
 """The city flood map page (/rio/mapa/<slug>/), built from a tiny synthetic city."""
 import json
 import re
+import shutil
+import subprocess
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -87,10 +89,10 @@ def _root(tmp_path: Path, today: bool = True, with_salto: bool = True) -> Path:
     return root
 
 
-def _seed_colon(store: Store, fresh: bool) -> None:
+def _seed_colon(store: Store, fresh: bool, value: float = 5.56) -> None:
     last = NOW.date() if fresh else NOW.date() - timedelta(days=7)
     store.upsert_obs([
-        Obs("ina_80", "level", datetime(d.year, d.month, d.day, 15, tzinfo=timezone.utc), 5.56, "ina")
+        Obs("ina_80", "level", datetime(d.year, d.month, d.day, 15, tzinfo=timezone.utc), value, "ina")
         for d in (last - timedelta(days=k) for k in range(30))
     ])
 
@@ -343,5 +345,211 @@ def test_notes_come_from_each_city_config(fresh, tmp_path):
     flat = _flat(html)
     assert "acá el río casi no tiene pendiente frente a la ciudad." in flat
     assert '<a href="https://example.org/otro.pdf">otro relevamiento</a>' in html
+    assert '<a href="/clima-uy/rio/mapa/paysandu/">Paysandú</a>' in html  # the other written map
     for paysandu_only in ("40 cm", "35 cm", "INA-CARU", "en el puerto"):
         assert paysandu_only not in flat, paysandu_only
+
+
+# ---------------------------------------------------------------- a city whose page fails
+
+def _villa(root: Path, pack: dict) -> None:
+    villa = dict(_config(today=False), slug="villa", name="Villa")
+    (root / "villa").mkdir()
+    (root / "villa" / "config.json").write_text(json.dumps(villa), encoding="utf-8")
+    write_pack(root / "villa" / "pack.json.gz", pack)
+
+
+def test_a_city_whose_page_fails_is_left_out(tmp_path, caplog):
+    # pop is only checked for presence: this pack loads and then breaks people() in the view.
+    bad = _pack()
+    for lv in bad["levels"]:
+        lv["pop"] = None
+    root = _root(tmp_path, with_salto=False)
+    _villa(root, bad)
+    with Store(tmp_path / "t.sqlite") as store:
+        _seed_colon(store, fresh=True)
+        written = build_site(store, load_catalog(), tmp_path / "out", NOW, mapa_root=root,
+                             gfm_fetch=lambda *a, **kw: GfmResult("none", None, None, []))
+    out = tmp_path / "out"
+    assert not (out / "rio/mapa/villa/index.html").exists()
+    assert not (out / "rio/mapa/villa/niveles.json").exists()
+    assert out / "rio/mapa/paysandu/index.html" in written
+    assert "Villa" not in _flat(re.search(r'<p class="crumb">.*?</p>', _page(out), flags=re.S).group(0))
+    for page in ("index.html", "rio/index.html", "rio/crecida/index.html", "nino/index.html", "datos/index.html"):
+        assert (out / page).exists(), page
+        assert "/rio/mapa/villa/" not in (out / page).read_text(encoding="utf-8"), page
+    assert any("villa" in r.getMessage() and r.exc_info for r in caplog.records)
+
+
+def test_any_error_in_a_city_view_leaves_no_link(tmp_path, monkeypatch):
+    def boom(*a, **kw):
+        raise RuntimeError("drawing failed")
+
+    monkeypatch.setattr(B.mapa_svg, "plan_svg", boom)
+    with Store(tmp_path / "t.sqlite") as store:
+        _seed_colon(store, fresh=True)
+        build_site(store, load_catalog(), tmp_path / "out", NOW, mapa_root=_root(tmp_path),
+                   gfm_fetch=lambda *a, **kw: GfmResult("none", None, None, []))
+    out = tmp_path / "out"
+    assert not (out / "rio/mapa/paysandu/index.html").exists()
+    for page in ("index.html", "rio/index.html"):
+        html = (out / page).read_text(encoding="utf-8")
+        assert "ver el mapa" not in html and "/rio/mapa/" not in html, page
+
+
+# ---------------------------------------------------------------- today outside the pack's range
+
+def _build_at(tmp_path: Path, colon: float) -> Path:
+    with Store(tmp_path / "t.sqlite") as store:
+        _seed_colon(store, fresh=True, value=colon)
+        build_site(store, load_catalog(), tmp_path / "out", NOW, base_url="/clima-uy",
+                   mapa_root=_root(tmp_path, with_salto=False),
+                   gfm_fetch=lambda *a, **kw: GfmResult("none", None, None, []))
+    return tmp_path / "out"
+
+
+def _readout(html: str) -> dict:
+    return {k: _flat(re.search(rf'<dd[^>]*data-out="{k}">(.*?)</dd>', html, flags=re.S).group(1))
+            for k in ("m", "pop", "ha")}
+
+
+@pytest.fixture(scope="module")
+def below(tmp_path_factory):
+    return _build_at(tmp_path_factory.mktemp("below"), 3.68)  # 3.68 - 1.18 = 2.50 m, under lo = 3
+
+
+@pytest.fixture(scope="module")
+def above(tmp_path_factory):
+    return _build_at(tmp_path_factory.mktemp("above"), 7.18)  # 6.00 m, over hi = 5
+
+
+def test_today_below_the_range_draws_no_water(below):
+    html = _page(below)
+    assert _h1(html) == ("Con el río como hoy, menos de 15 personas de Paysandú viven en terreno más bajo "
+                         "que el agua. A 4,80 m, la cota de evacuación, serían unas 720.")
+    assert _readout(html) == {"m": "2,50 m", "pop": "menos de 15", "ha": "menos de 10 ha"}
+    for ident in ("mapa-wide", "mapa-movil"):
+        svg = re.search(rf'<svg class="mapa[^"]*" id="{ident}".*?</svg>', html, flags=re.S).group(0)
+        assert '<path class="est" d=""' in svg and '<path class="estl" d=""' in svg
+    flat = _flat(html)
+    assert "Con el río por debajo de 3 m el plano no dibuja el agua: los cálculos empiezan en 3 m." in flat
+    assert "la altura de hoy se toma en el más cercano" not in flat
+    assert 'data-start="2.5"' in html and "2,50 m, estimado desde Colón" in flat
+
+
+def test_below_the_range_people_round_up():
+    assert [B._people_bound(n, "below") for n in (0, 14, 15, 21, 296, 998, 1001)] == [
+        "menos de 15", "menos de 15", "menos de 20", "menos de 30", "menos de 300", "menos de 1.000",
+        "menos de 1.100"]
+    assert [B._people_bound(n, "above") for n in (21, 296, 1049)] == ["más de 20", "más de 290", "más de 1.000"]
+
+
+def test_today_above_the_range_draws_the_top_level(above, tmp_path):
+    html = _page(above)
+    assert _h1(html) == ("Con el río como hoy, más de 800 personas de Paysandú viven en terreno más bajo "
+                         "que el agua. A 4,80 m, la cota de evacuación, serían unas 720.")
+    assert _readout(html) == {"m": "6,00 m", "pop": "más de 800", "ha": "más de 50 ha"}
+    cfg = load_city("paysandu", _root(tmp_path, with_salto=False))
+    pack = load_pack("paysandu", tmp_path / "mapa")
+    top = next(lv for lv in pack.levels if lv["m"] == 5.0)
+    wide = re.search(r'<svg class="mapa" id="mapa-wide".*?</svg>', html, flags=re.S).group(0)
+    assert re.search(r'<path class="est" d="([^"]*)"', wide).group(1) == level_path(pack, cfg, top, "wide")
+    rows = re.search(r'<tbody data-out="zones">(.*?)</tbody>', html, flags=re.S).group(1)
+    assert re.findall(r'<th>(.*?)</th><td class="n">(.*?)</td>', rows) == [("Norte", "más de 400"), ("Sur", "más de 400")]
+    flat = _flat(html)
+    assert "Con el río por encima de 5 m el plano dibuja el agua a 5 m. Los cálculos llegan hasta 5 m." in flat
+    assert "la altura de hoy se toma en el más cercano" not in flat
+
+
+def _run_script(out: Path, hash_: str = "") -> dict:
+    """Run the page script under node with a minimal DOM and the real niveles.json."""
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node is not installed")
+    html = _page(out)
+    script = re.search(r"<script>\s*(\(function \(\) \{.*?)</script>", html, flags=re.S).group(1)
+    ul = re.search(r'<ul class="marcas"([^>]*)>', html).group(1)
+    attrs = dict(re.findall(r'data-([a-z-]+)="([^"]*)"', ul))
+    data = (out / "rio/mapa/paysandu/niveles.json").read_text(encoding="utf-8")
+    stub = """
+function el(sub) {
+  return {attrs: {}, dataset: {}, children: [], textContent: "", value: "", sub: sub || {},
+    classList: {contains: function () { return false; }},
+    setAttribute: function (k, v) { this.attrs[k] = v; }, addEventListener: function () {},
+    querySelector: function (s) { return this.sub[s]; }, querySelectorAll: function () { return []; },
+    appendChild: function (c) { this.children.push(c); }, removeChild: function (c) { this.children.splice(this.children.indexOf(c), 1); },
+    get firstChild() { return this.children[0] || null; }};
+}
+var est = el(), estl = el(), cur = el();
+var ul = el(); ul.dataset = {start: ATTRS.start, hoyM: ATTRS["hoy-m"], hoyLabel: ATTRS["hoy-label"]};
+var staff = el({".cur": cur, ".hit": el()}); staff.dataset = {top: "20", bot: "620"};
+var outs = {m: el(), pop: el(), ha: el(), mark: el(), zones: el()};
+var nodes = {"svg.mapa": [el({".est": est, ".estl": estl})], "svg.staff": [staff], "input[data-in=m]": [el()],
+  ".marcas button": [], "[data-out=m]": [outs.m], "[data-out=pop]": [outs.pop], "[data-out=ha]": [outs.ha],
+  "[data-out=mark]": [outs.mark], "[data-out=zones]": [outs.zones]};
+global.window = global;
+global.location = {hash: HASH};
+global.document = {querySelector: function (s) { return s === ".marcas" ? ul : null; },
+  querySelectorAll: function (s) { return nodes[s] || []; }, createElement: function () { return el(); }};
+global.fetch = function () { return Promise.resolve({ok: true, json: function () { return Promise.resolve(DATA); }}); };
+setTimeout(function () {
+  console.log(JSON.stringify({d: est.attrs.d, m: outs.m.textContent, pop: outs.pop.textContent,
+    ha: outs.ha.textContent, zones: outs.zones.children.map(function (r) {
+      return r.children.map(function (c) { return c.textContent; }); })}));
+}, 0);
+""".replace("ATTRS", json.dumps(attrs)).replace("HASH", json.dumps(hash_)).replace("DATA", data)
+    res = subprocess.run([node], input=stub + script, capture_output=True, text=True, timeout=30)
+    assert res.returncode == 0, res.stderr
+    return json.loads(res.stdout)
+
+
+def test_script_keeps_today_below_the_range_dry(below):
+    got = _run_script(below)
+    assert got["d"] == "" and got["m"] == "2,50 m"
+    assert got["pop"] == "menos de 15" and got["ha"] == "menos de 10 ha"
+
+
+def test_script_draws_the_top_level_above_the_range(above):
+    data = json.loads((above / "rio/mapa/paysandu/niveles.json").read_text(encoding="utf-8"))
+    top = next(lv for lv in data["levels"] if lv["m"] == 5)
+    got = _run_script(above)
+    assert got["d"] == top["d"] and got["m"] == "6,00 m"
+    assert got["pop"] == "más de 800" and got["ha"] == "más de 50 ha"
+    assert got["zones"] == [["Norte", "más de 400"], ["Sur", "más de 400"]]
+    # a shared link past the range reads the same way
+    assert _run_script(above, "#m=2")["pop"] == "menos de 15"
+
+
+def test_script_in_range_matches_the_server(fresh):
+    got = _run_script(fresh)
+    assert got["m"] == "4,38 m" and got["pop"] == "unas 600"
+
+
+# ---------------------------------------------------------------- legend, escaping, merged marks
+
+def test_satellite_legend_only_with_water_to_draw(fresh, stale, no_today):
+    item = "agua fuera del cauce vista por el satélite"
+    assert item in _flat(_page(fresh))
+    assert item not in _flat(_page(stale)) and item not in _flat(_page(no_today))
+
+
+def test_mark_labels_are_escaped_and_merged_marks_keep_their_heights(tmp_path):
+    root = _root(tmp_path, with_salto=False)
+    cfg = _config()
+    cfg["marks"] += [
+        {"label": "Pico de mayo & <b>junio</b>", "short": "pico A", "m": 4.5, "kind": "pico", "source": SRC},
+        {"label": "Pico de 2016", "short": "pico B", "m": 4.55, "kind": "pico", "source": SRC},
+    ]
+    cfg["sinae_check"] = dict(cfg["sinae_check"], m=4.5)
+    (root / "paysandu" / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    with Store(tmp_path / "t.sqlite") as store:
+        _seed_colon(store, fresh=True)
+        build_site(store, load_catalog(), tmp_path / "out", NOW, mapa_root=root,
+                   gfm_fetch=lambda *a, **kw: GfmResult("none", None, None, []))
+    html = _page(tmp_path / "out")
+    assert "<b>junio</b>" not in html
+    assert "En mayo &amp; &lt;b&gt;junio&lt;/b&gt;, con el río a 4,50 m" in html
+    buttons = re.search(r'<ul class="marcas".*?</ul>', html, flags=re.S).group(0)
+    assert '<button type="button" data-m="4.5" aria-pressed="false">pico A 4,50 y pico B 4,55</button>' in buttons
+    staff = re.search(r'<svg class="staff".*?</svg>', html, flags=re.S).group(0)
+    assert ">pico A 4,50 y pico B 4,55</text>" in staff

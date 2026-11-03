@@ -23,7 +23,9 @@
 <div class="plancheta">
 <div>{{ plan_wide }}{{ plan_movil }}<p class="ley2">
 <span><svg viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="14" fill="var(--water-2)" stroke="var(--water)"/></svg>río en su cauce</span>
+{% if sat_polys %}
 <span><svg viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="14" fill="var(--water)"/></svg>agua fuera del cauce vista por el satélite</span>
+{% endif %}
 <span><svg viewBox="0 0 22 14" aria-hidden="true"><defs><pattern id="lh" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="var(--water)" stroke-width="1.6"/></pattern></defs><rect width="22" height="14" fill="url(#lh)" stroke="var(--water)"/></svg>terreno por debajo de la altura elegida (estimación)</span>
 <span><svg viewBox="0 0 22 14" aria-hidden="true"><line x1="0" y1="7" x2="22" y2="7" stroke="var(--ink-2)" stroke-dasharray="3 3"/></svg>curva de nivel en metros de la escala</span>
 <span><svg viewBox="0 0 22 14" aria-hidden="true"><rect width="22" height="14" fill="var(--grid)"/></svg>manzana</span>
@@ -64,6 +66,17 @@
   function thousands(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
   function half(x) { return Math.floor(x + 0.5); }
   function people(n) { if (n < 15) return "menos de 15"; var r = n < 1000 ? 10 : 100; return "unas " + thousands(half(n / r) * r); }
+  // Past the range the counts are bounds, as the build writes them: under lo rounded up, over hi down.
+  function bound(n, side) {
+    var r = n < 1000 ? 10 : 100;
+    if (side < 0) return n < 15 ? "menos de 15" : "menos de " + thousands(Math.ceil(n / r) * r);
+    return "más de " + thousands(Math.floor(n / r) * r);
+  }
+  function haText(ha, side) {
+    if (side < 0) return "menos de " + thousands(Math.ceil(ha)) + " ha";
+    if (side > 0) return "más de " + thousands(Math.floor(ha)) + " ha";
+    return thousands(half(ha)) + " ha";
+  }
   // A level exactly at m (a mark), else the nearest grid level, the first on a tie: as the build does.
   function levelAt(m) {
     var i, b = null;
@@ -73,17 +86,20 @@
   }
   function markAt(m) { for (var i = 0; i < M.length; i++) if (Math.abs(M[i].m - m) < 0.005) return M[i]; return null; }
   function each(sel, fn) { var n = document.querySelectorAll(sel); for (var i = 0; i < n.length; i++) fn(n[i]); }
+  // Under lo nothing is drawn and the lo level gives the bounds; over hi the hi level is drawn.
   function set(m) {
-    var lv = levelAt(m), mk = markAt(m);
+    var side = m < lo ? -1 : (m > hi ? 1 : 0);
+    var lv = levelAt(side < 0 ? lo : (side > 0 ? hi : m)), mk = markAt(m);
     if (!lv) return;
+    var count = function (n) { return side ? bound(n, side) : people(n); };
     each("svg.mapa", function (s) {
-      var d = s.classList.contains("movil") && lv.dm != null ? lv.dm : lv.d;
+      var d = side < 0 ? "" : (s.classList.contains("movil") && lv.dm != null ? lv.dm : lv.d);
       s.querySelector(".est").setAttribute("d", d);
       s.querySelector(".estl").setAttribute("d", d);
     });
     each("[data-out=m]", function (e) { e.textContent = fmt(m) + " m"; });
-    each("[data-out=pop]", function (e) { e.textContent = people(lv.pop); });
-    each("[data-out=ha]", function (e) { e.textContent = thousands(half(lv.ha)) + " ha"; });
+    each("[data-out=pop]", function (e) { e.textContent = count(lv.pop); });
+    each("[data-out=ha]", function (e) { e.textContent = haText(lv.ha, side); });
     each("[data-out=mark]", function (e) { e.textContent = mk ? mk.label : ""; });
     each("[data-out=zones]", function (tb) {
       while (tb.firstChild) tb.removeChild(tb.firstChild);
@@ -95,7 +111,7 @@
       lv.z.forEach(function (z) {
         tr = document.createElement("tr");
         c = document.createElement("th"); c.textContent = z[0]; tr.appendChild(c);
-        c = document.createElement("td"); c.className = "n"; c.textContent = people(z[1]); tr.appendChild(c);
+        c = document.createElement("td"); c.className = "n"; c.textContent = count(z[1]); tr.appendChild(c);
         tb.appendChild(tr);
       });
     });
@@ -126,7 +142,7 @@
       for (var k = 0; k < mk.length; k++) mk[k].addEventListener("click", function () { set(+this.dataset.m); });
     });
     var hm = /m=([0-9.]+)/.exec(location.hash), h = hm ? +hm[1] : NaN;
-    set(isFinite(h) ? Math.max(lo, Math.min(hi, h)) : start);
+    set(isFinite(h) ? h : start);  // set() handles a height past the range
   }
   if (!window.fetch) return;
   fetch("niveles.json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(init)

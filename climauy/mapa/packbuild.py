@@ -575,7 +575,7 @@ def build_pack(slug: str, root: Path = MAPA_DIR, extra_levels: tuple[float, ...]
             },
             "sources": [
                 {"what": "IDE Uruguay, MDT 1 m", "url": cfg.dtm_urls[0].rsplit("/", 1)[0] + "/",
-                 "tiles": len(cfg.dtm_urls), "licence": "Licencia de Datos Abiertos - Uruguay",
+                 "tiles": len(cfg.dtm_urls), "licence": "Licencia de Datos Abiertos de Uruguay",
                  "licence_url": IDE_LICENCE_URL, "note": "resampled to 2 m (average) and processed"},
                 {"what": "OpenStreetMap (Geofabrik extract)", "url": OSM_URL, "date": osm_ts,
                  "licence": "ODbL, (c) OpenStreetMap contributors"},

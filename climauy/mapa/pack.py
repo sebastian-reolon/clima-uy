@@ -58,12 +58,19 @@ def validate(data: dict) -> None:
     for name in LINE_LAYERS:
         _check_coords(layers.get(name, []), 2, f"layers.{name}")
     for j, c in enumerate(layers.get("contours", [])):
+        m = c.get("m")
+        if isinstance(m, bool) or not isinstance(m, (int, float)):
+            raise ValueError(f"layers.contours[{j}]: m must be a number")
+        if not isinstance(c.get("lines"), list):
+            raise ValueError(f"layers.contours[{j}]: lines must be a list")
         _check_coords(c["lines"], 2, f"layers.contours[{j}].lines")
     for j, lv in enumerate(data["levels"]):
         for key in ("m", "area_ha", "pop", "zones", "poly", "grid"):
             if key not in lv:
                 raise ValueError(f"levels[{j}]: missing {key}")
         _check_coords(lv["poly"], 3, f"levels[{j}].poly")
+    if not any(lv["grid"] for lv in data["levels"]):
+        raise ValueError("levels: at least one grid level is needed")
     ms = [lv["m"] for lv in data["levels"]]
     if ms != sorted(ms):
         raise ValueError("levels: must be sorted by m")

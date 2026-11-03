@@ -418,7 +418,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-31,ina_67,Garruchos,424.6,discharge,4546.33,80.6,0
 2026-11-01,ina_67,Garruchos,424.6,discharge,3718.33,74.7,0
 2026-11-02,ina_67,Garruchos,424.6,discharge,3525.97,72.7,0
-2026-11-03,ina_67,Garruchos,424.6,discharge,3674.0,74.3,1
+2026-11-03,ina_67,Garruchos,424.6,discharge,2875.65,64.7,1
 2026-09-05,ina_68,Santo Tomé,479.9,discharge,9248.0,94.3,0
 2026-09-06,ina_68,Santo Tomé,479.9,discharge,8542.0,93.3,0
 2026-09-07,ina_68,Santo Tomé,479.9,discharge,6471.0,89.1,0

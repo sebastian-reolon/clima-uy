@@ -20,6 +20,7 @@ BASE = {
     "zero_m": 0.43,
     "zero_source": SRC,
     "range_m": [3, 12],
+    "river": {"flat_tol_m": 0.01, "note": "river flattened at one height"},
     "marks": [
         {"label": "Alerta (CARU)", "short": "alerta", "m": 4.39, "kind": "oficial", "source": SRC},
     ],
@@ -67,6 +68,21 @@ def test_bad_mark_kind_rejected(tmp_path):
     _write_cfg(tmp_path, cfg)
     with pytest.raises(ValueError, match=r"marks\[0\]\.kind"):
         load_city("villa", tmp_path)
+
+
+def test_river_tolerance_required_and_bounded(tmp_path):
+    cfg = copy.deepcopy(BASE)
+    del cfg["river"]
+    _write_cfg(tmp_path, cfg)
+    with pytest.raises(ValueError, match="river"):
+        load_city("villa", tmp_path)
+    cfg["river"] = {"flat_tol_m": -0.1, "note": "x"}
+    _write_cfg(tmp_path, cfg)
+    with pytest.raises(ValueError, match=r"river\.flat_tol_m"):
+        load_city("villa", tmp_path)
+    cfg["river"] = {"flat_tol_m": 0.3, "note": "two flattened surfaces"}
+    _write_cfg(tmp_path, cfg)
+    assert load_city("villa", tmp_path).river.flat_tol_m == 0.3
 
 
 def test_today_and_sinae_optional(tmp_path):
@@ -178,3 +194,54 @@ def test_level_list_is_grid_plus_off_grid_marks(tmp_path):
     assert len(levels) == 37 + 1  # 3..12 every 0.25 m, plus 4.39; 6.00 already on the grid
     assert (4.39, False) in levels and (6.0, True) in levels
     assert [m for m, _ in levels] == sorted(m for m, _ in levels)
+
+
+def _seed_case():
+    import numpy as np
+
+    # A river flattened at two heights (1.0 west, 2.0 east), OSM water over all of it
+    # plus one bank column at 5 m that OSM wrongly draws as water.
+    z = np.full((4, 8), 9.0, dtype="float32")
+    z[:, 0:3] = 1.0
+    z[:, 3:5] = 2.0
+    z[:, 5] = 5.0
+    valid = np.ones_like(z, dtype=bool)
+    water = np.zeros_like(valid)
+    water[:, 0:6] = True
+    return z, valid, water
+
+
+def test_river_seed_excludes_osm_bank_and_reaches_both_surfaces():
+    pytest.importorskip("osmium")
+    pytest.importorskip("shapefile")
+    from climauy.mapa.packbuild import river_seed
+
+    z, valid, water = _seed_case()
+    seed, thr, share = river_seed(z, valid, water, flat_tol_m=1.0)
+    assert seed[:, 0:5].all() and not seed[:, 5:].any()
+    assert share == pytest.approx(20 / 24)
+
+
+def test_river_seed_fails_when_tolerance_misses_a_flat_surface():
+    pytest.importorskip("osmium")
+    pytest.importorskip("shapefile")
+    from climauy.mapa.packbuild import river_seed
+
+    z, valid, water = _seed_case()  # median inside OSM water is 1.5: tol 0.01 misses the 2.0 surface
+    with pytest.raises(ValueError, match="flat_tol_m"):
+        river_seed(z, valid, water, flat_tol_m=0.01)
+
+
+def test_river_layer_takes_osm_water_only_off_the_dtm():
+    pytest.importorskip("osmium")
+    pytest.importorskip("shapefile")
+    import numpy as np
+
+    from climauy.mapa.packbuild import river_layer_mask
+
+    z, valid, water = _seed_case()
+    valid[:, 0] = False  # no DTM on the far bank
+    seed = np.zeros_like(valid)
+    seed[:, 1:5] = True
+    m = river_layer_mask(seed, water, valid)
+    assert m[:, 0:5].all() and not m[:, 5].any()

@@ -113,6 +113,10 @@
   3,
   12
  ],
+ "river": {
+  "flat_tol_m": 0.01,
+  "note": "The IDE DTM flattens the river at 1.673 and 1.84 m; the median inside OSM water is 1.84, so 0.01 m reaches both and mirrors the reference analysis (river at z <= 1.85 m)."
+ },
  "marks": [
   {
    "label": "Alerta (CARU)",

@@ -51,6 +51,15 @@ class SinaeCheck:
 
 
 @dataclass(frozen=True)
+class RiverCfg:
+    """How the river seed finds the DTM's hydro-flattened river: cells at most
+    flat_tol_m above the median DTM height inside OSM water. Set it per city so
+    it reaches every flattened height; note says why."""
+    flat_tol_m: float
+    note: str
+
+
+@dataclass(frozen=True)
 class CityConfig:
     slug: str
     name: str
@@ -60,6 +69,7 @@ class CityConfig:
     zero_m: float
     zero_source: Source
     range_m: tuple[float, float]
+    river: RiverCfg
     marks: list[Mark]
     today: TodayCfg | None
     sinae_check: SinaeCheck | None
@@ -122,6 +132,11 @@ def parse_city(raw: dict) -> CityConfig:
     lo, hi = _nums(raw, "range_m", 2, "range_m")
     if lo >= hi:
         raise ValueError("range_m: lo must be below hi")
+    rv = _get(raw, "river", "river")
+    tol = _num(rv, "flat_tol_m", "river.flat_tol_m")
+    if not 0 <= tol <= 1:
+        raise ValueError("river.flat_tol_m: expected 0 to 1 m")
+    river = RiverCfg(flat_tol_m=tol, note=_str(rv, "note", "river.note"))
     marks_raw = _get(raw, "marks", "marks")
     if not isinstance(marks_raw, list):
         raise ValueError("marks: expected a list")
@@ -162,6 +177,7 @@ def parse_city(raw: dict) -> CityConfig:
         zero_m=_num(raw, "zero_m", "zero_m"),
         zero_source=_source(raw, "zero_source", "zero_source"),
         range_m=(lo, hi),
+        river=river,
         marks=marks,
         today=today,
         sinae_check=sinae,

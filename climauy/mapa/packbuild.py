@@ -49,7 +49,10 @@ CELL_M2 = RES * RES
 SIEVE_CELLS = 25  # specks and holes under 100 m2 are dropped from the drawn polygons
 LEVEL_SIMPLIFY_M = 3.0
 LAYER_SIMPLIFY_M = 2.0
-FLAT_RIVER_TOL_M = 0.01  # DTM cells at most this far above the hydro-flattened river surface are river
+# The seed must cover at least this share of the OSM water lying on the DTM. OSM
+# outlines spill over the banks, so it is never 100%: Paysandú is at 81%; with only
+# its lower flattened surface (1.673 m) the seed would cover 28%.
+MIN_SEED_WATER_SHARE = 0.6
 CONTOUR_RES_M = 6.0
 CONTOUR_STEP_M = 2
 CONTOUR_BUFFER_M = 250.0
@@ -235,26 +238,47 @@ def place_label(name: str) -> str:
 
 # ------------------------------------------------------------------ river, people, zones
 
-def river_seed(z: np.ndarray, valid: np.ndarray, water_mask: np.ndarray) -> tuple[np.ndarray, float]:
+def river_seed(z: np.ndarray, valid: np.ndarray, water_mask: np.ndarray,
+               flat_tol_m: float) -> tuple[np.ndarray, float, float]:
     """The river as one connected body: the DTM's hydro-flattened river surface,
     plus OSM water where the DTM has no data; the largest 8-connected component.
 
-    The flat height is the median DTM height inside the OSM water polygons (the
-    flattened river value) plus FLAT_RIVER_TOL_M. The global DTM minimum is not
+    Returns (seed, flat threshold, share of the OSM water on the DTM that the
+    seed covers). The flat height is the median DTM height inside the OSM water
+    polygons plus the city's ``river.flat_tol_m``. The global DTM minimum is not
     used: in Paysandú it is a 1.36 m pit, below the 1.67 / 1.84 m river. Where
     the DTM has data, OSM water above that height is not river: OSM outlines
     spill over the banks (18.6 ha of Paysandú land up to 10 m high), and
     counting them as river hid that ground from every flood level.
+
+    A DTM can flatten the river at several heights. If the median falls on a
+    lower one and the tolerance does not reach the others, the seed silently
+    loses river; that shows as a low share and raises ValueError below
+    MIN_SEED_WATER_SHARE.
     """
     inside = water_mask & valid
     if not inside.any():
         raise ValueError("no OSM water inside the DTM: cannot seed the river")
-    thr = float(np.median(z[inside])) + FLAT_RIVER_TOL_M
+    thr = float(np.median(z[inside])) + flat_tol_m
     cand = (water_mask & ~valid) | (valid & (np.nan_to_num(z, nan=np.inf) <= thr))
     lab, _ = ndi.label(cand, structure=np.ones((3, 3), bool))
     sizes = np.bincount(lab.ravel())
     sizes[0] = 0
-    return lab == int(sizes.argmax()), thr
+    seed = lab == int(sizes.argmax())
+    share = float((seed & inside).sum()) / float(inside.sum())
+    if share < MIN_SEED_WATER_SHARE:
+        raise ValueError(
+            f"river seed covers {share:.0%} of the OSM water on the DTM (minimum {MIN_SEED_WATER_SHARE:.0%}) "
+            f"at flat height {thr:.2f} m: the DTM may flatten the river at several heights; "
+            "raise river.flat_tol_m in the city config to reach the highest one")
+    return seed, thr, share
+
+
+def river_layer_mask(seed: np.ndarray, water_mask: np.ndarray, valid: np.ndarray) -> np.ndarray:
+    """Cells drawn as river on the plan: the seed, plus OSM water only where the
+    DTM has no data (the same rule as the seed, so the plan never draws river
+    over ground the analysis counts as dry)."""
+    return seed | (water_mask & ~valid)
 
 
 def people_per_cell(wp_path: Path, grid: Grid) -> np.ndarray:
@@ -451,8 +475,9 @@ def build_pack(slug: str, root: Path = MAPA_DIR, extra_levels: tuple[float, ...]
     if not water.is_empty:
         water_mask = rasterize([(water, 1)], out_shape=grid.shape, transform=grid.transform,
                                fill=0, dtype="uint8").astype(bool)
-    river, flat_thr = river_seed(z, valid, water_mask)
-    print(f"[{slug}] river seed {river.sum() * CELL_M2 / 1e4:.0f} ha, flat river <= {flat_thr:.2f} m", flush=True)
+    river, flat_thr, seed_share = river_seed(z, valid, water_mask, cfg.river.flat_tol_m)
+    print(f"[{slug}] river seed {river.sum() * CELL_M2 / 1e4:.0f} ha, flat river <= {flat_thr:.2f} m, "
+          f"covers {seed_share:.0%} of the OSM water on the DTM", flush=True)
 
     fill = flood.fill_levels(z, valid, river)
 
@@ -490,9 +515,8 @@ def build_pack(slug: str, root: Path = MAPA_DIR, extra_levels: tuple[float, ...]
         checks.append((m, round(float(mask.sum()) * CELL_M2 / 1e4, 1), int(round(flood.population_in(mask, dens)))))
 
     print(f"[{slug}] plan layers", flush=True)
-    river_polys = mask_polygons(river, grid, LAYER_SIMPLIFY_M)
-    river_geom = unary_union([*river_polys, water.intersection(frame_poly)]).simplify(LAYER_SIMPLIFY_M)
-    river_geom = river_geom.intersection(frame_poly)
+    river_polys = mask_polygons(river_layer_mask(river, water_mask, valid), grid, LAYER_SIMPLIFY_M)
+    river_geom = unary_union(river_polys).intersection(frame_poly)
     blocks = build_blocks(roads, river_geom, frame_poly)
     main = [g for hw, g in roads if hw in MAIN_ROADS]
     minor = [g for hw, g in roads if hw in MINOR_ROADS]
@@ -535,7 +559,7 @@ def build_pack(slug: str, root: Path = MAPA_DIR, extra_levels: tuple[float, ...]
                 "Flat water surface at zero_m + level (no slope along the river). Flooded = 2 m DTM cells whose "
                 "river-connected fill level (8-neighbour priority flood) is below that surface; the river itself "
                 "is excluded. River = largest connected body of the DTM's hydro-flattened river surface (at most "
-                f"{FLAT_RIVER_TOL_M:g} m above the median DTM height inside OSM water) plus OSM water where the "
+                f"{cfg.river.flat_tol_m:g} m above the median DTM height inside OSM water) plus OSM water where the "
                 "DTM has no data. Area and people "
                 "come from the raw 2 m mask; drawn polygons drop pieces under 100 m2 and are simplified "
                 f"{LEVEL_SIMPLIFY_M:g} m. People: WorldPop spread evenly over each 100 m cell. Zones: INE 2011 "
@@ -545,6 +569,7 @@ def build_pack(slug: str, root: Path = MAPA_DIR, extra_levels: tuple[float, ...]
                 "people_in_frame": int(round(float(dens.sum(dtype="float64")))),
                 "river_ha": round(float(river.sum()) * CELL_M2 / 1e4, 1),
                 "flat_river_m": round(flat_thr, 2),
+                "seed_share_of_osm_water_on_dtm": round(seed_share, 3),
                 "segments": len(segs),
                 "zones": sorted(set(names.values())),
             },

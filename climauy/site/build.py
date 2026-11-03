@@ -1056,11 +1056,13 @@ def _level_json(pack: Pack, cfg: CityConfig, lv: dict, two_paths: bool) -> dict:
     return out
 
 
-def _niveles_json(pack: Pack, cfg: CityConfig, marks: list[dict], start: float) -> str:
+def _niveles_json(pack: Pack, cfg: CityConfig) -> str:
     """rio/mapa/<slug>/niveles.json: every pack level (grid and mark levels) with its paths,
-    people, hectares and zones; the marks; the range and the level the page starts on."""
+    people, hectares and zones; the config marks and the range. Only the pack and config go
+    in, so the file is byte-stable between runs; today's height rides on the page."""
     two = not mapa_svg.same_drawing(pack, cfg)
-    data = {"lo": cfg.range_m[0], "hi": cfg.range_m[1], "start": start, "marks": marks,
+    marks = [{"label": mk.label, "m": mk.m} for mk in cfg.marks if cfg.range_m[0] <= mk.m <= cfg.range_m[1]]
+    data = {"lo": cfg.range_m[0], "hi": cfg.range_m[1], "marks": marks,
             "levels": [_level_json(pack, cfg, lv, two) for lv in pack.levels]}
     return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
@@ -1073,7 +1075,8 @@ def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, other
     ref_m, ref_what = _reference_mark(cfg)
     ref_lv = _level_at(levels, ref_m)
     if today is not None:
-        today_lv = _level_at([lv for lv in levels if lv["grid"]], today.m)  # Ruling 1: nearest grid level
+        # Ruling 1: the nearest grid level, unless today falls on a mark's exact level (as the script does)
+        today_lv = _level_at(levels, today.m)
         h1 = (f"Con el río como hoy, {people(today_lv['pop'])} personas de {cfg.name} viven en terreno más bajo "
               f"que el agua. A {_m2(ref_m)} m, {ref_what}, serían {people(ref_lv['pop'])}.")
         start, start_lv = today.m, today_lv
@@ -1085,7 +1088,8 @@ def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, other
         rio_hoy = "sin estimación al día"
     sat = _satellite_view(gfm, cfg.name)
 
-    marks = ([{"label": f"Hoy, estimado desde {today.station_name}", "m": today.m}] if today else []) + [
+    hoy_label = f"Hoy, estimado desde {today.station_name}" if today else ""
+    marks = ([{"label": hoy_label, "m": today.m}] if today else []) + [
         {"label": mk.label, "m": mk.m} for mk in cfg.marks if lo <= mk.m <= hi]
     start_mark = next((mk["label"] for mk in marks if abs(mk["m"] - start) < MARK_TOL), "")
     buttons = [{"text": ("hoy" if label.startswith("hoy") else label) + " " + _m2(v), "m": f"{data_m:g}",
@@ -1154,6 +1158,7 @@ def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, other
         "others": others,
         "contour_text": contour_text,
         "lo": f"{lo:g}", "hi": f"{hi:g}", "start": f"{start:g}",
+        "hoy": {"m": f"{today.m:g}", "label": hoy_label} if today else None,
         "start_what": "la altura de hoy" if today is not None else ref_what,
         "buttons": buttons,
         "plan_wide": Markup(mapa_svg.plan_svg(pack, cfg, start_lv, sat["polys"], "mapa-wide", "wide")),
@@ -1168,7 +1173,7 @@ def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, other
         "sources": MAPA_SOURCES,
         "character": MAPA_CHARACTER,
     }
-    return ctx, _niveles_json(pack, cfg, marks, start)
+    return ctx, _niveles_json(pack, cfg)
 
 
 def _build_maps(store: Store, out_dir: Path, now_utc: datetime, base: str, mapa_root: Path,

@@ -18,7 +18,7 @@
 <section class="sec"><h2>Plano</h2>
 <p class="que">{{ city }} frente al río, con el terreno que queda por debajo de la altura elegida en la escala del puerto.{{ contour_text }}</p>
 <div class="phone-only"><div class="nivel"><label for="nv">Río</label><input id="nv" data-in="m" type="range" min="{{ lo }}" max="{{ hi }}" step="0.25" value="{{ start }}"><output data-out="m">{{ read_m }}</output></div></div>
-<ul class="marcas" aria-label="Alturas de referencia">{% for b in buttons %}<li><button type="button" data-m="{{ b.m }}" aria-pressed="{{ 'true' if b.pressed else 'false' }}">{{ b.text }}</button></li>{% endfor %}</ul>
+<ul class="marcas" aria-label="Alturas de referencia" data-start="{{ start }}"{% if hoy %} data-hoy-m="{{ hoy.m }}" data-hoy-label="{{ hoy.label }}"{% endif %}>{% for b in buttons %}<li><button type="button" data-m="{{ b.m }}" aria-pressed="{{ 'true' if b.pressed else 'false' }}">{{ b.text }}</button></li>{% endfor %}</ul>
 <noscript><p>Para elegir otra altura hace falta JavaScript. Sin él, el plano y la tabla muestran {{ start_what }}.</p></noscript>
 <div class="plancheta">
 <div>{{ plan_wide }}{{ plan_movil }}<p class="ley2">
@@ -107,7 +107,9 @@
     });
   }
   function init(D) {
-    L = D.levels; M = D.marks; lo = D.lo; hi = D.hi;
+    var ul = document.querySelector(".marcas"), start = +ul.dataset.start;
+    L = D.levels; M = D.marks.slice(); lo = D.lo; hi = D.hi;
+    if (ul.dataset.hoyM) M.unshift({label: ul.dataset.hoyLabel, m: +ul.dataset.hoyM});  // today wins a tie, as on the server
     each("input[data-in=m]", function (i) { i.addEventListener("input", function () { set(+i.value); }); });
     each(".marcas button", function (b) { b.addEventListener("click", function () { set(+b.dataset.m); }); });
     each("svg.staff", function (s) {
@@ -124,7 +126,7 @@
       for (var k = 0; k < mk.length; k++) mk[k].addEventListener("click", function () { set(+this.dataset.m); });
     });
     var hm = /m=([0-9.]+)/.exec(location.hash), h = hm ? +hm[1] : NaN;
-    set(isFinite(h) ? Math.max(lo, Math.min(hi, h)) : D.start);
+    set(isFinite(h) ? Math.max(lo, Math.min(hi, h)) : start);
   }
   if (!window.fetch) return;
   fetch("niveles.json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(init)

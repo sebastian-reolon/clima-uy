@@ -29,8 +29,9 @@ Lo que quedó para después, con el motivo.
 
 ## Plano de crecida por ciudad
 
-- **Fotos diarias de los planos.** Las páginas `/rio/mapa/<ciudad>/` no entran en las fotos diarias, porque cada una carga unos 2 MB de alturas (`niveles.json`); desde una foto, el link «ver el mapa» lleva a la página en vivo. Si se quiere guardar cómo se veía el plano un día, copiar solo el HTML (lleva dibujada la altura de ese día) más el `niveles.json` de ese día.
+- **Fotos diarias de los planos.** Las páginas `/rio/mapa/<ciudad>/` no entran en las fotos diarias, porque cada una carga unos 2 MB de alturas (`niveles.json`); desde una foto, el link «ver el mapa» lleva a la página en vivo. Si se quiere guardar cómo se veía el plano un día, copiar solo el HTML (lleva dibujada la altura de ese día) o guardar `niveles.json` una vez por ciudad, que no cambia entre corridas.
 - **Diferencia entre escalas leída a mano.** La resta de Colón a Paysandú (1,18 m, rango 1,14 a 1,20) sale de informes de la CARU de octubre de 2026 y se revisa a mano. Escribir un lector de los informes de crecida de la CARU que la actualice.
 - **Más ciudades:** Bella Unión, Constitución, Nuevo Berlín y San Javier quedan para después, y Salto y Fray Bentos mientras no tengan su cero en el datum del relieve.
 - **Barrios con límites oficiales.** Las zonas se nombran por el punto de barrio de OpenStreetMap más cercano. Si las Intendencias publican polígonos de barrio, usarlos en lugar de esa aproximación.
+- **Peso de la página del plano.** `rio/mapa/paysandu/index.html` pesa unos 780 KB (270 KB comprimida) porque lleva dibujados dos planos, el ancho y el del celular, con las mismas manzanas y calles. Si pesa, dibujar las capas fijas una sola vez y recortarlas con `viewBox`.
 - **Notas fijas de Paysandú.** Las notas del borde (unos 40 cm por la pendiente) y del cero (relevamiento INA-CARU 2019, unos 35 cm) están escritas para Paysandú. Pasarlas a la configuración de cada ciudad antes de publicar otra.

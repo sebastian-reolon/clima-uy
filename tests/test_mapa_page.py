@@ -206,9 +206,19 @@ def test_niveles_json(fresh):
     for lv in data["levels"]:
         assert {"m", "d", "pop", "ha", "z", "grid"} <= set(lv)
     assert data["lo"] == 3 and data["hi"] == 5
-    assert abs(data["start"] - 4.38) < 1e-9
-    marks = {mk["label"]: mk["m"] for mk in data["marks"]}
-    assert marks["Evacuación (CARU)"] == 4.8 and abs(marks["Hoy, estimado desde Colón"] - 4.38) < 1e-9
+    # Only what the pack and config fix: the file stays byte-stable between runs.
+    assert "start" not in data
+    assert {mk["label"]: mk["m"] for mk in data["marks"]} == {"Alerta (CARU)": 4.39, "Evacuación (CARU)": 4.8}
+    # Today's height and mark ride on the page.
+    ul = re.search(r'<ul class="marcas"[^>]*>', _page(fresh)).group(0)
+    assert 'data-start="4.38"' in ul and 'data-hoy-m="4.38"' in ul and 'data-hoy-label="Hoy, estimado desde Colón"' in ul
+
+
+def test_niveles_json_is_the_same_with_or_without_today(fresh, stale):
+    a = (fresh / "rio/mapa/paysandu/niveles.json").read_bytes()
+    assert a == (stale / "rio/mapa/paysandu/niveles.json").read_bytes()
+    ul = re.search(r'<ul class="marcas"[^>]*>', _page(stale)).group(0)
+    assert 'data-start="4.8"' in ul and "data-hoy" not in ul
 
 
 def test_no_js_draws_the_start_level(fresh, stale, tmp_path):

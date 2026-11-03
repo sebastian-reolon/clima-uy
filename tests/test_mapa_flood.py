@@ -4,6 +4,10 @@ import pytest
 pytest.importorskip("skimage")
 pytest.importorskip("scipy")
 
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning"
+)
+
 from climauy.mapa.flood import (  # noqa: E402
     fill_levels,
     flooded,
@@ -94,3 +98,15 @@ def test_nearest_names():
 def test_levels_grid():
     assert levels_grid(3, 4) == [3.0, 3.25, 3.5, 3.75, 4.0]
     assert levels_grid(0.1, 0.5, 0.1) == [0.1, 0.2, 0.3, 0.4, 0.5]
+
+
+def test_levels_grid_rejects_non_multiple():
+    with pytest.raises(ValueError):
+        levels_grid(3, 4.1, 0.25)
+
+
+def test_nan_dtm_is_invalid():
+    dtm, valid, river = _row([0, 1, 1])
+    dtm[0, 2] = np.nan
+    fill = fill_levels(dtm, valid, river)
+    assert np.isposinf(fill[0, 2])

@@ -14,11 +14,14 @@ def fill_levels(dtm: np.ndarray, valid: np.ndarray, river: np.ndarray) -> np.nda
     """Lowest flat water-surface elevation at which water spreading from the
     river reaches each cell (grayscale reconstruction by erosion).
 
-    River cells get a very low value; invalid or unreachable cells get +inf.
+    River cells get a very low value; invalid (or NaN) or unreachable cells get
+    +inf. Connectivity is 8-neighbour (skimage's default footprint), the same
+    as the reference pipeline.
     """
     from skimage.morphology import reconstruction
 
-    river = river.astype(bool)
+    river = np.asarray(river, dtype=bool)
+    valid = np.asarray(valid, dtype=bool) & ~np.isnan(dtm)
     surf = np.where(valid, dtm, _BIG).astype("float64")
     surf[river] = _RIVER_LOW
     marker = np.full(surf.shape, _BIG, dtype="float64")
@@ -36,7 +39,7 @@ def flooded(fill: np.ndarray, river: np.ndarray, wse: float) -> np.ndarray:
 
 def population_in(mask: np.ndarray, density: np.ndarray) -> float:
     """Total people in ``mask``; ``density`` is already people per cell."""
-    return float(density[mask].sum())
+    return float(density[mask].sum(dtype="float64"))
 
 
 def zone_population(
@@ -49,11 +52,13 @@ def zone_population(
 
     Ids sharing a name are summed; ties are ordered by name.
     """
+    ids, inv = np.unique(zone_ids[mask], return_inverse=True)
+    sums = np.bincount(inv, weights=density[mask].astype("float64"), minlength=len(ids))
     totals: dict[str, float] = {}
-    for zid, name in names.items():
-        sel = mask & (zone_ids == zid)
-        if sel.any():
-            totals[name] = totals.get(name, 0.0) + float(density[sel].sum())
+    for zid, total in zip(ids.tolist(), sums.tolist()):
+        name = names.get(zid)
+        if name is not None:
+            totals[name] = totals.get(name, 0.0) + total
     rows = [(name, int(round(v))) for name, v in totals.items()]
     rows = [r for r in rows if r[1] >= 1]
     rows.sort(key=lambda r: (-r[1], r[0]))
@@ -77,4 +82,6 @@ def nearest_names(
 def levels_grid(lo: float, hi: float, step: float = 0.25) -> list[float]:
     """Inclusive grid of water levels, rounded to 2 decimals (no float drift)."""
     n = int(round((hi - lo) / step))
+    if abs(lo + n * step - hi) > 1e-9:
+        raise ValueError(f"range {lo}..{hi} is not a multiple of step {step}")
     return [round(lo + i * step, 2) for i in range(n + 1)]

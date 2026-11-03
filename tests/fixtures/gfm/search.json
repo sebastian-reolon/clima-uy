@@ -1,0 +1,185 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "id": "ENSEMBLE_FLOOD_20261102T090636_VV_SA020M_E072N033T3",
+   "type": "Feature",
+   "bbox": [
+    -61.11062031126412,
+    -34.6905251822039,
+    -57.907187642785125,
+    -31.970011454175317
+   ],
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -61.11062031126412,
+       -34.6905251822039
+      ],
+      [
+       -61.09519070094194,
+       -31.985710127854198
+      ],
+      [
+       -57.97266316092256,
+       -31.970011454175317
+      ],
+      [
+       -57.907187642785125,
+       -34.67369534889608
+      ],
+      [
+       -61.11062031126412,
+       -34.6905251822039
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "datetime": "2026-11-02T09:06:36Z",
+    "Equi7Tile": "SA020M_E072N033T3",
+    "gsd": 20.0,
+    "proj:wkt2": "PROJCS[\"Azimuthal_Equidistant\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Azimuthal_Equidistant\"],PARAMETER[\"false_easting\",7257179.23559],PARAMETER[\"false_northing\",5592024.44605],PARAMETER[\"longitude_of_center\",-60.5],PARAMETER[\"latitude_of_center\",-14.0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]]]"
+   },
+   "assets": {
+    "ensemble_flood_extent": {
+     "href": "https://data.eodc.eu/collections/GFM_LAYERS/flood_extent/SA020M/2026/11/02/ENSEMBLE_FLOOD_20261102T090636_VV_SA020M_E072N033T3.tif",
+     "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+     "roles": [
+      "data"
+     ],
+     "title": "ensemble_flood_extent",
+     "raster:bands": [
+      {
+       "nodata": 255,
+       "data_type": "uint8",
+       "spatial_resolution": 20
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "ENSEMBLE_FLOOD_20261102T090611_VV_SA020M_E072N033T3",
+   "type": "Feature",
+   "bbox": [
+    -61.11062031126412,
+    -34.6905251822039,
+    -57.907187642785125,
+    -31.970011454175317
+   ],
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -61.11062031126412,
+       -34.6905251822039
+      ],
+      [
+       -61.09519070094194,
+       -31.985710127854198
+      ],
+      [
+       -57.97266316092256,
+       -31.970011454175317
+      ],
+      [
+       -57.907187642785125,
+       -34.67369534889608
+      ],
+      [
+       -61.11062031126412,
+       -34.6905251822039
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "datetime": "2026-11-02T09:06:11Z",
+    "Equi7Tile": "SA020M_E072N033T3",
+    "gsd": 20.0,
+    "proj:wkt2": "PROJCS[\"Azimuthal_Equidistant\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Azimuthal_Equidistant\"],PARAMETER[\"false_easting\",7257179.23559],PARAMETER[\"false_northing\",5592024.44605],PARAMETER[\"longitude_of_center\",-60.5],PARAMETER[\"latitude_of_center\",-14.0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]]]"
+   },
+   "assets": {
+    "ensemble_flood_extent": {
+     "href": "https://data.eodc.eu/collections/GFM_LAYERS/flood_extent/SA020M/2026/11/02/ENSEMBLE_FLOOD_20261102T090611_VV_SA020M_E072N033T3.tif",
+     "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+     "roles": [
+      "data"
+     ],
+     "title": "ensemble_flood_extent",
+     "raster:bands": [
+      {
+       "nodata": 255,
+       "data_type": "uint8",
+       "spatial_resolution": 20
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "ENSEMBLE_FLOOD_20261102T090546_VV_SA020M_E072N033T3",
+   "type": "Feature",
+   "bbox": [
+    -61.11062031126412,
+    -34.6905251822039,
+    -57.907187642785125,
+    -31.970011454175317
+   ],
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -61.11062031126412,
+       -34.6905251822039
+      ],
+      [
+       -61.09519070094194,
+       -31.985710127854198
+      ],
+      [
+       -57.97266316092256,
+       -31.970011454175317
+      ],
+      [
+       -57.907187642785125,
+       -34.67369534889608
+      ],
+      [
+       -61.11062031126412,
+       -34.6905251822039
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "datetime": "2026-11-02T09:05:46Z",
+    "Equi7Tile": "SA020M_E072N033T3",
+    "gsd": 20.0,
+    "proj:wkt2": "PROJCS[\"Azimuthal_Equidistant\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Azimuthal_Equidistant\"],PARAMETER[\"false_easting\",7257179.23559],PARAMETER[\"false_northing\",5592024.44605],PARAMETER[\"longitude_of_center\",-60.5],PARAMETER[\"latitude_of_center\",-14.0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]]]"
+   },
+   "assets": {
+    "ensemble_flood_extent": {
+     "href": "https://data.eodc.eu/collections/GFM_LAYERS/flood_extent/SA020M/2026/11/02/ENSEMBLE_FLOOD_20261102T090546_VV_SA020M_E072N033T3.tif",
+     "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+     "roles": [
+      "data"
+     ],
+     "title": "ensemble_flood_extent",
+     "raster:bands": [
+      {
+       "nodata": 255,
+       "data_type": "uint8",
+       "spatial_resolution": 20
+      }
+     ]
+    }
+   }
+  }
+ ]
+}

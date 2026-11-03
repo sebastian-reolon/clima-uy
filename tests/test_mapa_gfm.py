@@ -113,7 +113,7 @@ def test_request_timeout_is_capped_by_remaining_budget():
         return None
 
     latest_flood(FRAME, NOW, search=search, read_window=read, clock=clock, budget_s=60)
-    assert timeouts[0] == 20
+    assert timeouts[0] == 50
     assert timeouts[1] == pytest.approx(10)
 
 
@@ -228,3 +228,77 @@ def test_window_outside_raster_counts_as_no_data(tmp_path):
     _write_tif(tif, "EPSG:32721", (100000, 6000000, 110000, 6010000), (0, 8, 0, 8))
     res = latest_flood(FRAME, NOW, search=lambda *a, **k: [_item_for(tif)])
     assert res.status == "none"
+
+
+# ---- last-good cache ----
+
+def _ok_search(*a, **k):
+    return _items()
+
+
+def _ok_read(href, frame, timeout):
+    return gfm.Window(*_blank_window(frame))
+
+
+def _fail(*a, **k):
+    raise OSError("down")
+
+
+def test_defaults_are_50s_search_20s_read_90s_budget():
+    clock = Clock()
+    seen = []
+
+    def search(bbox, start, end, timeout):
+        seen.append(timeout)
+        return _items()
+
+    def read(href, frame, timeout):
+        seen.append(timeout)
+        return None
+
+    latest_flood(FRAME, NOW, search=search, read_window=read, clock=clock)
+    assert seen[:2] == [50, 20]
+
+
+def test_ok_writes_cache_and_returns_fresh(tmp_path):
+    pytest.importorskip("rasterio")
+    cache = tmp_path / "sub" / "gfm.json"
+    res = gfm.latest_flood_cached(FRAME, NOW, cache, search=_ok_search, read_window=_ok_read)
+    assert res.status == "ok" and res.stale is False
+    data = json.loads(cache.read_text())
+    assert data["status"] == "ok" and data["item_id"] == res.item_id and data["polys"] == []
+    assert data["when_utc"].startswith("2026-11-02T09:06:36")
+
+
+def test_error_with_fresh_cache_returns_stale_cached(tmp_path):
+    pytest.importorskip("rasterio")
+    cache = tmp_path / "gfm.json"
+    first = gfm.latest_flood_cached(FRAME, NOW, cache, search=_ok_search, read_window=_ok_read)
+    res = gfm.latest_flood_cached(FRAME, NOW + timedelta(hours=3), cache, search=_fail)
+    assert res.stale is True and res.status == "ok"
+    assert (res.item_id, res.when_utc, res.polys) == (first.item_id, first.when_utc, first.polys)
+
+
+def test_error_with_cache_older_than_ten_days_is_error(tmp_path):
+    pytest.importorskip("rasterio")
+    cache = tmp_path / "gfm.json"
+    gfm.latest_flood_cached(FRAME, NOW, cache, search=_ok_search, read_window=_ok_read)
+    res = gfm.latest_flood_cached(FRAME, NOW + timedelta(days=13), cache, search=_fail)
+    assert res == GfmResult("error", None, None, []) and res.stale is False
+
+
+def test_cached_none_ages_by_write_time(tmp_path):
+    cache = tmp_path / "gfm.json"
+    gfm._write_cache(cache, GfmResult("none", None, None, []), NOW)
+    fresh = gfm._read_cache(cache, NOW + timedelta(days=9), 10)
+    assert fresh == GfmResult("none", None, None, [], stale=True)
+    assert gfm._read_cache(cache, NOW + timedelta(days=11), 10) is None
+
+
+def test_corrupt_cache_is_ignored(tmp_path):
+    pytest.importorskip("rasterio")
+    cache = tmp_path / "gfm.json"
+    for junk in ("{not json", "[]", '{"status": "ok", "when_utc": "nope"}'):
+        cache.write_text(junk)
+        res = gfm.latest_flood_cached(FRAME, NOW, cache, search=_fail)
+        assert res.status == "error" and res.stale is False

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+from pathlib import Path
 import time
 import urllib.request
 from dataclasses import dataclass
@@ -22,7 +23,9 @@ log = logging.getLogger(__name__)
 
 STAC_SEARCH_URL = "https://stac.eodc.eu/api/v1/search"
 ASSET = "ensemble_flood_extent"
-REQUEST_TIMEOUT_S = 20.0
+SEARCH_TIMEOUT_S = 50.0  # stac.eodc.eu search takes 15 to 54 s in practice
+READ_TIMEOUT_S = 20.0
+BUDGET_S = 90.0
 SIMPLIFY_M = 10.0
 DEFAULT_NODATA = 255
 
@@ -33,6 +36,7 @@ class GfmResult:
     item_id: str | None
     when_utc: datetime | None
     polys: list
+    stale: bool = False  # True when served from the last-good cache after a failed fetch
 
 
 class Window(NamedTuple):
@@ -162,8 +166,8 @@ def _polygons(w: Window, frame_utm) -> list[list[int]]:
 
 def latest_flood(frame_utm: tuple, now_utc: datetime, *,
                  search: Callable | None = None, read_window: Callable | None = None,
-                 days: int = 10, budget_s: float = 60,
-                 request_timeout_s: float = REQUEST_TIMEOUT_S,
+                 days: int = 10, budget_s: float = BUDGET_S,
+                 search_timeout_s: float = SEARCH_TIMEOUT_S, read_timeout_s: float = READ_TIMEOUT_S,
                  clock: Callable[[], float] = time.monotonic) -> GfmResult:
     """The newest GFM scene in the last `days` days with data over the frame.
 
@@ -177,11 +181,11 @@ def latest_flood(frame_utm: tuple, now_utc: datetime, *,
     read_window = read_window or read_flood_window
     t0 = clock()
 
-    def timeout() -> float:
+    def timeout(cap: float) -> float:
         left = budget_s - (clock() - t0)
         if left <= 0:
             raise _BudgetExceeded
-        return min(request_timeout_s, left)
+        return min(cap, left)
 
     def check() -> None:
         if clock() - t0 > budget_s:
@@ -189,12 +193,12 @@ def latest_flood(frame_utm: tuple, now_utc: datetime, *,
 
     try:
         start = now_utc - timedelta(days=days)
-        items = search(_frame_lonlat(frame_utm), start, now_utc, timeout())
+        items = search(_frame_lonlat(frame_utm), start, now_utc, timeout(search_timeout_s))
         check()
         dated = [(_parse_dt(i["properties"]["datetime"]), i) for i in items if ASSET in i.get("assets", {})]
         dated.sort(key=lambda p: p[0], reverse=True)
         for when, item in dated:
-            w = read_window(item["assets"][ASSET]["href"], frame_utm, timeout())
+            w = read_window(item["assets"][ASSET]["href"], frame_utm, timeout(read_timeout_s))
             check()
             if w is None or not _has_data(w):
                 continue
@@ -205,3 +209,48 @@ def latest_flood(frame_utm: tuple, now_utc: datetime, *,
     except Exception as exc:  # the build must go on whatever the network or GDAL does
         log.warning("gfm: could not fetch the latest scene (%s: %s)", type(exc).__name__, exc)
     return GfmResult("error", None, None, [])
+
+
+def _write_cache(path: Path, res: GfmResult, now_utc: datetime) -> None:
+    data = {"status": res.status, "item_id": res.item_id,
+            "when_utc": res.when_utc.isoformat() if res.when_utc else None,
+            "cached_at": now_utc.isoformat(), "polys": res.polys}
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(path.name + ".tmp")
+        tmp.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
+        tmp.replace(path)
+    except OSError as exc:
+        log.warning("gfm: could not write the cache (%s)", exc)
+
+
+def _read_cache(path: Path, now_utc: datetime, days: int) -> GfmResult | None:
+    """The cached result if it parses and is within `days` of now; else None."""
+    try:
+        d = json.loads(Path(path).read_text(encoding="utf-8"))
+        status = d["status"]
+        if status not in ("ok", "none"):
+            return None
+        when = _parse_dt(d["when_utc"]) if d.get("when_utc") else None
+        stamp = when if status == "ok" else _parse_dt(d["cached_at"])
+        if stamp is None or now_utc - stamp > timedelta(days=days):
+            return None
+        polys = d.get("polys") or []
+        if not all(isinstance(r, list) and all(type(v) is int for v in r) for r in polys):
+            return None
+        return GfmResult(status, d.get("item_id"), when, polys, stale=True)
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return None
+
+
+def latest_flood_cached(frame_utm: tuple, now_utc: datetime, cache_path: Path, **kw) -> GfmResult:
+    """latest_flood, remembering the last "ok"/"none" so a failed fetch can show it (stale=True)."""
+    res = latest_flood(frame_utm, now_utc, **kw)
+    if res.status in ("ok", "none"):
+        _write_cache(Path(cache_path), res, now_utc)
+        return res
+    cached = _read_cache(Path(cache_path), now_utc, kw.get("days", 10))
+    if cached is not None:
+        log.warning("gfm: serving the cached %s result after a failed fetch", cached.status)
+        return cached
+    return res

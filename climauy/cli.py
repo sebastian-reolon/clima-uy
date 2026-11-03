@@ -124,6 +124,25 @@ def _all(base_url: str) -> int:
     return 0
 
 
+MAPA_PACK_HINT = "mapa-pack needs the optional dependencies: pip install -e '.[mapa-pack]'"
+
+
+def _mapa_pack(slug: str, check: list[float]) -> int:
+    """Build content/mapa/<slug>/pack.json.gz offline and print area and people per mark."""
+    try:
+        from climauy.mapa import packbuild
+    except ImportError as e:
+        print(f"{MAPA_PACK_HINT} ({e.name} is missing)", file=sys.stderr)
+        return 2
+    from climauy.mapa.config import load_city
+
+    cfg = load_city(slug)
+    pack = packbuild.build_pack(slug, extra_levels=tuple(check))
+    for line in packbuild.summary_lines(pack, cfg):
+        print(line)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="climauy")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -136,6 +155,10 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--base-url", default="/clima-uy", help='path prefix of the site ("" for the root)')
     a = sub.add_parser("all", help="ingest, build, export and snapshot; push only with CLIMAUY_PAGES_PUSH=1")
     a.add_argument("--base-url", default="/clima-uy", help='path prefix of the site ("" for the root)')
+    mp = sub.add_parser("mapa-pack", help="build a city flood-map pack offline (needs the mapa-pack extra)")
+    mp.add_argument("slug", help="city folder under content/mapa")
+    mp.add_argument("--check", type=float, action="append", default=[],
+                    help="also print area and people at this level (not stored)")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, stream=sys.stderr)
     if args.command == "ingest":
@@ -148,4 +171,6 @@ def main(argv: list[str] | None = None) -> int:
         return _build(args.base_url)
     if args.command == "all":
         return _all(args.base_url)
+    if args.command == "mapa-pack":
+        return _mapa_pack(args.slug, args.check)
     return 2

@@ -87,3 +87,47 @@ Qué publica el sitio: los índices completos, con la cita «Fuente: NOAA Climat
 ## INUMET
 
 No se descargan datos del INUMET. El panorama trimestral de la portada (`content/enso_outlook.json`) transcribe a mano las probabilidades que publicó el INUMET, con su fuente y su link. No se ofrece como descarga y no se investigó su licencia en esta tarea.
+
+## Mapas de ciudad: terreno, población, calles y segmentos censales
+
+Los mapas de ciudad se arman una vez, fuera del sitio, con `python -m climauy mapa-pack <ciudad>`. Lo que queda en el repositorio es `content/mapa/<ciudad>/pack.json.gz`: polígonos del agua cada 25 cm, cuántas personas viven debajo, y las capas del plano. Las descargas crudas no se publican.
+
+### IDE Uruguay, Modelo Digital del Terreno
+
+Qué se usa: el MDT de 1 m por ciudad de la Infraestructura de Datos Espaciales, por ejemplo el de Paysandú (<https://visualizador.ide.uy/descargas/datos/CU_Remesa_09/01_MDT_MDS/08_Ciudad_PSD/04_MDT_GeoTIFF_Resolucion_100cm/>, 87 hojas).
+
+Qué dice: los datos se publican bajo la Licencia de Datos Abiertos de Uruguay, versión 0.1 (<https://visualizador.ide.uy/descargas/datos/00_Licencia_de_datos_abiertos.pdf>). Todo uso tiene que citar al proveedor, la licencia y el conjunto de datos, y decir qué se modificó.
+
+Qué publica el sitio: no publica el terreno, solo lo que sale de él (el agua a cada altura y las curvas de nivel), con la cita «Fuente: IDE Uruguay, MDT ciudad de Paysandú 1 m (CU_Remesa_09), Licencia de Datos Abiertos – Uruguay; remuestreado a 2 m y procesado».
+
+### GFM, Global Flood Monitoring (Copernicus)
+
+Qué se usa: la extensión de agua que ve el radar de Sentinel-1, del servicio GFM del Servicio de Gestión de Emergencias de Copernicus (CEMS), consultada en <https://stac.eodc.eu/api/v1>.
+
+Qué dice: los términos del GFM (<https://extwiki.eodc.eu/GFM/Terms_and_conditions>) dicen que los datos siguen los términos de servicio del CEMS, son de acceso libre y completo y se pueden usar incluso con fines comerciales «as long as the source of the data (CEMS) is acknowledged». La licencia CC BY 4.0 que aparece en el manual del GFM cubre el documento, no los datos.
+
+Qué publica el sitio: los polígonos de agua de la última pasada sobre la ciudad, con la cita «Contiene información modificada del Copernicus Emergency Management Service (GFM)» y la fecha de la pasada.
+
+### WorldPop
+
+Qué se usa: la población 2026 de Uruguay en celdas de 100 m, versión restringida a zonas construidas, release R2025A (<https://data.worldpop.org/GIS/Population/Global_2015_2030/R2025A/2026/URY/v1/100m/constrained/ury_pop_2026_CN_100m_R2025A_v1.tif>).
+
+Qué dice: CC BY 4.0 (<https://hub.worldpop.org/data/licence.txt>).
+
+Qué publica el sitio: no publica la grilla, solo cuántas personas quedan debajo de cada altura, con la cita «Población: WorldPop (CC BY 4.0)».
+
+### OpenStreetMap
+
+Qué se usa: calles, cuerpos de agua y nombres de barrios del extracto de Uruguay de Geofabrik (<https://download.geofabrik.de/south-america/uruguay-latest.osm.pbf>).
+
+Qué dice: ODbL (<https://www.openstreetmap.org/copyright>). Pide la mención «© OpenStreetMap contributors» y que una base de datos derivada que se publique quede bajo la misma licencia.
+
+Qué publica el sitio: manzanas, calles, el río y los nombres de barrio dentro del plano, con la mención «© colaboradores de OpenStreetMap» y el link. Las capas del plano en `pack.json.gz` son una base derivada y quedan bajo ODbL.
+
+### INE, segmentos censales 2011
+
+Qué se usa: los segmentos censales del Censo 2011 (<https://www5.ine.gub.uy/documents/Cartograf%C3%ADa/Vectoriales/2011/mapas%20vectoriales%202011.zip>, capa `ine_seg_11`), para repartir a las personas por zona.
+
+Qué dice: los metadatos de la capa dicen «Restricciones de uso: libre, citando como fuente al INE».
+
+Qué publica el sitio: no publica los segmentos, solo la tabla de personas por zona, con la cita «Fuente: INE, segmentos censales 2011». Cada segmento se nombra por el barrio de OpenStreetMap más cercano, que no es un límite oficial.

@@ -26,6 +26,7 @@ BASE = {
     ],
     "today": {"station_id": "ina_80", "offset_m": 1.18, "offset_range": [1.14, 1.20], "source": SRC},
     "sinae_check": {"m": 7.84, "people": 2105, "source": SRC},
+    "notes": {"slope": "la pendiente mueve el borde unos 10 cm.", "zero": "El cero sale del [informe]."},
 }
 
 
@@ -51,6 +52,26 @@ def test_mark_without_source_url_rejected(tmp_path):
     del cfg["marks"][0]["source"]["url"]
     _write_cfg(tmp_path, cfg)
     with pytest.raises(ValueError, match=r"marks\[0\]\.source"):
+        load_city("villa", tmp_path)
+
+
+def test_notes_are_required_and_zero_links_once(tmp_path):
+    _write_cfg(tmp_path, BASE)
+    c = load_city("villa", tmp_path)
+    assert c.notes.slope == "la pendiente mueve el borde unos 10 cm."
+    assert c.notes.zero == "El cero sale del [informe]."
+    for bad, match in (({"zero": "El cero sale del [informe]."}, r"notes\.slope"),
+                       ({"slope": "x", "zero": "sin link"}, r"notes\.zero"),
+                       ({"slope": "x", "zero": "[a] y [b]"}, r"notes\.zero")):
+        cfg = copy.deepcopy(BASE)
+        cfg["notes"] = bad
+        _write_cfg(tmp_path, cfg)
+        with pytest.raises(ValueError, match=match):
+            load_city("villa", tmp_path)
+    cfg = copy.deepcopy(BASE)
+    del cfg["notes"]
+    _write_cfg(tmp_path, cfg)
+    with pytest.raises(ValueError, match="notes"):
         load_city("villa", tmp_path)
 
 

@@ -220,6 +220,10 @@
    "name": "SINAE, informe de situación al fin de la emergencia por inundaciones (máximo de personas desplazadas en Paysandú)"
   }
  },
+"notes": {
+  "slope": "con el río alto, la pendiente puede mover el borde unos 40 cm hacia el norte o el sur.",
+  "zero": "El cero de la escala de Paysandú se tomó del [relevamiento INA-CARU de 2019], ajustado con cuatro puntos medidos en el puerto. Puede estar corrido unos 35 cm."
+ },
 "place_labels": [
   {"name": "Centro", "x": 399600, "y": 6424700, "kind": "lugar"},
   {"name": "Río Uruguay", "x": 394550, "y": 6425200, "kind": "rio", "rotate": -82}

@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import re
 import shutil
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
@@ -1101,13 +1102,14 @@ def _mapa_view(cfg: CityConfig, pack: Pack, today: TodayLevel | None, gfm, other
                     if contours else "")
 
     # Notes 2 to 7 of the mockup, then Ruling 1's note and the credits the licences ask for.
+    # The slope and zero notes are the city's own (config `notes`); only the frame is shared.
+    before, link, after = re.split(r"\[([^\[\]]+)\]", cfg.notes.zero)
     notes = [
         Markup("La parte rayada es una estimación: marca el terreno que queda por debajo de la altura elegida y que "
-               "está conectado con el río. Supone el agua plana frente a toda la ciudad; con el río alto, la "
-               "pendiente puede mover el borde unos 40 cm hacia el norte o el sur."),
-        Markup(f'El cero de la escala de {Markup.escape(cfg.name)} se tomó del '
-               f'<a href="{Markup.escape(cfg.zero_source.url)}">relevamiento INA-CARU de 2019</a>, ajustado con '
-               "cuatro puntos medidos en el puerto. Puede estar corrido unos 35 cm."),
+               "está conectado con el río. Supone el agua plana frente a toda la ciudad; ")
+        + Markup.escape(cfg.notes.slope),
+        Markup.escape(before) + Markup('<a href="{}">{}</a>').format(cfg.zero_source.url, link)
+        + Markup.escape(after),
     ]
     pop_text = "La población sale de una grilla de 100 m y se lee como un piso."
     if cfg.sinae_check is not None:

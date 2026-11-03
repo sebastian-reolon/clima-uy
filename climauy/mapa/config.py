@@ -73,6 +73,18 @@ class PlaceLabel:
 
 
 @dataclass(frozen=True)
+class CityNotes:
+    """City-specific page notes. slope ends the «Supone el agua plana...» note (how far the
+    river's slope can move the edge); zero is the whole note on the gauge zero, with one
+    [bracketed] stretch that links to zero_source."""
+    slope: str
+    zero: str
+
+
+_ZERO_LINK = re.compile(r"\[([^\[\]]+)\]")
+
+
+@dataclass(frozen=True)
 class CityConfig:
     slug: str
     name: str
@@ -86,6 +98,7 @@ class CityConfig:
     marks: list[Mark]
     today: TodayCfg | None
     sinae_check: SinaeCheck | None
+    notes: CityNotes
     place_labels: list[PlaceLabel] = field(default_factory=list)
 
 
@@ -191,6 +204,10 @@ def parse_city(raw: dict) -> CityConfig:
         rot = _num(pl, "rotate", f"{f}.rotate") if pl.get("rotate") is not None else 0.0
         places.append(PlaceLabel(name=_str(pl, "name", f"{f}.name"), x=_num(pl, "x", f"{f}.x"),
                                  y=_num(pl, "y", f"{f}.y"), kind=kind, rotate=rot))
+    nt = _get(raw, "notes", "notes")
+    notes = CityNotes(slope=_str(nt, "slope", "notes.slope"), zero=_str(nt, "zero", "notes.zero"))
+    if len(_ZERO_LINK.findall(notes.zero)) != 1 or notes.zero.count("[") != 1 or notes.zero.count("]") != 1:
+        raise ValueError("notes.zero: expected exactly one [bracketed] link text")
     urls = _get(raw, "dtm_urls", "dtm_urls")
     if not isinstance(urls, list) or not urls or not all(isinstance(u, str) and u.startswith("http") for u in urls):
         raise ValueError("dtm_urls: expected a non-empty list of URLs")
@@ -207,6 +224,7 @@ def parse_city(raw: dict) -> CityConfig:
         marks=marks,
         today=today,
         sinae_check=sinae,
+        notes=notes,
         place_labels=places,
     )
 

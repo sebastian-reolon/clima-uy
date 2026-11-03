@@ -21,6 +21,11 @@ X0, Y0 = 400000, 6420000
 SRC = {"url": "https://example.org/informe.pdf", "date": "2026-10-22", "name": "Informe de prueba"}
 GRID = [3.0 + 0.25 * i for i in range(9)]  # 3 to 5 m
 MARK_LEVELS = [4.39, 4.8]
+PAYSANDU_NOTES = {
+    "slope": "con el río alto, la pendiente puede mover el borde unos 40 cm hacia el norte o el sur.",
+    "zero": ("El cero de la escala de Paysandú se tomó del [relevamiento INA-CARU de 2019], ajustado con "
+             "cuatro puntos medidos en el puerto. Puede estar corrido unos 35 cm."),
+}
 
 
 def _config(today: bool = True) -> dict:
@@ -39,6 +44,7 @@ def _config(today: bool = True) -> dict:
                   if today else None),
         "sinae_check": {"m": 4.8, "people": 2105, "source": SRC},
         "place_labels": [{"name": "Centro", "x": X0 + 1500, "y": Y0 + 1500, "kind": "lugar"}],
+        "notes": PAYSANDU_NOTES,
     }
 
 
@@ -311,3 +317,31 @@ def test_snapshot_leaves_maps_out_and_links_them_live(fresh, tmp_path):
     assert not (snap / "rio/mapa").exists()  # Ruling 6
     home = (snap / "index.html").read_text(encoding="utf-8")
     assert 'href="/clima-uy/rio/mapa/paysandu/">ver el mapa</a>' in home
+
+
+def test_notes_come_from_each_city_config(fresh, tmp_path):
+    flat = _flat(_page(fresh))
+    assert ("Supone el agua plana frente a toda la ciudad; con el río alto, la pendiente puede mover el borde "
+            "unos 40 cm hacia el norte o el sur.") in flat
+    assert ("El cero de la escala de Paysandú se tomó del relevamiento INA-CARU de 2019, ajustado con cuatro "
+            "puntos medidos en el puerto. Puede estar corrido unos 35 cm.") in flat
+    assert '<a href="https://example.org/informe.pdf">relevamiento INA-CARU de 2019</a>' in _page(fresh)
+
+    root = _root(tmp_path, with_salto=False)
+    other_src = {"url": "https://example.org/otro.pdf", "date": "2020-02", "name": "Otro"}
+    other = dict(_config(today=False), slug="villa", name="Villa", zero_source=other_src, notes={
+        "slope": "acá el río casi no tiene pendiente frente a la ciudad.",
+        "zero": "El cero de Villa sale de [otro relevamiento], con dos puntos. Puede estar corrido unos 20 cm.",
+    })
+    (root / "villa").mkdir()
+    (root / "villa" / "config.json").write_text(json.dumps(other), encoding="utf-8")
+    write_pack(root / "villa" / "pack.json.gz", _pack())
+    with Store(tmp_path / "t.sqlite") as store:
+        build_site(store, load_catalog(), tmp_path / "out", NOW, mapa_root=root,
+                   gfm_fetch=lambda *a, **kw: GfmResult("none", None, None, []))
+    html = (tmp_path / "out/rio/mapa/villa/index.html").read_text(encoding="utf-8")
+    flat = _flat(html)
+    assert "acá el río casi no tiene pendiente frente a la ciudad." in flat
+    assert '<a href="https://example.org/otro.pdf">otro relevamiento</a>' in html
+    for paysandu_only in ("40 cm", "35 cm", "INA-CARU", "en el puerto"):
+        assert paysandu_only not in flat, paysandu_only

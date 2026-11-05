@@ -1,0 +1,39 @@
+id,name,country,river,lat,lon,river_km,km_source,sources,represents,alert_m,evac_m,cota_source,tributary_of,order
+ana_72700000,Machadinho jusante,BR,Uruguay,-27.5206,-51.8108,,,ana:72700000,,,,,,1
+ana_73200080,Itá barramento,BR,Uruguay,-27.2764,-52.3772,,,ana:73200080,,,,,,2
+ana_74050000,Foz do Chapecó jusante,BR,Uruguay,-27.1581,-53.0736,,,ana:74050000,,,,,,3
+ana_74100000,Iraí,BR,Uruguay,-27.1756,-53.2297,,,ana:74100000,,,,,,4
+ana_74329000,Itapiranga,BR,Uruguay,-27.1717,-53.7097,,,ana:74329000,,,,,,5
+ina_60,Pepirí Miní,AR,Uruguay,-27.153744,-53.933149,,,ina_level:60;ina_q:909,,,,,,6
+ana_74500000,Alto Uruguai,BR,Uruguay,-27.3019,-54.1397,,,ana:74500000,,,,,,7
+ina_61,El Soberbio,AR,Uruguay,-27.3,-54.2,,,ina_level:61;ina_q:910,,,,,,8
+ina_63,Alba Posse,AR,Uruguay,-27.572,-54.678494,,,ina_level:63;ina_q:912,,,,,,9
+ana_74720000,Porto Mauá,BR,Uruguay,-27.5781,-54.6831,,,ana:74720000,,,,,,10
+ina_64,Panambí,AR,Uruguay,-27.730627,-54.91305,,,ina_level:64;ina_q:913,,,,,,11
+ana_74800000,Porto Lucena,BR,Uruguay,-27.8525,-55.0256,,,ana:74800000,,,,,,12
+ina_65,San Javier,AR,Uruguay,-27.883333,-55.133333,,,ina_level:65;ina_q:914,,8,10,INA / Prefectura Naval Argentina,,13
+ina_66,Puerto Concepción,AR,Uruguay,-28.119193,-55.581369,,,ina_level:66;ina_q:915,,15.5,16.5,INA / Prefectura Naval Argentina,,14
+ina_67,Garruchos,AR,Uruguay,-28.183333,-55.65,,,ana:75550000;ina_level:67;ina_q:916,,12,14,INA / Prefectura Naval Argentina,,15
+ina_68,Santo Tomé,AR,Uruguay,-28.55,-56.033333,,,ina_level:68;ina_q:917,,11.5,12.5,INA / Prefectura Naval Argentina,,16
+ana_75780000,Passo São Borja,BR,Uruguay,-28.6244,-56.0369,,,ana:75780000,,,,,,17
+ina_69,Alvear,AR,Uruguay,-29.1,-56.55,,,ina_level:69;ina_q:918,,9.5,11,INA / Prefectura Naval Argentina,,18
+ana_75900000,Itaqui,BR,Uruguay,-29.1175,-56.5544,,,ana:75900000,,,,,,19
+ina_70,La Cruz,AR,Uruguay,-29.18062,-56.633977,,,ina_level:70;ina_q:919,,9.5,11.5,INA / Prefectura Naval Argentina,,20
+ina_71,Yapeyú,AR,Uruguay,-29.470031,-56.810674,,,ina_level:71;ina_q:920,,9.5,10.5,INA / Prefectura Naval Argentina,,21
+ana_76750000,Ibirapuitã Alegrete,BR,Ibirapuitã,-29.7683,-55.7875,,,ana:76750000,,,,,ana_76800000,22
+ana_76800000,Ibicuí Passo Mariano Pinto,BR,Ibicuí,-29.3092,-56.0553,,,ana:76800000,,,,,ina_72,23
+ina_72,Paso de los Libres,AR,Uruguay,-29.716667,-57.083333,,,ana:77140000;ina_level:72;ina_q:921,,7.5,8.5,INA / Prefectura Naval Argentina,,24
+ana_77150000,Uruguaiana,BR,Uruguay,-29.7486,-57.0886,,,"ana:77150000;glofas:-29.675,-57.075",,,,,,25
+ana_77500000,Quaraí,BR,Quaraí,-30.3844,-56.4656,,,ana:77500000,Artigas,,,,ina_74,26
+ina_74,Monte Caseros,AR,Uruguay,-30.25,-57.633333,,,ina_level:74;ina_q:923,Bella Unión,7.5,8.5,INA / Prefectura Naval Argentina,,27
+ina_75,Mocoretá,AR,Uruguay,-30.715682,-57.81776,,,ina_level:75;ina_q:924,,10.3,12,INA / Prefectura Naval Argentina,,28
+ina_77,Salto Grande Arriba,AR,Uruguay,-31.27547,-57.936945,,,ina_level:77;ina_q:926,,35.5,36,INA / Prefectura Naval Argentina,,29
+ina_78,Salto Grande Abajo,AR,Uruguay,-31.27547,-57.936945,,,ina_level:78;ina_q:927,,17.3,17.8,INA / Prefectura Naval Argentina,,30
+ina_79,Concordia,AR,Uruguay,-31.4,-58.016667,,,"ana:78500000;glofas:-31.375,-58.025;ina_level:79;ina_q:928",Salto,11,12.5,INA / Prefectura Naval Argentina,,31
+ina_80,Colón,AR,Uruguay,-32.233333,-58.116667,,,ina_level:80;ina_q:929,Paysandú,7.1,7.9,INA / Prefectura Naval Argentina,,32
+ina_81,Concepción del Uruguay,AR,Uruguay,-32.483333,-58.233333,,,ina_level:81;ina_q:930,,5.3,6.3,INA / Prefectura Naval Argentina,,33
+ina_82,Campichuelo,AR,Uruguay,-32.70101,-58.1834,,,ina_level:82;ina_q:931,,5.3,6.3,INA / Prefectura Naval Argentina,,34
+ina_99,Gualeguaychú,AR,Gualeguaychú,-33.014444,-58.504167,,,ina_level:99;ina_q:948,,3.5,3.8,INA / Prefectura Naval Argentina,ina_84,35
+ina_84,Boca Gualeguaychú,AR,Uruguay,-33.066667,-58.416667,,,ina_level:84;ina_q:933,,2.9,3.1,INA / Prefectura Naval Argentina,,36
+fray_bentos,Fray Bentos,UY,Uruguay,-33.112132,-58.314443,,,,Fray Bentos,,,,,37
+ina_1699,Nueva Palmira,AR,Uruguay,-33.878478,-58.422029,,,ina_level:3280,,,,,,38

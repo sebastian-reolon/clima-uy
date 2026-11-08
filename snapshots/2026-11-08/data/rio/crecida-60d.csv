@@ -1,0 +1,1181 @@
+date,station_id,station,km,variable,value,percentile,partial
+2026-09-10,ina_60,Pepirí Miní,217.5,level,3.5,71.5,0
+2026-09-11,ina_60,Pepirí Miní,217.5,level,3.3,67.9,0
+2026-09-12,ina_60,Pepirí Miní,217.5,level,13.7,98.7,0
+2026-09-13,ina_60,Pepirí Miní,217.5,level,13.53,98.7,0
+2026-09-14,ina_60,Pepirí Miní,217.5,level,9.8,97.2,0
+2026-09-15,ina_60,Pepirí Miní,217.5,level,7.4,91.9,0
+2026-09-16,ina_60,Pepirí Miní,217.5,level,6.2,88.6,0
+2026-09-17,ina_60,Pepirí Miní,217.5,level,4.7,82.4,0
+2026-09-18,ina_60,Pepirí Miní,217.5,level,2.5,51.3,0
+2026-09-19,ina_60,Pepirí Miní,217.5,level,3.38,68.6,0
+2026-09-20,ina_60,Pepirí Miní,217.5,level,3.98,76.7,0
+2026-09-21,ina_60,Pepirí Miní,217.5,level,6.28,88.7,0
+2026-09-22,ina_60,Pepirí Miní,217.5,level,6.28,88.7,0
+2026-09-23,ina_60,Pepirí Miní,217.5,level,9.43,96.9,0
+2026-09-24,ina_60,Pepirí Miní,217.5,level,7.85,93.9,0
+2026-09-25,ina_60,Pepirí Miní,217.5,level,6.5,89.4,0
+2026-09-26,ina_60,Pepirí Miní,217.5,level,6.3,88.8,0
+2026-09-27,ina_60,Pepirí Miní,217.5,level,4.6,81.7,0
+2026-09-28,ina_60,Pepirí Miní,217.5,level,4.85,83.3,0
+2026-09-29,ina_60,Pepirí Miní,217.5,level,3.78,74.3,0
+2026-09-30,ina_60,Pepirí Miní,217.5,level,7.22,91.2,0
+2026-10-01,ina_60,Pepirí Miní,217.5,level,11.8,98.3,0
+2026-10-02,ina_60,Pepirí Miní,217.5,level,13.08,98.6,0
+2026-10-03,ina_60,Pepirí Miní,217.5,level,9.33,96.8,0
+2026-10-04,ina_60,Pepirí Miní,217.5,level,7.58,93.0,0
+2026-10-05,ina_60,Pepirí Miní,217.5,level,8.05,94.5,0
+2026-10-06,ina_60,Pepirí Miní,217.5,level,7.35,91.6,0
+2026-10-07,ina_60,Pepirí Miní,217.5,level,7.25,91.3,0
+2026-10-08,ina_60,Pepirí Miní,217.5,level,6.65,89.7,0
+2026-10-09,ina_60,Pepirí Miní,217.5,level,5.52,86.4,0
+2026-10-10,ina_60,Pepirí Miní,217.5,level,8.4,95.1,0
+2026-10-11,ina_60,Pepirí Miní,217.5,level,8.91,96.2,0
+2026-10-12,ina_60,Pepirí Miní,217.5,level,9.43,96.9,0
+2026-10-13,ina_60,Pepirí Miní,217.5,level,7.1,91.0,0
+2026-10-14,ina_60,Pepirí Miní,217.5,level,9.7,97.1,0
+2026-10-15,ina_60,Pepirí Miní,217.5,level,9.5,96.9,0
+2026-10-16,ina_60,Pepirí Miní,217.5,level,7.38,91.7,0
+2026-10-17,ina_60,Pepirí Miní,217.5,level,6.65,89.7,0
+2026-10-18,ina_60,Pepirí Miní,217.5,level,5.28,85.3,0
+2026-10-19,ina_60,Pepirí Miní,217.5,level,3.25,66.6,0
+2026-10-20,ina_60,Pepirí Miní,217.5,level,3.6,72.7,0
+2026-10-21,ina_60,Pepirí Miní,217.5,level,2.88,58.0,0
+2026-10-22,ina_60,Pepirí Miní,217.5,level,3.65,73.1,0
+2026-10-23,ina_60,Pepirí Miní,217.5,level,3.85,75.5,0
+2026-10-24,ina_60,Pepirí Miní,217.5,level,6.8,90.2,0
+2026-10-25,ina_60,Pepirí Miní,217.5,level,13.4,98.7,0
+2026-10-26,ina_60,Pepirí Miní,217.5,level,9.9,97.3,0
+2026-10-27,ina_60,Pepirí Miní,217.5,level,7.7,93.5,0
+2026-10-28,ina_60,Pepirí Miní,217.5,level,6.0,88.0,0
+2026-10-29,ina_60,Pepirí Miní,217.5,level,5.25,85.2,0
+2026-10-30,ina_60,Pepirí Miní,217.5,level,4.5,81.1,0
+2026-10-31,ina_60,Pepirí Miní,217.5,level,4.68,82.0,0
+2026-11-01,ina_60,Pepirí Miní,217.5,level,3.75,74.2,0
+2026-11-02,ina_60,Pepirí Miní,217.5,level,2.58,52.2,0
+2026-11-03,ina_60,Pepirí Miní,217.5,level,4.03,77.5,0
+2026-11-04,ina_60,Pepirí Miní,217.5,level,5.38,85.7,0
+2026-11-05,ina_60,Pepirí Miní,217.5,level,7.23,91.2,0
+2026-11-06,ina_60,Pepirí Miní,217.5,level,14.15,98.8,0
+2026-11-07,ina_60,Pepirí Miní,217.5,level,10.8,97.9,0
+2026-09-10,ina_61,El Soberbio,249.7,discharge,2781.0,76.6,0
+2026-09-11,ina_61,El Soberbio,249.7,discharge,2182.0,65.4,0
+2026-09-12,ina_61,El Soberbio,249.7,discharge,11758.0,98.3,0
+2026-09-13,ina_61,El Soberbio,249.7,discharge,15749.0,99.1,0
+2026-09-14,ina_61,El Soberbio,249.7,discharge,10677.0,98.0,0
+2026-09-15,ina_61,El Soberbio,249.7,discharge,6836.0,94.9,0
+2026-09-16,ina_61,El Soberbio,249.7,discharge,4839.0,90.5,0
+2026-09-17,ina_61,El Soberbio,249.7,discharge,4698.0,89.9,0
+2026-09-18,ina_61,El Soberbio,249.7,discharge,2418.0,70.7,0
+2026-09-19,ina_61,El Soberbio,249.7,discharge,2477.0,71.3,0
+2026-09-20,ina_61,El Soberbio,249.7,discharge,3349.0,82.3,0
+2026-09-21,ina_61,El Soberbio,249.7,discharge,4489.0,89.0,0
+2026-09-22,ina_61,El Soberbio,249.7,discharge,5485.0,92.4,0
+2026-09-23,ina_61,El Soberbio,249.7,discharge,7697.0,96.0,0
+2026-09-24,ina_61,El Soberbio,249.7,discharge,7936.0,96.3,0
+2026-09-25,ina_61,El Soberbio,249.7,discharge,5052.0,91.2,0
+2026-09-26,ina_61,El Soberbio,249.7,discharge,5485.0,92.4,0
+2026-09-27,ina_61,El Soberbio,249.7,discharge,3544.0,84.0,0
+2026-09-28,ina_61,El Soberbio,249.7,discharge,3675.0,84.8,0
+2026-09-29,ina_61,El Soberbio,249.7,discharge,3031.0,79.6,0
+2026-09-30,ina_61,El Soberbio,249.7,discharge,4351.0,88.5,0
+2026-10-01,ina_61,El Soberbio,249.7,discharge,10850.0,98.0,0
+2026-10-02,ina_61,El Soberbio,249.7,discharge,13699.0,98.8,0
+2026-10-03,ina_61,El Soberbio,249.7,discharge,9240.0,97.3,0
+2026-10-04,ina_61,El Soberbio,249.7,discharge,6272.0,94.1,0
+2026-10-05,ina_61,El Soberbio,249.7,discharge,6836.0,94.9,0
+2026-10-06,ina_61,El Soberbio,249.7,discharge,6530.0,94.6,0
+2026-10-07,ina_61,El Soberbio,249.7,discharge,4981.0,91.1,0
+2026-10-08,ina_61,El Soberbio,249.7,discharge,5485.0,92.4,0
+2026-10-09,ina_61,El Soberbio,249.7,discharge,4077.0,87.1,0
+2026-10-10,ina_61,El Soberbio,249.7,discharge,7068.0,95.4,0
+2026-10-11,ina_61,El Soberbio,249.7,discharge,8909.0,97.1,0
+2026-10-12,ina_61,El Soberbio,249.7,discharge,9157.0,97.2,0
+2026-10-13,ina_61,El Soberbio,249.7,discharge,6002.0,93.7,0
+2026-10-14,ina_61,El Soberbio,249.7,discharge,9490.0,97.4,0
+2026-10-15,ina_61,El Soberbio,249.7,discharge,9074.0,97.1,0
+2026-10-16,ina_61,El Soberbio,249.7,discharge,6530.0,94.6,0
+2026-10-17,ina_61,El Soberbio,249.7,discharge,5632.0,92.8,0
+2026-10-18,ina_61,El Soberbio,249.7,discharge,4768.0,90.1,0
+2026-10-19,ina_61,El Soberbio,249.7,discharge,2720.0,75.2,0
+2026-10-20,ina_61,El Soberbio,249.7,discharge,2781.0,76.6,0
+2026-10-21,ina_61,El Soberbio,249.7,discharge,2418.0,70.7,0
+2026-10-22,ina_61,El Soberbio,249.7,discharge,2659.0,74.5,0
+2026-10-23,ina_61,El Soberbio,249.7,discharge,2659.0,74.5,0
+2026-10-24,ina_61,El Soberbio,249.7,discharge,6002.0,93.7,0
+2026-10-25,ina_61,El Soberbio,249.7,discharge,13699.0,98.8,0
+2026-10-26,ina_61,El Soberbio,249.7,discharge,11284.0,98.2,0
+2026-10-27,ina_61,El Soberbio,249.7,discharge,6913.0,95.1,0
+2026-10-28,ina_61,El Soberbio,249.7,discharge,5195.0,91.7,0
+2026-10-29,ina_61,El Soberbio,249.7,discharge,4077.0,87.1,0
+2026-10-30,ina_61,El Soberbio,249.7,discharge,3544.0,84.0,0
+2026-10-31,ina_61,El Soberbio,249.7,discharge,3544.0,84.0,0
+2026-11-01,ina_61,El Soberbio,249.7,discharge,3031.0,79.6,0
+2026-11-02,ina_61,El Soberbio,249.7,discharge,2241.0,66.3,0
+2026-11-03,ina_61,El Soberbio,249.7,discharge,2359.0,68.9,0
+2026-11-04,ina_61,El Soberbio,249.7,discharge,4282.0,88.3,0
+2026-11-05,ina_61,El Soberbio,249.7,discharge,4768.0,90.1,0
+2026-11-06,ina_61,El Soberbio,249.7,discharge,15239.0,99.0,0
+2026-11-07,ina_61,El Soberbio,249.7,discharge,11459.0,98.2,0
+2026-09-10,ina_63,Alba Posse,305.8,level,4.0,79.8,0
+2026-09-11,ina_63,Alba Posse,305.8,level,3.7,74.2,0
+2026-09-12,ina_63,Alba Posse,305.8,level,4.6,84.7,0
+2026-09-13,ina_63,Alba Posse,305.8,level,7.1,96.0,0
+2026-09-14,ina_63,Alba Posse,305.8,level,9.4,98.4,0
+2026-09-15,ina_63,Alba Posse,305.8,level,7.3,96.2,0
+2026-09-16,ina_63,Alba Posse,305.8,level,5.9,92.0,0
+2026-09-17,ina_63,Alba Posse,305.8,level,5.2,88.9,0
+2026-09-18,ina_63,Alba Posse,305.8,level,4.4,83.4,0
+2026-09-19,ina_63,Alba Posse,305.8,level,3.3,66.3,0
+2026-09-20,ina_63,Alba Posse,305.8,level,4.45,83.5,0
+2026-09-21,ina_63,Alba Posse,305.8,level,5.45,89.9,0
+2026-09-22,ina_63,Alba Posse,305.8,level,5.8,91.7,0
+2026-09-23,ina_63,Alba Posse,305.8,level,5.6,90.9,0
+2026-09-24,ina_63,Alba Posse,305.8,level,7.3,96.2,0
+2026-09-25,ina_63,Alba Posse,305.8,level,6.0,92.6,0
+2026-09-26,ina_63,Alba Posse,305.8,level,5.5,90.4,0
+2026-09-27,ina_63,Alba Posse,305.8,level,5.0,88.0,0
+2026-09-28,ina_63,Alba Posse,305.8,level,4.3,82.7,0
+2026-09-29,ina_63,Alba Posse,305.8,level,4.45,83.5,0
+2026-09-30,ina_63,Alba Posse,305.8,level,4.0,79.8,0
+2026-10-01,ina_63,Alba Posse,305.8,level,7.15,96.0,0
+2026-10-02,ina_63,Alba Posse,305.8,level,9.35,98.4,0
+2026-10-03,ina_63,Alba Posse,305.8,level,8.95,98.1,0
+2026-10-04,ina_63,Alba Posse,305.8,level,6.4,93.9,0
+2026-10-05,ina_63,Alba Posse,305.8,level,6.25,93.4,0
+2026-10-06,ina_63,Alba Posse,305.8,level,6.8,95.3,0
+2026-10-07,ina_63,Alba Posse,305.8,level,5.85,91.7,0
+2026-10-08,ina_63,Alba Posse,305.8,level,5.35,89.4,0
+2026-10-09,ina_63,Alba Posse,305.8,level,5.6,90.9,0
+2026-10-10,ina_63,Alba Posse,305.8,level,6.4,93.9,0
+2026-10-11,ina_63,Alba Posse,305.8,level,7.1,96.0,0
+2026-10-12,ina_63,Alba Posse,305.8,level,7.8,97.1,0
+2026-10-13,ina_63,Alba Posse,305.8,level,7.2,96.1,0
+2026-10-14,ina_63,Alba Posse,305.8,level,7.0,95.8,0
+2026-10-15,ina_63,Alba Posse,305.8,level,7.6,96.8,0
+2026-10-16,ina_63,Alba Posse,305.8,level,7.3,96.2,0
+2026-10-17,ina_63,Alba Posse,305.8,level,6.2,93.3,0
+2026-10-18,ina_63,Alba Posse,305.8,level,5.6,90.9,0
+2026-10-19,ina_63,Alba Posse,305.8,level,4.75,85.5,0
+2026-10-20,ina_63,Alba Posse,305.8,level,3.85,76.3,0
+2026-10-21,ina_63,Alba Posse,305.8,level,3.9,77.5,0
+2026-10-22,ina_63,Alba Posse,305.8,level,3.6,72.5,0
+2026-10-23,ina_63,Alba Posse,305.8,level,3.9,77.5,0
+2026-10-24,ina_63,Alba Posse,305.8,level,5.0,88.0,0
+2026-10-25,ina_63,Alba Posse,305.8,level,9.4,98.4,0
+2026-10-26,ina_63,Alba Posse,305.8,level,9.8,98.5,0
+2026-10-27,ina_63,Alba Posse,305.8,level,7.75,97.0,0
+2026-10-28,ina_63,Alba Posse,305.8,level,6.3,93.6,0
+2026-10-29,ina_63,Alba Posse,305.8,level,5.25,88.9,0
+2026-10-30,ina_63,Alba Posse,305.8,level,4.75,85.5,0
+2026-10-31,ina_63,Alba Posse,305.8,level,4.85,86.4,0
+2026-11-01,ina_63,Alba Posse,305.8,level,4.45,83.5,0
+2026-11-02,ina_63,Alba Posse,305.8,level,4.0,79.8,0
+2026-11-03,ina_63,Alba Posse,305.8,level,3.5,71.1,0
+2026-11-04,ina_63,Alba Posse,305.8,level,4.45,83.5,0
+2026-11-05,ina_63,Alba Posse,305.8,level,5.0,88.0,0
+2026-11-06,ina_63,Alba Posse,305.8,level,8.5,97.8,0
+2026-11-07,ina_63,Alba Posse,305.8,level,9.05,98.3,0
+2026-09-10,ina_64,Panambí,334.9,level,2.9,80.3,0
+2026-09-11,ina_64,Panambí,334.9,level,3.3,86.0,0
+2026-09-12,ina_64,Panambí,334.9,level,3.3,86.0,0
+2026-09-13,ina_64,Panambí,334.9,level,5.7,97.3,0
+2026-09-14,ina_64,Panambí,334.9,level,8.6,99.3,0
+2026-09-15,ina_64,Panambí,334.9,level,6.7,98.4,0
+2026-09-16,ina_64,Panambí,334.9,level,5.5,97.1,0
+2026-09-17,ina_64,Panambí,334.9,level,4.4,94.0,0
+2026-09-18,ina_64,Panambí,334.9,level,4.4,94.0,0
+2026-09-19,ina_64,Panambí,334.9,level,3.5,88.1,0
+2026-09-20,ina_64,Panambí,334.9,level,3.8,90.6,0
+2026-09-21,ina_64,Panambí,334.9,level,4.8,95.5,0
+2026-09-22,ina_64,Panambí,334.9,level,4.6,94.7,0
+2026-09-23,ina_64,Panambí,334.9,level,5.3,96.8,0
+2026-09-24,ina_64,Panambí,334.9,level,5.6,97.3,0
+2026-09-25,ina_64,Panambí,334.9,level,5.9,97.6,0
+2026-09-26,ina_64,Panambí,334.9,level,5.0,96.2,0
+2026-09-27,ina_64,Panambí,334.9,level,5.0,96.2,0
+2026-09-28,ina_64,Panambí,334.9,level,3.7,89.6,0
+2026-09-29,ina_64,Panambí,334.9,level,3.7,89.6,0
+2026-09-30,ina_64,Panambí,334.9,level,3.7,89.6,0
+2026-10-01,ina_64,Panambí,334.9,level,4.9,95.8,0
+2026-10-02,ina_64,Panambí,334.9,level,7.9,99.1,0
+2026-10-03,ina_64,Panambí,334.9,level,8.1,99.1,0
+2026-10-04,ina_64,Panambí,334.9,level,6.85,98.4,0
+2026-10-05,ina_64,Panambí,334.9,level,5.4,96.9,0
+2026-10-06,ina_64,Panambí,334.9,level,5.7,97.3,0
+2026-10-07,ina_64,Panambí,334.9,level,5.6,97.3,0
+2026-10-08,ina_64,Panambí,334.9,level,4.8,95.5,0
+2026-10-09,ina_64,Panambí,334.9,level,5.0,96.2,0
+2026-10-10,ina_64,Panambí,334.9,level,5.6,97.3,0
+2026-10-11,ina_64,Panambí,334.9,level,6.42,98.2,0
+2026-10-12,ina_64,Panambí,334.9,level,7.25,98.8,0
+2026-10-13,ina_64,Panambí,334.9,level,7.15,98.7,0
+2026-10-14,ina_64,Panambí,334.9,level,9.5,99.4,0
+2026-10-15,ina_64,Panambí,334.9,level,6.8,98.4,0
+2026-10-16,ina_64,Panambí,334.9,level,6.65,98.4,0
+2026-10-17,ina_64,Panambí,334.9,level,5.1,96.4,0
+2026-10-18,ina_64,Panambí,334.9,level,5.0,96.2,0
+2026-10-19,ina_64,Panambí,334.9,level,4.45,94.1,0
+2026-10-20,ina_64,Panambí,334.9,level,3.9,91.2,0
+2026-10-21,ina_64,Panambí,334.9,level,3.8,90.6,0
+2026-10-22,ina_64,Panambí,334.9,level,3.2,85.3,0
+2026-10-23,ina_64,Panambí,334.9,level,2.85,78.9,0
+2026-10-24,ina_64,Panambí,334.9,level,3.7,89.6,0
+2026-10-25,ina_64,Panambí,334.9,level,8.2,99.1,0
+2026-10-26,ina_64,Panambí,334.9,level,8.9,99.3,0
+2026-10-27,ina_64,Panambí,334.9,level,7.3,98.8,0
+2026-10-28,ina_64,Panambí,334.9,level,5.9,97.6,0
+2026-10-29,ina_64,Panambí,334.9,level,4.8,95.5,0
+2026-10-30,ina_64,Panambí,334.9,level,4.0,92.2,0
+2026-10-31,ina_64,Panambí,334.9,level,3.95,91.2,0
+2026-11-01,ina_64,Panambí,334.9,level,3.7,89.6,0
+2026-11-02,ina_64,Panambí,334.9,level,3.8,90.6,0
+2026-11-03,ina_64,Panambí,334.9,level,3.4,86.8,0
+2026-11-04,ina_64,Panambí,334.9,level,3.5,88.1,0
+2026-11-05,ina_64,Panambí,334.9,level,4.0,92.2,0
+2026-11-06,ina_64,Panambí,334.9,level,5.7,97.3,0
+2026-11-07,ina_64,Panambí,334.9,level,8.45,99.3,0
+2026-09-10,ina_65,San Javier,363.5,discharge,2874.0,74.3,0
+2026-09-11,ina_65,San Javier,363.5,discharge,2745.0,72.7,0
+2026-09-12,ina_65,San Javier,363.5,discharge,4473.0,86.1,0
+2026-09-13,ina_65,San Javier,363.5,discharge,15197.0,98.9,0
+2026-09-14,ina_65,San Javier,363.5,discharge,15291.0,98.9,0
+2026-09-15,ina_65,San Javier,363.5,discharge,10023.0,96.9,0
+2026-09-16,ina_65,San Javier,363.5,discharge,6557.0,92.9,0
+2026-09-17,ina_65,San Javier,363.5,discharge,5046.0,88.7,0
+2026-09-18,ina_65,San Javier,363.5,discharge,3818.0,82.2,0
+2026-09-19,ina_65,San Javier,363.5,discharge,2181.0,63.2,0
+2026-09-20,ina_65,San Javier,363.5,discharge,3035.0,76.1,0
+2026-09-21,ina_65,San Javier,363.5,discharge,6028.0,91.7,0
+2026-09-22,ina_65,San Javier,363.5,discharge,6335.0,92.5,0
+2026-09-23,ina_65,San Javier,363.5,discharge,5792.0,91.1,0
+2026-09-24,ina_65,San Javier,363.5,discharge,9193.0,96.3,0
+2026-09-25,ina_65,San Javier,363.5,discharge,7125.0,94.0,0
+2026-09-26,ina_65,San Javier,363.5,discharge,5581.0,90.5,0
+2026-09-27,ina_65,San Javier,363.5,discharge,5167.0,89.2,0
+2026-09-28,ina_65,San Javier,363.5,discharge,3461.0,79.6,0
+2026-09-29,ina_65,San Javier,363.5,discharge,3393.0,79.1,0
+2026-09-30,ina_65,San Javier,363.5,discharge,3035.0,76.1,0
+2026-10-01,ina_65,San Javier,363.5,discharge,7711.0,94.8,0
+2026-10-02,ina_65,San Javier,363.5,discharge,12737.0,98.3,0
+2026-10-03,ina_65,San Javier,363.5,discharge,13706.0,98.5,0
+2026-10-04,ina_65,San Javier,363.5,discharge,8345.8,95.5,0
+2026-10-05,ina_65,San Javier,363.5,discharge,7711.0,94.8,0
+2026-10-06,ina_65,San Javier,363.5,discharge,7904.0,95.1,0
+2026-10-07,ina_65,San Javier,363.5,discharge,6782.0,93.4,0
+2026-10-08,ina_65,San Javier,363.5,discharge,5475.0,90.1,0
+2026-10-09,ina_65,San Javier,363.5,discharge,7334.0,94.3,0
+2026-10-10,ina_65,San Javier,363.5,discharge,7952.0,95.2,0
+2026-10-11,ina_65,San Javier,363.5,discharge,9551.85,96.5,0
+2026-10-12,ina_65,San Javier,363.5,discharge,10991.0,97.5,0
+2026-10-13,ina_65,San Javier,363.5,discharge,10583.0,97.3,0
+2026-10-14,ina_65,San Javier,363.5,discharge,9578.0,96.5,0
+2026-10-15,ina_65,San Javier,363.5,discharge,10530.0,97.3,0
+2026-10-16,ina_65,San Javier,363.5,discharge,9709.0,96.6,0
+2026-10-17,ina_65,San Javier,363.5,discharge,7241.0,94.2,0
+2026-10-18,ina_65,San Javier,363.5,discharge,6116.0,92.0,0
+2026-10-19,ina_65,San Javier,363.5,discharge,4375.0,85.5,0
+2026-10-20,ina_65,San Javier,363.5,discharge,2954.0,75.1,0
+2026-10-21,ina_65,San Javier,363.5,discharge,3019.0,75.8,0
+2026-10-22,ina_65,San Javier,363.5,discharge,2556.0,69.9,0
+2026-10-23,ina_65,San Javier,363.5,discharge,3035.0,76.1,0
+2026-10-24,ina_65,San Javier,363.5,discharge,5269.0,89.4,0
+2026-10-25,ina_65,San Javier,363.5,discharge,13916.0,98.5,0
+2026-10-26,ina_65,San Javier,363.5,discharge,17039.0,99.2,0
+2026-10-27,ina_65,San Javier,363.5,discharge,11655.0,97.8,0
+2026-10-28,ina_65,San Javier,363.5,discharge,7711.0,94.8,0
+2026-10-29,ina_65,San Javier,363.5,discharge,5370.0,89.8,0
+2026-10-30,ina_65,San Javier,363.5,discharge,4300.0,85.1,0
+2026-10-31,ina_65,San Javier,363.5,discharge,3729.0,81.6,0
+2026-11-01,ina_65,San Javier,363.5,discharge,3604.0,80.6,0
+2026-11-02,ina_65,San Javier,363.5,discharge,3035.0,76.1,0
+2026-11-03,ina_65,San Javier,363.5,discharge,2480.0,68.7,0
+2026-11-04,ina_65,San Javier,363.5,discharge,3035.0,76.1,0
+2026-11-05,ina_65,San Javier,363.5,discharge,5066.0,88.8,0
+2026-11-06,ina_65,San Javier,363.5,discharge,10771.0,97.4,0
+2026-11-07,ina_65,San Javier,363.5,discharge,15917.0,99.0,0
+2026-09-10,ina_66,Puerto Concepción,414.7,level,2.32,51.7,0
+2026-09-11,ina_66,Puerto Concepción,414.7,level,2.75,64.9,0
+2026-09-12,ina_66,Puerto Concepción,414.7,level,2.75,64.9,0
+2026-09-13,ina_66,Puerto Concepción,414.7,level,6.9,95.8,0
+2026-09-14,ina_66,Puerto Concepción,414.7,level,2.75,64.9,0
+2026-09-15,ina_66,Puerto Concepción,414.7,level,9.9,98.4,0
+2026-09-16,ina_66,Puerto Concepción,414.7,level,7.6,96.6,0
+2026-09-17,ina_66,Puerto Concepción,414.7,level,5.2,91.7,0
+2026-09-18,ina_66,Puerto Concepción,414.7,level,4.3,87.1,0
+2026-09-19,ina_66,Puerto Concepción,414.7,level,3.55,81.3,0
+2026-09-20,ina_66,Puerto Concepción,414.7,level,3.15,75.2,0
+2026-09-21,ina_66,Puerto Concepción,414.7,level,3.45,80.1,0
+2026-09-22,ina_66,Puerto Concepción,414.7,level,4.45,88.0,0
+2026-09-23,ina_66,Puerto Concepción,414.7,level,4.7,89.3,0
+2026-09-24,ina_66,Puerto Concepción,414.7,level,4.7,89.3,0
+2026-09-25,ina_66,Puerto Concepción,414.7,level,5.5,92.8,0
+2026-09-26,ina_66,Puerto Concepción,414.7,level,5.13,91.4,0
+2026-09-27,ina_66,Puerto Concepción,414.7,level,4.7,89.3,0
+2026-09-28,ina_66,Puerto Concepción,414.7,level,4.73,89.4,0
+2026-09-29,ina_66,Puerto Concepción,414.7,level,3.7,82.9,0
+2026-09-30,ina_66,Puerto Concepción,414.7,level,3.7,82.9,0
+2026-10-01,ina_66,Puerto Concepción,414.7,level,4.3,87.1,0
+2026-10-02,ina_66,Puerto Concepción,414.7,level,8.2,97.3,0
+2026-10-03,ina_66,Puerto Concepción,414.7,level,9.7,98.3,0
+2026-10-04,ina_66,Puerto Concepción,414.7,level,9.3,98.0,0
+2026-10-05,ina_66,Puerto Concepción,414.7,level,8.4,97.4,0
+2026-10-06,ina_66,Puerto Concepción,414.7,level,9.3,98.0,0
+2026-10-07,ina_66,Puerto Concepción,414.7,level,9.3,98.0,0
+2026-10-08,ina_66,Puerto Concepción,414.7,level,5.6,93.1,0
+2026-10-09,ina_66,Puerto Concepción,414.7,level,5.76,93.6,0
+2026-10-10,ina_66,Puerto Concepción,414.7,level,5.82,93.9,0
+2026-10-11,ina_66,Puerto Concepción,414.7,level,7.41,96.5,0
+2026-10-12,ina_66,Puerto Concepción,414.7,level,9.0,97.9,0
+2026-10-13,ina_66,Puerto Concepción,414.7,level,9.06,97.9,0
+2026-10-14,ina_66,Puerto Concepción,414.7,level,9.06,97.9,0
+2026-10-15,ina_66,Puerto Concepción,414.7,level,8.75,97.7,0
+2026-10-16,ina_66,Puerto Concepción,414.7,level,8.2,97.3,0
+2026-10-17,ina_66,Puerto Concepción,414.7,level,6.9,95.8,0
+2026-10-18,ina_66,Puerto Concepción,414.7,level,6.9,95.8,0
+2026-10-19,ina_66,Puerto Concepción,414.7,level,5.73,93.5,0
+2026-10-20,ina_66,Puerto Concepción,414.7,level,4.5,88.3,0
+2026-10-21,ina_66,Puerto Concepción,414.7,level,3.4,79.4,0
+2026-10-22,ina_66,Puerto Concepción,414.7,level,3.4,79.4,0
+2026-10-23,ina_66,Puerto Concepción,414.7,level,3.08,74.1,0
+2026-10-24,ina_66,Puerto Concepción,414.7,level,3.7,82.9,0
+2026-10-25,ina_66,Puerto Concepción,414.7,level,4.8,89.8,0
+2026-10-26,ina_66,Puerto Concepción,414.7,level,9.1,97.9,0
+2026-10-27,ina_66,Puerto Concepción,414.7,level,9.1,97.9,0
+2026-10-28,ina_66,Puerto Concepción,414.7,level,9.58,98.2,0
+2026-10-29,ina_66,Puerto Concepción,414.7,level,6.8,95.6,0
+2026-10-30,ina_66,Puerto Concepción,414.7,level,4.84,90.0,0
+2026-10-31,ina_66,Puerto Concepción,414.7,level,4.3,87.1,0
+2026-11-01,ina_66,Puerto Concepción,414.7,level,3.6,82.0,0
+2026-11-02,ina_66,Puerto Concepción,414.7,level,3.6,82.0,0
+2026-11-03,ina_66,Puerto Concepción,414.7,level,3.1,74.5,0
+2026-11-04,ina_66,Puerto Concepción,414.7,level,3.1,74.5,0
+2026-11-05,ina_66,Puerto Concepción,414.7,level,3.35,78.5,0
+2026-11-06,ina_66,Puerto Concepción,414.7,level,4.95,90.5,0
+2026-11-07,ina_66,Puerto Concepción,414.7,level,9.0,97.9,0
+2026-09-10,ina_67,Garruchos,424.6,discharge,1561.55,37.2,0
+2026-09-11,ina_67,Garruchos,424.6,discharge,2236.17,53.7,0
+2026-09-12,ina_67,Garruchos,424.6,discharge,2387.67,56.7,0
+2026-09-13,ina_67,Garruchos,424.6,discharge,7393.34,90.8,0
+2026-09-14,ina_67,Garruchos,424.6,discharge,13696.3,97.7,0
+2026-09-15,ina_67,Garruchos,424.6,discharge,14482.2,98.1,0
+2026-09-16,ina_67,Garruchos,424.6,discharge,10897.2,95.8,0
+2026-09-17,ina_67,Garruchos,424.6,discharge,7162.68,90.2,0
+2026-09-18,ina_67,Garruchos,424.6,discharge,5313.01,84.7,0
+2026-09-19,ina_67,Garruchos,424.6,discharge,4007.49,76.9,0
+2026-09-20,ina_67,Garruchos,424.6,discharge,2363.62,56.4,0
+2026-09-21,ina_67,Garruchos,424.6,discharge,3195.14,68.8,0
+2026-09-22,ina_67,Garruchos,424.6,discharge,5313.01,84.7,0
+2026-09-23,ina_67,Garruchos,424.6,discharge,5877.54,86.5,0
+2026-09-24,ina_67,Garruchos,424.6,discharge,5757.77,86.2,0
+2026-09-25,ina_67,Garruchos,424.6,discharge,8833.31,93.3,0
+2026-09-26,ina_67,Garruchos,424.6,discharge,6255.49,87.7,0
+2026-09-27,ina_67,Garruchos,424.6,discharge,5455.56,85.2,0
+2026-09-28,ina_67,Garruchos,424.6,discharge,4364.14,79.5,0
+2026-09-29,ina_67,Garruchos,424.6,discharge,3293.22,70.2,0
+2026-09-30,ina_67,Garruchos,424.6,discharge,3304.18,70.3,0
+2026-10-01,ina_67,Garruchos,424.6,discharge,4007.49,76.9,0
+2026-10-02,ina_67,Garruchos,424.6,discharge,9845.17,94.6,0
+2026-10-03,ina_67,Garruchos,424.6,discharge,13657.5,97.7,0
+2026-10-04,ina_67,Garruchos,424.6,discharge,14383.1,98.0,0
+2026-10-05,ina_67,Garruchos,424.6,discharge,13309.5,97.6,0
+2026-10-06,ina_67,Garruchos,424.6,discharge,11730.3,96.6,0
+2026-10-07,ina_67,Garruchos,424.6,discharge,10754.6,95.6,0
+2026-10-08,ina_67,Garruchos,424.6,discharge,8342.79,92.5,0
+2026-10-09,ina_67,Garruchos,424.6,discharge,7393.34,90.8,0
+2026-10-10,ina_67,Garruchos,424.6,discharge,9032.42,93.5,0
+2026-10-11,ina_67,Garruchos,424.6,discharge,11325.25,96.2,0
+2026-10-12,ina_67,Garruchos,424.6,discharge,12585.9,97.2,0
+2026-10-13,ina_67,Garruchos,424.6,discharge,13463.7,97.6,0
+2026-10-14,ina_67,Garruchos,424.6,discharge,13232.6,97.5,0
+2026-10-15,ina_67,Garruchos,424.6,discharge,12323.2,97.0,0
+2026-10-16,ina_67,Garruchos,424.6,discharge,12173.9,96.9,0
+2026-10-17,ina_67,Garruchos,424.6,discharge,10808.0,95.7,0
+2026-10-18,ina_67,Garruchos,424.6,discharge,8750.83,93.2,0
+2026-10-19,ina_67,Garruchos,424.6,discharge,6904.56,89.6,0
+2026-10-20,ina_67,Garruchos,424.6,discharge,4706.28,81.5,0
+2026-10-21,ina_67,Garruchos,424.6,discharge,3141.1,68.1,0
+2026-10-22,ina_67,Garruchos,424.6,discharge,3141.1,68.1,0
+2026-10-23,ina_67,Garruchos,424.6,discharge,2476.24,58.5,0
+2026-10-24,ina_67,Garruchos,424.6,discharge,2938.62,65.4,0
+2026-10-25,ina_67,Garruchos,424.6,discharge,8101.45,92.1,0
+2026-10-26,ina_67,Garruchos,424.6,discharge,14284.2,98.0,0
+2026-10-27,ina_67,Garruchos,424.6,discharge,16475.5,98.7,0
+2026-10-28,ina_67,Garruchos,424.6,discharge,13774.2,97.8,0
+2026-10-29,ina_67,Garruchos,424.6,discharge,9673.71,94.5,0
+2026-10-30,ina_67,Garruchos,424.6,discharge,5691.6,86.0,0
+2026-10-31,ina_67,Garruchos,424.6,discharge,4546.33,80.6,0
+2026-11-01,ina_67,Garruchos,424.6,discharge,3718.33,74.7,0
+2026-11-02,ina_67,Garruchos,424.6,discharge,3525.97,72.7,0
+2026-11-03,ina_67,Garruchos,424.6,discharge,2875.65,64.7,0
+2026-11-04,ina_67,Garruchos,424.6,discharge,2165.09,52.2,0
+2026-11-05,ina_67,Garruchos,424.6,discharge,3890.94,76.0,0
+2026-11-06,ina_67,Garruchos,424.6,discharge,5625.69,85.7,0
+2026-11-07,ina_67,Garruchos,424.6,discharge,12661.4,97.2,0
+2026-09-10,ina_68,Santo Tomé,479.9,discharge,2581.0,60.8,0
+2026-09-11,ina_68,Santo Tomé,479.9,discharge,2880.0,65.9,0
+2026-09-12,ina_68,Santo Tomé,479.9,discharge,3453.0,73.7,0
+2026-09-13,ina_68,Santo Tomé,479.9,discharge,6116.0,88.2,0
+2026-09-14,ina_68,Santo Tomé,479.9,discharge,11280.0,96.3,0
+2026-09-15,ina_68,Santo Tomé,479.9,discharge,12548.0,97.1,0
+2026-09-16,ina_68,Santo Tomé,479.9,discharge,11950.0,96.8,0
+2026-09-17,ina_68,Santo Tomé,479.9,discharge,9448.0,94.6,0
+2026-09-18,ina_68,Santo Tomé,479.9,discharge,7246.0,90.9,0
+2026-09-19,ina_68,Santo Tomé,479.9,discharge,5421.0,85.7,0
+2026-09-20,ina_68,Santo Tomé,479.9,discharge,3704.0,75.8,0
+2026-09-21,ina_68,Santo Tomé,479.9,discharge,3885.0,77.4,0
+2026-09-22,ina_68,Santo Tomé,479.9,discharge,5699.0,86.7,0
+2026-09-23,ina_68,Santo Tomé,479.9,discharge,6441.0,89.0,0
+2026-09-24,ina_68,Santo Tomé,479.9,discharge,6323.0,88.7,0
+2026-09-25,ina_68,Santo Tomé,479.9,discharge,8187.0,92.6,0
+2026-09-26,ina_68,Santo Tomé,479.9,discharge,7970.0,92.2,0
+2026-09-27,ina_68,Santo Tomé,479.9,discharge,6619.0,89.4,0
+2026-09-28,ina_68,Santo Tomé,479.9,discharge,5755.0,86.9,0
+2026-09-29,ina_68,Santo Tomé,479.9,discharge,4280.0,80.1,0
+2026-09-30,ina_68,Santo Tomé,479.9,discharge,4500.0,81.3,0
+2026-10-01,ina_68,Santo Tomé,479.9,discharge,5238.0,85.0,0
+2026-10-02,ina_68,Santo Tomé,479.9,discharge,8438.0,93.0,0
+2026-10-03,ina_68,Santo Tomé,479.9,discharge,11971.0,96.8,0
+2026-10-04,ina_68,Santo Tomé,479.9,discharge,14115.2,97.8,0
+2026-10-05,ina_68,Santo Tomé,479.9,discharge,13896.0,97.7,0
+2026-10-06,ina_68,Santo Tomé,479.9,discharge,13056.0,97.4,0
+2026-10-07,ina_68,Santo Tomé,479.9,discharge,12285.0,97.0,0
+2026-10-08,ina_68,Santo Tomé,479.9,discharge,10646.0,95.9,0
+2026-10-09,ina_68,Santo Tomé,479.9,discharge,9691.0,94.9,0
+2026-10-10,ina_68,Santo Tomé,479.9,discharge,10429.0,95.7,0
+2026-10-11,ina_68,Santo Tomé,479.9,discharge,11332.9,96.4,0
+2026-10-12,ina_68,Santo Tomé,479.9,discharge,12680.0,97.2,0
+2026-10-13,ina_68,Santo Tomé,479.9,discharge,13710.0,97.7,0
+2026-10-14,ina_68,Santo Tomé,479.9,discharge,13942.0,97.7,0
+2026-10-15,ina_68,Santo Tomé,479.9,discharge,13431.0,97.6,0
+2026-10-16,ina_68,Santo Tomé,479.9,discharge,13299.0,97.5,0
+2026-10-17,ina_68,Santo Tomé,479.9,discharge,12592.0,97.1,0
+2026-10-18,ina_68,Santo Tomé,479.9,discharge,10884.0,96.1,0
+2026-10-19,ina_68,Santo Tomé,479.9,discharge,9160.0,94.2,0
+2026-10-20,ina_68,Santo Tomé,479.9,discharge,7230.0,90.9,0
+2026-10-21,ina_68,Santo Tomé,479.9,discharge,5343.0,85.5,0
+2026-10-22,ina_68,Santo Tomé,479.9,discharge,4524.0,81.5,0
+2026-10-23,ina_68,Santo Tomé,479.9,discharge,4010.0,78.4,0
+2026-10-24,ina_68,Santo Tomé,479.9,discharge,4158.0,79.4,0
+2026-10-25,ina_68,Santo Tomé,479.9,discharge,7324.0,91.1,0
+2026-10-26,ina_68,Santo Tomé,479.9,discharge,11804.0,96.7,0
+2026-10-27,ina_68,Santo Tomé,479.9,discharge,13780.0,97.7,0
+2026-10-28,ina_68,Santo Tomé,479.9,discharge,13826.0,97.7,0
+2026-10-29,ina_68,Santo Tomé,479.9,discharge,11699.0,96.6,0
+2026-10-30,ina_68,Santo Tomé,479.9,discharge,9177.0,94.3,0
+2026-10-31,ina_68,Santo Tomé,479.9,discharge,7136.0,90.8,0
+2026-11-01,ina_68,Santo Tomé,479.9,discharge,5616.0,86.4,0
+2026-11-02,ina_68,Santo Tomé,479.9,discharge,4925.0,83.6,0
+2026-11-03,ina_68,Santo Tomé,479.9,discharge,4268.0,80.0,0
+2026-11-04,ina_68,Santo Tomé,479.9,discharge,3422.0,73.5,0
+2026-11-05,ina_68,Santo Tomé,479.9,discharge,4768.0,82.8,0
+2026-11-06,ina_68,Santo Tomé,479.9,discharge,6769.0,89.8,0
+2026-11-07,ina_68,Santo Tomé,479.9,discharge,10290.0,95.5,0
+2026-09-10,ina_69,Alvear,561.0,level,5.6,78.4,0
+2026-09-11,ina_69,Alvear,561.0,level,4.32,65.7,0
+2026-09-12,ina_69,Alvear,561.0,level,4.26,65.0,0
+2026-09-13,ina_69,Alvear,561.0,level,4.32,65.7,0
+2026-09-14,ina_69,Alvear,561.0,level,5.9,80.8,0
+2026-09-15,ina_69,Alvear,561.0,level,7.52,91.0,0
+2026-09-16,ina_69,Alvear,561.0,level,8.18,93.7,0
+2026-09-17,ina_69,Alvear,561.0,level,8.26,93.9,0
+2026-09-18,ina_69,Alvear,561.0,level,8.14,93.5,0
+2026-09-19,ina_69,Alvear,561.0,level,7.35,90.0,0
+2026-09-20,ina_69,Alvear,561.0,level,6.14,82.4,0
+2026-09-21,ina_69,Alvear,561.0,level,5.7,79.3,0
+2026-09-22,ina_69,Alvear,561.0,level,5.3,75.7,0
+2026-09-23,ina_69,Alvear,561.0,level,5.72,79.4,0
+2026-09-24,ina_69,Alvear,561.0,level,6.02,81.8,0
+2026-09-25,ina_69,Alvear,561.0,level,6.26,83.4,0
+2026-09-26,ina_69,Alvear,561.0,level,6.88,87.2,0
+2026-09-27,ina_69,Alvear,561.0,level,6.96,87.8,0
+2026-09-28,ina_69,Alvear,561.0,level,6.8,86.8,0
+2026-09-29,ina_69,Alvear,561.0,level,6.3,83.7,0
+2026-09-30,ina_69,Alvear,561.0,level,6.12,82.2,0
+2026-10-01,ina_69,Alvear,561.0,level,6.06,82.0,0
+2026-10-02,ina_69,Alvear,561.0,level,6.42,84.5,0
+2026-10-03,ina_69,Alvear,561.0,level,7.51,90.9,0
+2026-10-04,ina_69,Alvear,561.0,level,8.9,95.7,0
+2026-10-05,ina_69,Alvear,561.0,level,9.14,96.1,0
+2026-10-06,ina_69,Alvear,561.0,level,9.58,96.8,0
+2026-10-07,ina_69,Alvear,561.0,level,9.77,97.1,0
+2026-10-08,ina_69,Alvear,561.0,level,9.8,97.1,0
+2026-10-09,ina_69,Alvear,561.0,level,9.91,97.2,0
+2026-10-10,ina_69,Alvear,561.0,level,10.0,97.4,0
+2026-10-11,ina_69,Alvear,561.0,level,10.05,97.4,0
+2026-10-12,ina_69,Alvear,561.0,level,10.1,97.5,0
+2026-10-13,ina_69,Alvear,561.0,level,10.2,97.6,0
+2026-10-14,ina_69,Alvear,561.0,level,10.42,97.8,0
+2026-10-15,ina_69,Alvear,561.0,level,10.48,97.9,0
+2026-10-16,ina_69,Alvear,561.0,level,10.54,98.1,0
+2026-10-17,ina_69,Alvear,561.0,level,10.44,97.9,0
+2026-10-18,ina_69,Alvear,561.0,level,10.26,97.6,0
+2026-10-19,ina_69,Alvear,561.0,level,9.98,97.3,0
+2026-10-20,ina_69,Alvear,561.0,level,9.55,96.8,0
+2026-10-21,ina_69,Alvear,561.0,level,9.08,95.9,0
+2026-10-22,ina_69,Alvear,561.0,level,9.0,95.9,0
+2026-10-23,ina_69,Alvear,561.0,level,7.55,91.1,0
+2026-10-24,ina_69,Alvear,561.0,level,6.94,87.8,0
+2026-10-25,ina_69,Alvear,561.0,level,6.7,86.3,0
+2026-10-26,ina_69,Alvear,561.0,level,7.4,90.3,0
+2026-10-27,ina_69,Alvear,561.0,level,8.57,94.8,0
+2026-10-28,ina_69,Alvear,561.0,level,9.03,95.9,0
+2026-10-29,ina_69,Alvear,561.0,level,9.29,96.3,0
+2026-10-30,ina_69,Alvear,561.0,level,9.15,96.1,0
+2026-10-31,ina_69,Alvear,561.0,level,8.87,95.7,0
+2026-11-01,ina_69,Alvear,561.0,level,8.22,93.8,0
+2026-11-02,ina_69,Alvear,561.0,level,7.52,91.0,0
+2026-11-03,ina_69,Alvear,561.0,level,6.98,87.9,0
+2026-11-04,ina_69,Alvear,561.0,level,6.15,82.5,0
+2026-11-05,ina_69,Alvear,561.0,level,5.8,80.0,0
+2026-11-06,ina_69,Alvear,561.0,level,5.98,81.5,0
+2026-11-07,ina_69,Alvear,561.0,level,6.65,86.0,0
+2026-09-10,ina_70,La Cruz,573.4,level,5.4,77.1,0
+2026-09-11,ina_70,La Cruz,573.4,level,4.39,66.6,0
+2026-09-12,ina_70,La Cruz,573.4,level,4.27,65.0,0
+2026-09-13,ina_70,La Cruz,573.4,level,4.27,65.0,0
+2026-09-14,ina_70,La Cruz,573.4,level,5.74,79.6,0
+2026-09-15,ina_70,La Cruz,573.4,level,7.24,89.9,0
+2026-09-16,ina_70,La Cruz,573.4,level,7.92,92.7,0
+2026-09-17,ina_70,La Cruz,573.4,level,8.04,93.1,0
+2026-09-18,ina_70,La Cruz,573.4,level,7.85,92.4,0
+2026-09-19,ina_70,La Cruz,573.4,level,7.26,90.0,0
+2026-09-20,ina_70,La Cruz,573.4,level,6.0,81.8,0
+2026-09-21,ina_70,La Cruz,573.4,level,5.58,78.4,0
+2026-09-22,ina_70,La Cruz,573.4,level,5.29,76.0,0
+2026-09-23,ina_70,La Cruz,573.4,level,5.68,79.1,0
+2026-09-24,ina_70,La Cruz,573.4,level,5.95,81.3,0
+2026-09-25,ina_70,La Cruz,573.4,level,6.14,82.8,0
+2026-09-26,ina_70,La Cruz,573.4,level,6.76,87.1,0
+2026-09-27,ina_70,La Cruz,573.4,level,6.89,87.9,0
+2026-09-28,ina_70,La Cruz,573.4,level,6.72,86.8,0
+2026-09-29,ina_70,La Cruz,573.4,level,6.36,84.5,0
+2026-09-30,ina_70,La Cruz,573.4,level,6.13,82.7,0
+2026-10-01,ina_70,La Cruz,573.4,level,6.02,81.9,0
+2026-10-02,ina_70,La Cruz,573.4,level,6.33,84.3,0
+2026-10-03,ina_70,La Cruz,573.4,level,7.25,90.0,0
+2026-10-04,ina_70,La Cruz,573.4,level,8.75,95.3,0
+2026-10-05,ina_70,La Cruz,573.4,level,9.03,95.8,0
+2026-10-06,ina_70,La Cruz,573.4,level,9.38,96.5,0
+2026-10-07,ina_70,La Cruz,573.4,level,9.63,96.9,0
+2026-10-08,ina_70,La Cruz,573.4,level,9.77,97.1,0
+2026-10-09,ina_70,La Cruz,573.4,level,9.91,97.2,0
+2026-10-10,ina_70,La Cruz,573.4,level,9.91,97.2,0
+2026-10-11,ina_70,La Cruz,573.4,level,9.98,97.3,0
+2026-10-12,ina_70,La Cruz,573.4,level,10.06,97.4,0
+2026-10-13,ina_70,La Cruz,573.4,level,10.24,97.7,0
+2026-10-14,ina_70,La Cruz,573.4,level,10.41,97.9,0
+2026-10-15,ina_70,La Cruz,573.4,level,10.52,98.0,0
+2026-10-16,ina_70,La Cruz,573.4,level,10.52,98.0,0
+2026-10-17,ina_70,La Cruz,573.4,level,10.45,97.9,0
+2026-10-18,ina_70,La Cruz,573.4,level,10.3,97.8,0
+2026-10-19,ina_70,La Cruz,573.4,level,9.94,97.3,0
+2026-10-20,ina_70,La Cruz,573.4,level,9.52,96.8,0
+2026-10-21,ina_70,La Cruz,573.4,level,9.04,95.9,0
+2026-10-22,ina_70,La Cruz,573.4,level,8.26,93.8,0
+2026-10-23,ina_70,La Cruz,573.4,level,7.4,90.8,0
+2026-10-24,ina_70,La Cruz,573.4,level,6.8,87.3,0
+2026-10-25,ina_70,La Cruz,573.4,level,6.58,85.9,0
+2026-10-26,ina_70,La Cruz,573.4,level,7.46,91.0,0
+2026-10-27,ina_70,La Cruz,573.4,level,8.3,94.0,0
+2026-10-28,ina_70,La Cruz,573.4,level,8.83,95.4,0
+2026-10-29,ina_70,La Cruz,573.4,level,9.08,95.9,0
+2026-10-30,ina_70,La Cruz,573.4,level,9.0,95.7,0
+2026-10-31,ina_70,La Cruz,573.4,level,8.74,95.2,0
+2026-11-01,ina_70,La Cruz,573.4,level,8.12,93.4,0
+2026-11-02,ina_70,La Cruz,573.4,level,7.44,90.9,0
+2026-11-03,ina_70,La Cruz,573.4,level,6.9,88.0,0
+2026-11-04,ina_70,La Cruz,573.4,level,6.2,83.2,0
+2026-11-05,ina_70,La Cruz,573.4,level,5.84,80.4,0
+2026-11-06,ina_70,La Cruz,573.4,level,6.02,81.9,0
+2026-11-07,ina_70,La Cruz,573.4,level,6.58,85.9,0
+2026-09-10,ina_71,Yapeyú,609.9,level,5.25,78.7,0
+2026-09-11,ina_71,Yapeyú,609.9,level,4.3,69.6,0
+2026-09-12,ina_71,Yapeyú,609.9,level,4.1,67.2,0
+2026-09-13,ina_71,Yapeyú,609.9,level,4.12,67.5,0
+2026-09-14,ina_71,Yapeyú,609.9,level,4.7,73.8,0
+2026-09-15,ina_71,Yapeyú,609.9,level,6.35,87.4,0
+2026-09-16,ina_71,Yapeyú,609.9,level,7.19,92.0,0
+2026-09-17,ina_71,Yapeyú,609.9,level,7.44,93.0,0
+2026-09-18,ina_71,Yapeyú,609.9,level,7.39,92.8,0
+2026-09-19,ina_71,Yapeyú,609.9,level,6.95,90.9,0
+2026-09-20,ina_71,Yapeyú,609.9,level,5.8,83.5,0
+2026-09-21,ina_71,Yapeyú,609.9,level,5.4,80.2,0
+2026-09-22,ina_71,Yapeyú,609.9,level,4.96,76.2,0
+2026-09-23,ina_71,Yapeyú,609.9,level,5.08,77.4,0
+2026-09-24,ina_71,Yapeyú,609.9,level,5.46,80.8,0
+2026-09-25,ina_71,Yapeyú,609.9,level,5.68,82.6,0
+2026-09-26,ina_71,Yapeyú,609.9,level,6.32,87.3,0
+2026-09-27,ina_71,Yapeyú,609.9,level,6.44,88.0,0
+2026-09-28,ina_71,Yapeyú,609.9,level,6.34,87.4,0
+2026-09-29,ina_71,Yapeyú,609.9,level,6.13,86.0,0
+2026-09-30,ina_71,Yapeyú,609.9,level,6.0,84.9,0
+2026-10-01,ina_71,Yapeyú,609.9,level,5.86,83.8,0
+2026-10-02,ina_71,Yapeyú,609.9,level,5.94,84.5,0
+2026-10-03,ina_71,Yapeyú,609.9,level,6.79,90.1,0
+2026-10-04,ina_71,Yapeyú,609.9,level,8.15,95.2,0
+2026-10-05,ina_71,Yapeyú,609.9,level,8.55,96.2,0
+2026-10-06,ina_71,Yapeyú,609.9,level,8.9,96.9,0
+2026-10-07,ina_71,Yapeyú,609.9,level,9.24,97.3,0
+2026-10-08,ina_71,Yapeyú,609.9,level,9.42,97.5,0
+2026-10-09,ina_71,Yapeyú,609.9,level,9.68,97.8,0
+2026-10-10,ina_71,Yapeyú,609.9,level,9.68,97.8,0
+2026-10-11,ina_71,Yapeyú,609.9,level,9.71,97.9,0
+2026-10-12,ina_71,Yapeyú,609.9,level,9.74,97.9,0
+2026-10-13,ina_71,Yapeyú,609.9,level,9.82,98.0,0
+2026-10-14,ina_71,Yapeyú,609.9,level,9.92,98.1,0
+2026-10-15,ina_71,Yapeyú,609.9,level,9.99,98.3,0
+2026-10-16,ina_71,Yapeyú,609.9,level,10.0,98.3,0
+2026-10-17,ina_71,Yapeyú,609.9,level,9.96,98.2,0
+2026-10-18,ina_71,Yapeyú,609.9,level,9.8,98.0,0
+2026-10-19,ina_71,Yapeyú,609.9,level,9.6,97.7,0
+2026-10-20,ina_71,Yapeyú,609.9,level,9.3,97.3,0
+2026-10-21,ina_71,Yapeyú,609.9,level,8.9,96.9,0
+2026-10-22,ina_71,Yapeyú,609.9,level,8.14,95.2,0
+2026-10-23,ina_71,Yapeyú,609.9,level,7.4,92.8,0
+2026-10-24,ina_71,Yapeyú,609.9,level,6.8,90.2,0
+2026-10-25,ina_71,Yapeyú,609.9,level,6.36,87.5,0
+2026-10-26,ina_71,Yapeyú,609.9,level,6.72,89.6,0
+2026-10-27,ina_71,Yapeyú,609.9,level,7.56,93.5,0
+2026-10-28,ina_71,Yapeyú,609.9,level,8.16,95.2,0
+2026-10-29,ina_71,Yapeyú,609.9,level,8.48,96.0,0
+2026-10-30,ina_71,Yapeyú,609.9,level,8.56,96.2,0
+2026-10-31,ina_71,Yapeyú,609.9,level,8.4,95.8,0
+2026-11-01,ina_71,Yapeyú,609.9,level,7.98,94.7,0
+2026-11-02,ina_71,Yapeyú,609.9,level,7.32,92.6,0
+2026-11-03,ina_71,Yapeyú,609.9,level,6.7,89.6,0
+2026-11-04,ina_71,Yapeyú,609.9,level,6.1,85.8,0
+2026-11-05,ina_71,Yapeyú,609.9,level,5.5,81.1,0
+2026-11-06,ina_71,Yapeyú,609.9,level,5.52,81.2,0
+2026-11-07,ina_71,Yapeyú,609.9,level,5.93,84.4,0
+2026-09-10,ina_72,Paso de los Libres,647.9,discharge,6588.0,76.7,0
+2026-09-11,ina_72,Paso de los Libres,647.9,discharge,5108.0,67.5,0
+2026-09-12,ina_72,Paso de los Libres,647.9,discharge,4439.0,61.3,0
+2026-09-13,ina_72,Paso de los Libres,647.9,discharge,4373.0,60.7,0
+2026-09-14,ina_72,Paso de los Libres,647.9,discharge,5177.0,68.0,0
+2026-09-15,ina_72,Paso de los Libres,647.9,discharge,8336.0,84.6,0
+2026-09-16,ina_72,Paso de los Libres,647.9,discharge,9998.0,89.9,0
+2026-09-17,ina_72,Paso de los Libres,647.9,discharge,10841.0,91.8,0
+2026-09-18,ina_72,Paso de los Libres,647.9,discharge,10930.0,92.0,0
+2026-09-19,ina_72,Paso de los Libres,647.9,discharge,9912.0,89.7,0
+2026-09-20,ina_72,Paso de los Libres,647.9,discharge,8475.0,85.0,0
+2026-09-21,ina_72,Paso de los Libres,647.9,discharge,6893.0,78.4,0
+2026-09-22,ina_72,Paso de los Libres,647.9,discharge,7720.0,82.1,0
+2026-09-23,ina_72,Paso de los Libres,647.9,discharge,6151.0,74.4,0
+2026-09-24,ina_72,Paso de los Libres,647.9,discharge,6588.0,76.7,0
+2026-09-25,ina_72,Paso de los Libres,647.9,discharge,7198.0,79.9,0
+2026-09-26,ina_72,Paso de los Libres,647.9,discharge,8078.0,83.6,0
+2026-09-27,ina_72,Paso de los Libres,647.9,discharge,8455.0,84.9,0
+2026-09-28,ina_72,Paso de los Libres,647.9,discharge,8576.0,85.4,0
+2026-09-29,ina_72,Paso de los Libres,647.9,discharge,8336.0,84.6,0
+2026-09-30,ina_72,Paso de los Libres,647.9,discharge,8177.0,84.0,0
+2026-10-01,ina_72,Paso de los Libres,647.9,discharge,7660.0,81.8,0
+2026-10-02,ina_72,Paso de los Libres,647.9,discharge,7720.0,82.1,0
+2026-10-03,ina_72,Paso de los Libres,647.9,discharge,9176.0,87.3,0
+2026-10-04,ina_72,Paso de los Libres,647.9,discharge,11690.0,93.4,0
+2026-10-05,ina_72,Paso de los Libres,647.9,discharge,12476.0,94.4,0
+2026-10-06,ina_72,Paso de los Libres,647.9,discharge,14181.0,96.1,0
+2026-10-07,ina_72,Paso de los Libres,647.9,discharge,15002.0,96.7,0
+2026-10-08,ina_72,Paso de los Libres,647.9,discharge,15700.0,97.1,0
+2026-10-09,ina_72,Paso de los Libres,647.9,discharge,16803.0,97.6,0
+2026-10-10,ina_72,Paso de los Libres,647.9,discharge,17021.0,97.7,0
+2026-10-11,ina_72,Paso de los Libres,647.9,discharge,16933.8,97.7,0
+2026-10-12,ina_72,Paso de los Libres,647.9,discharge,17274.0,97.8,0
+2026-10-13,ina_72,Paso de los Libres,647.9,discharge,17383.0,97.9,0
+2026-10-14,ina_72,Paso de los Libres,647.9,discharge,17673.0,97.9,0
+2026-10-15,ina_72,Paso de los Libres,647.9,discharge,17999.0,98.1,0
+2026-10-16,ina_72,Paso de los Libres,647.9,discharge,17999.0,98.1,0
+2026-10-17,ina_72,Paso de los Libres,647.9,discharge,17999.0,98.1,0
+2026-10-18,ina_72,Paso de los Libres,647.9,discharge,17782.0,98.0,0
+2026-10-19,ina_72,Paso de los Libres,647.9,discharge,17057.0,97.7,0
+2026-10-20,ina_72,Paso de los Libres,647.9,discharge,16099.0,97.3,0
+2026-10-21,ina_72,Paso de los Libres,647.9,discharge,14736.0,96.5,0
+2026-10-22,ina_72,Paso de los Libres,647.9,discharge,12950.0,94.9,0
+2026-10-23,ina_72,Paso de los Libres,647.9,discharge,11263.0,92.6,0
+2026-10-24,ina_72,Paso de los Libres,647.9,discharge,9891.0,89.6,0
+2026-10-25,ina_72,Paso de los Libres,647.9,discharge,8866.0,86.4,0
+2026-10-26,ina_72,Paso de los Libres,647.9,discharge,9424.0,88.2,0
+2026-10-27,ina_72,Paso de los Libres,647.9,discharge,10974.0,92.2,0
+2026-10-28,ina_72,Paso de los Libres,647.9,discharge,11751.0,93.5,0
+2026-10-29,ina_72,Paso de los Libres,647.9,discharge,13175.0,95.1,0
+2026-10-30,ina_72,Paso de los Libres,647.9,discharge,13267.0,95.3,0
+2026-10-31,ina_72,Paso de los Libres,647.9,discharge,13117.0,95.1,0
+2026-11-01,ina_72,Paso de los Libres,647.9,discharge,12197.0,94.0,0
+2026-11-02,ina_72,Paso de los Libres,647.9,discharge,10708.0,91.4,0
+2026-11-03,ina_72,Paso de los Libres,647.9,discharge,9633.0,88.9,0
+2026-11-04,ina_72,Paso de los Libres,647.9,discharge,8336.0,84.6,0
+2026-11-05,ina_72,Paso de los Libres,647.9,discharge,6950.0,78.6,0
+2026-11-06,ina_72,Paso de los Libres,647.9,discharge,6817.0,78.0,0
+2026-11-07,ina_72,Paso de los Libres,647.9,discharge,7839.0,82.5,0
+2026-09-10,ina_74,Monte Caseros,728.1,level,4.4,81.7,0
+2026-09-11,ina_74,Monte Caseros,728.1,level,4.08,77.3,0
+2026-09-12,ina_74,Monte Caseros,728.1,level,3.48,68.2,0
+2026-09-13,ina_74,Monte Caseros,728.1,level,3.12,61.5,0
+2026-09-14,ina_74,Monte Caseros,728.1,level,3.02,59.3,0
+2026-09-15,ina_74,Monte Caseros,728.1,level,3.44,67.4,0
+2026-09-16,ina_74,Monte Caseros,728.1,level,4.34,80.9,0
+2026-09-17,ina_74,Monte Caseros,728.1,level,4.7,85.1,0
+2026-09-18,ina_74,Monte Caseros,728.1,level,5.11,89.2,0
+2026-09-19,ina_74,Monte Caseros,728.1,level,5.12,89.2,0
+2026-09-20,ina_74,Monte Caseros,728.1,level,4.81,86.4,0
+2026-09-21,ina_74,Monte Caseros,728.1,level,4.51,83.1,0
+2026-09-22,ina_74,Monte Caseros,728.1,level,3.95,75.4,0
+2026-09-23,ina_74,Monte Caseros,728.1,level,3.67,71.2,0
+2026-09-24,ina_74,Monte Caseros,728.1,level,3.61,70.3,0
+2026-09-25,ina_74,Monte Caseros,728.1,level,3.82,73.5,0
+2026-09-26,ina_74,Monte Caseros,728.1,level,4.0,76.3,0
+2026-09-27,ina_74,Monte Caseros,728.1,level,4.24,79.6,0
+2026-09-28,ina_74,Monte Caseros,728.1,level,4.38,81.4,0
+2026-09-29,ina_74,Monte Caseros,728.1,level,4.4,81.7,0
+2026-09-30,ina_74,Monte Caseros,728.1,level,4.47,82.6,0
+2026-10-01,ina_74,Monte Caseros,728.1,level,4.58,83.9,0
+2026-10-02,ina_74,Monte Caseros,728.1,level,4.6,84.1,0
+2026-10-03,ina_74,Monte Caseros,728.1,level,4.8,86.4,0
+2026-10-04,ina_74,Monte Caseros,728.1,level,5.33,90.9,0
+2026-10-05,ina_74,Monte Caseros,728.1,level,5.45,91.8,0
+2026-10-06,ina_74,Monte Caseros,728.1,level,5.94,94.5,0
+2026-10-07,ina_74,Monte Caseros,728.1,level,6.15,95.4,0
+2026-10-08,ina_74,Monte Caseros,728.1,level,6.31,95.9,0
+2026-10-09,ina_74,Monte Caseros,728.1,level,6.6,96.6,0
+2026-10-10,ina_74,Monte Caseros,728.1,level,6.86,97.1,0
+2026-10-11,ina_74,Monte Caseros,728.1,level,6.98,97.2,0
+2026-10-12,ina_74,Monte Caseros,728.1,level,7.1,97.4,0
+2026-10-13,ina_74,Monte Caseros,728.1,level,7.05,97.3,0
+2026-10-14,ina_74,Monte Caseros,728.1,level,7.05,97.3,0
+2026-10-15,ina_74,Monte Caseros,728.1,level,7.05,97.3,0
+2026-10-16,ina_74,Monte Caseros,728.1,level,7.1,97.4,0
+2026-10-17,ina_74,Monte Caseros,728.1,level,7.13,97.4,0
+2026-10-18,ina_74,Monte Caseros,728.1,level,7.13,97.4,0
+2026-10-19,ina_74,Monte Caseros,728.1,level,7.1,97.4,0
+2026-10-20,ina_74,Monte Caseros,728.1,level,7.02,97.3,0
+2026-10-21,ina_74,Monte Caseros,728.1,level,6.8,97.0,0
+2026-10-22,ina_74,Monte Caseros,728.1,level,6.52,96.4,0
+2026-10-23,ina_74,Monte Caseros,728.1,level,6.21,95.6,0
+2026-10-24,ina_74,Monte Caseros,728.1,level,5.64,93.1,0
+2026-10-25,ina_74,Monte Caseros,728.1,level,5.2,90.0,0
+2026-10-26,ina_74,Monte Caseros,728.1,level,5.0,88.5,0
+2026-10-27,ina_74,Monte Caseros,728.1,level,5.18,89.8,0
+2026-10-28,ina_74,Monte Caseros,728.1,level,5.58,92.7,0
+2026-10-29,ina_74,Monte Caseros,728.1,level,5.8,93.9,0
+2026-10-30,ina_74,Monte Caseros,728.1,level,6.02,95.0,0
+2026-10-31,ina_74,Monte Caseros,728.1,level,6.08,95.1,0
+2026-11-01,ina_74,Monte Caseros,728.1,level,6.05,95.1,0
+2026-11-02,ina_74,Monte Caseros,728.1,level,5.8,93.9,0
+2026-11-03,ina_74,Monte Caseros,728.1,level,5.42,91.7,0
+2026-11-04,ina_74,Monte Caseros,728.1,level,4.92,87.5,0
+2026-11-05,ina_74,Monte Caseros,728.1,level,4.42,82.0,0
+2026-11-06,ina_74,Monte Caseros,728.1,level,4.14,78.1,0
+2026-11-07,ina_74,Monte Caseros,728.1,level,3.97,75.7,0
+2026-09-10,ina_75,Mocoretá,782.8,level,9.08,82.4,0
+2026-09-11,ina_75,Mocoretá,782.8,level,9.08,82.4,0
+2026-09-12,ina_75,Mocoretá,782.8,level,9.06,81.5,0
+2026-09-13,ina_75,Mocoretá,782.8,level,8.9,73.3,0
+2026-09-14,ina_75,Mocoretá,782.8,level,8.52,59.5,0
+2026-09-15,ina_75,Mocoretá,782.8,level,8.3,52.1,0
+2026-09-16,ina_75,Mocoretá,782.8,level,8.28,51.3,0
+2026-09-17,ina_75,Mocoretá,782.8,level,8.52,59.5,0
+2026-09-18,ina_75,Mocoretá,782.8,level,8.69,64.7,0
+2026-09-19,ina_75,Mocoretá,782.8,level,8.88,72.0,0
+2026-09-20,ina_75,Mocoretá,782.8,level,9.02,79.8,0
+2026-09-21,ina_75,Mocoretá,782.8,level,9.0,78.9,0
+2026-09-22,ina_75,Mocoretá,782.8,level,8.9,73.3,0
+2026-09-23,ina_75,Mocoretá,782.8,level,8.72,65.9,0
+2026-09-24,ina_75,Mocoretá,782.8,level,8.56,60.6,0
+2026-09-25,ina_75,Mocoretá,782.8,level,8.48,57.8,0
+2026-09-26,ina_75,Mocoretá,782.8,level,8.5,58.8,0
+2026-09-27,ina_75,Mocoretá,782.8,level,8.38,54.4,0
+2026-09-28,ina_75,Mocoretá,782.8,level,8.26,50.7,0
+2026-09-29,ina_75,Mocoretá,782.8,level,8.28,51.3,0
+2026-09-30,ina_75,Mocoretá,782.8,level,8.52,59.5,0
+2026-10-01,ina_75,Mocoretá,782.8,level,8.62,62.7,0
+2026-10-02,ina_75,Mocoretá,782.8,level,8.76,67.3,0
+2026-10-03,ina_75,Mocoretá,782.8,level,8.43,56.1,0
+2026-10-04,ina_75,Mocoretá,782.8,level,8.14,47.2,0
+2026-10-05,ina_75,Mocoretá,782.8,level,8.04,44.2,0
+2026-10-06,ina_75,Mocoretá,782.8,level,7.84,37.6,0
+2026-10-07,ina_75,Mocoretá,782.8,level,7.65,32.3,0
+2026-10-08,ina_75,Mocoretá,782.8,level,7.5,28.6,0
+2026-10-09,ina_75,Mocoretá,782.8,level,7.48,28.0,0
+2026-10-10,ina_75,Mocoretá,782.8,level,7.5,28.6,0
+2026-10-11,ina_75,Mocoretá,782.8,level,7.59,30.5,0
+2026-10-12,ina_75,Mocoretá,782.8,level,7.68,33.4,0
+2026-10-13,ina_75,Mocoretá,782.8,level,7.78,35.8,0
+2026-10-14,ina_75,Mocoretá,782.8,level,7.92,40.1,0
+2026-10-15,ina_75,Mocoretá,782.8,level,8.1,46.1,0
+2026-10-16,ina_75,Mocoretá,782.8,level,8.34,53.3,0
+2026-10-17,ina_75,Mocoretá,782.8,level,8.56,60.6,0
+2026-10-18,ina_75,Mocoretá,782.8,level,8.78,68.0,0
+2026-10-19,ina_75,Mocoretá,782.8,level,9.02,79.8,0
+2026-10-20,ina_75,Mocoretá,782.8,level,9.2,87.7,0
+2026-10-21,ina_75,Mocoretá,782.8,level,9.34,93.7,0
+2026-10-22,ina_75,Mocoretá,782.8,level,9.38,95.0,0
+2026-10-23,ina_75,Mocoretá,782.8,level,9.34,93.7,0
+2026-10-24,ina_75,Mocoretá,782.8,level,9.17,86.0,0
+2026-10-25,ina_75,Mocoretá,782.8,level,9.1,83.5,0
+2026-10-26,ina_75,Mocoretá,782.8,level,8.92,74.2,0
+2026-10-27,ina_75,Mocoretá,782.8,level,8.78,68.0,0
+2026-10-28,ina_75,Mocoretá,782.8,level,8.72,65.9,0
+2026-10-29,ina_75,Mocoretá,782.8,level,8.81,69.0,0
+2026-10-30,ina_75,Mocoretá,782.8,level,8.96,76.3,0
+2026-10-31,ina_75,Mocoretá,782.8,level,9.06,81.5,0
+2026-11-01,ina_75,Mocoretá,782.8,level,9.18,86.5,0
+2026-11-02,ina_75,Mocoretá,782.8,level,9.2,87.7,0
+2026-11-03,ina_75,Mocoretá,782.8,level,9.16,85.9,0
+2026-11-04,ina_75,Mocoretá,782.8,level,9.08,82.4,0
+2026-11-05,ina_75,Mocoretá,782.8,level,8.98,77.5,0
+2026-11-06,ina_75,Mocoretá,782.8,level,8.92,74.2,0
+2026-11-07,ina_75,Mocoretá,782.8,level,8.78,68.0,0
+2026-09-10,ina_77,Salto Grande Arriba,846.0,discharge,8922.0,81.7,0
+2026-09-11,ina_77,Salto Grande Arriba,846.0,discharge,7355.0,74.3,0
+2026-09-12,ina_77,Salto Grande Arriba,846.0,discharge,5625.0,64.2,0
+2026-09-13,ina_77,Salto Grande Arriba,846.0,discharge,4635.0,56.6,0
+2026-09-14,ina_77,Salto Grande Arriba,846.0,discharge,4924.0,58.9,0
+2026-09-15,ina_77,Salto Grande Arriba,846.0,discharge,5558.0,63.8,0
+2026-09-16,ina_77,Salto Grande Arriba,846.0,discharge,7881.0,76.8,0
+2026-09-17,ina_77,Salto Grande Arriba,846.0,discharge,9881.0,85.3,0
+2026-09-18,ina_77,Salto Grande Arriba,846.0,discharge,10526.0,87.4,0
+2026-09-19,ina_77,Salto Grande Arriba,846.0,discharge,10813.0,88.2,0
+2026-09-20,ina_77,Salto Grande Arriba,846.0,discharge,10559.0,87.5,0
+2026-09-21,ina_77,Salto Grande Arriba,846.0,discharge,9176.0,82.8,0
+2026-09-22,ina_77,Salto Grande Arriba,846.0,discharge,7553.0,75.2,0
+2026-09-23,ina_77,Salto Grande Arriba,846.0,discharge,6361.0,69.0,0
+2026-09-24,ina_77,Salto Grande Arriba,846.0,discharge,6279.0,68.5,0
+2026-09-25,ina_77,Salto Grande Arriba,846.0,discharge,6963.0,72.4,0
+2026-09-26,ina_77,Salto Grande Arriba,846.0,discharge,7224.0,73.7,0
+2026-09-27,ina_77,Salto Grande Arriba,846.0,discharge,8265.0,78.7,0
+2026-09-28,ina_77,Salto Grande Arriba,846.0,discharge,8721.0,80.9,0
+2026-09-29,ina_77,Salto Grande Arriba,846.0,discharge,11297.0,89.3,0
+2026-09-30,ina_77,Salto Grande Arriba,846.0,discharge,12574.0,91.8,0
+2026-10-01,ina_77,Salto Grande Arriba,846.0,discharge,13039.0,92.6,0
+2026-10-02,ina_77,Salto Grande Arriba,846.0,discharge,12129.0,91.1,0
+2026-10-03,ina_77,Salto Grande Arriba,846.0,discharge,9808.0,85.1,0
+2026-10-04,ina_77,Salto Grande Arriba,846.0,discharge,11051.0,88.7,0
+2026-10-05,ina_77,Salto Grande Arriba,846.0,discharge,12561.0,91.8,0
+2026-10-06,ina_77,Salto Grande Arriba,846.0,discharge,13971.0,93.9,0
+2026-10-07,ina_77,Salto Grande Arriba,846.0,discharge,14805.0,94.8,0
+2026-10-08,ina_77,Salto Grande Arriba,846.0,discharge,15690.0,95.5,0
+2026-10-09,ina_77,Salto Grande Arriba,846.0,discharge,16985.0,96.3,0
+2026-10-10,ina_77,Salto Grande Arriba,846.0,discharge,17966.0,96.7,0
+2026-10-11,ina_77,Salto Grande Arriba,846.0,discharge,18476.0,97.0,0
+2026-10-12,ina_77,Salto Grande Arriba,846.0,discharge,18593.0,97.1,0
+2026-10-13,ina_77,Salto Grande Arriba,846.0,discharge,18613.0,97.1,0
+2026-10-14,ina_77,Salto Grande Arriba,846.0,discharge,18328.0,97.0,0
+2026-10-15,ina_77,Salto Grande Arriba,846.0,discharge,18358.0,97.0,0
+2026-10-16,ina_77,Salto Grande Arriba,846.0,discharge,18235.0,96.9,0
+2026-10-17,ina_77,Salto Grande Arriba,846.0,discharge,18316.0,96.9,0
+2026-10-18,ina_77,Salto Grande Arriba,846.0,discharge,18362.0,97.0,0
+2026-10-19,ina_77,Salto Grande Arriba,846.0,discharge,18254.0,96.9,0
+2026-10-20,ina_77,Salto Grande Arriba,846.0,discharge,17962.0,96.7,0
+2026-10-21,ina_77,Salto Grande Arriba,846.0,discharge,17241.0,96.4,0
+2026-10-22,ina_77,Salto Grande Arriba,846.0,discharge,15999.0,95.7,0
+2026-10-23,ina_77,Salto Grande Arriba,846.0,discharge,15244.0,95.1,0
+2026-10-24,ina_77,Salto Grande Arriba,846.0,discharge,13233.0,93.0,0
+2026-10-25,ina_77,Salto Grande Arriba,846.0,discharge,12464.0,91.6,0
+2026-10-26,ina_77,Salto Grande Arriba,846.0,discharge,11638.0,90.1,0
+2026-10-27,ina_77,Salto Grande Arriba,846.0,discharge,11275.0,89.3,0
+2026-10-28,ina_77,Salto Grande Arriba,846.0,discharge,12139.0,91.1,0
+2026-10-29,ina_77,Salto Grande Arriba,846.0,discharge,13146.0,92.8,0
+2026-10-30,ina_77,Salto Grande Arriba,846.0,discharge,13737.0,93.6,0
+2026-10-31,ina_77,Salto Grande Arriba,846.0,discharge,14049.0,93.9,0
+2026-11-01,ina_77,Salto Grande Arriba,846.0,discharge,13956.0,93.9,0
+2026-11-02,ina_77,Salto Grande Arriba,846.0,discharge,13344.0,93.1,0
+2026-11-03,ina_77,Salto Grande Arriba,846.0,discharge,12176.0,91.1,0
+2026-11-04,ina_77,Salto Grande Arriba,846.0,discharge,10658.0,87.8,0
+2026-11-05,ina_77,Salto Grande Arriba,846.0,discharge,8999.0,82.0,0
+2026-11-06,ina_77,Salto Grande Arriba,846.0,discharge,7752.0,76.3,0
+2026-11-07,ina_77,Salto Grande Arriba,846.0,discharge,7383.0,74.4,0
+2026-09-10,ina_79,Concordia,861.8,level,6.84,80.2,0
+2026-09-11,ina_79,Concordia,861.8,level,5.96,70.5,0
+2026-09-12,ina_79,Concordia,861.8,level,6.16,72.8,0
+2026-09-13,ina_79,Concordia,861.8,level,6.3,74.6,0
+2026-09-14,ina_79,Concordia,861.8,level,6.24,73.7,0
+2026-09-15,ina_79,Concordia,861.8,level,6.2,73.4,0
+2026-09-16,ina_79,Concordia,861.8,level,6.28,74.3,0
+2026-09-17,ina_79,Concordia,861.8,level,6.6,77.8,0
+2026-09-18,ina_79,Concordia,861.8,level,7.26,83.5,0
+2026-09-19,ina_79,Concordia,861.8,level,7.5,84.9,0
+2026-09-20,ina_79,Concordia,861.8,level,7.6,85.4,0
+2026-09-21,ina_79,Concordia,861.8,level,7.52,85.0,0
+2026-09-22,ina_79,Concordia,861.8,level,6.92,81.0,0
+2026-09-23,ina_79,Concordia,861.8,level,6.54,77.0,0
+2026-09-24,ina_79,Concordia,861.8,level,6.32,74.8,0
+2026-09-25,ina_79,Concordia,861.8,level,6.36,75.1,0
+2026-09-26,ina_79,Concordia,861.8,level,6.54,77.0,0
+2026-09-27,ina_79,Concordia,861.8,level,7.32,83.8,0
+2026-09-28,ina_79,Concordia,861.8,level,7.48,84.6,0
+2026-09-29,ina_79,Concordia,861.8,level,7.8,86.5,0
+2026-09-30,ina_79,Concordia,861.8,level,8.76,90.5,0
+2026-10-01,ina_79,Concordia,861.8,level,8.92,91.1,0
+2026-10-02,ina_79,Concordia,861.8,level,8.86,90.9,0
+2026-10-03,ina_79,Concordia,861.8,level,9.1,91.8,0
+2026-10-04,ina_79,Concordia,861.8,level,9.3,92.4,0
+2026-10-05,ina_79,Concordia,861.8,level,9.9,94.2,0
+2026-10-06,ina_79,Concordia,861.8,level,10.3,95.1,0
+2026-10-07,ina_79,Concordia,861.8,level,10.78,96.0,0
+2026-10-08,ina_79,Concordia,861.8,level,11.14,96.5,0
+2026-10-09,ina_79,Concordia,861.8,level,11.56,97.2,0
+2026-10-10,ina_79,Concordia,861.8,level,11.6,97.3,0
+2026-10-11,ina_79,Concordia,861.8,level,11.55,97.2,0
+2026-10-12,ina_79,Concordia,861.8,level,11.5,97.1,0
+2026-10-13,ina_79,Concordia,861.8,level,11.28,96.8,0
+2026-10-14,ina_79,Concordia,861.8,level,11.06,96.4,0
+2026-10-15,ina_79,Concordia,861.8,level,10.92,96.2,0
+2026-10-16,ina_79,Concordia,861.8,level,10.86,96.1,0
+2026-10-17,ina_79,Concordia,861.8,level,10.86,96.1,0
+2026-10-18,ina_79,Concordia,861.8,level,10.74,95.9,0
+2026-10-19,ina_79,Concordia,861.8,level,10.66,95.8,0
+2026-10-20,ina_79,Concordia,861.8,level,10.62,95.7,0
+2026-10-21,ina_79,Concordia,861.8,level,10.56,95.6,0
+2026-10-22,ina_79,Concordia,861.8,level,10.44,95.4,0
+2026-10-23,ina_79,Concordia,861.8,level,10.44,95.4,0
+2026-10-24,ina_79,Concordia,861.8,level,10.06,94.5,0
+2026-10-25,ina_79,Concordia,861.8,level,9.56,93.3,0
+2026-10-26,ina_79,Concordia,861.8,level,9.26,92.3,0
+2026-10-27,ina_79,Concordia,861.8,level,9.1,91.8,0
+2026-10-28,ina_79,Concordia,861.8,level,9.02,91.5,0
+2026-10-29,ina_79,Concordia,861.8,level,9.0,91.4,0
+2026-10-30,ina_79,Concordia,861.8,level,9.1,91.8,0
+2026-10-31,ina_79,Concordia,861.8,level,9.22,92.2,0
+2026-11-01,ina_79,Concordia,861.8,level,9.3,92.4,0
+2026-11-02,ina_79,Concordia,861.8,level,9.3,92.4,0
+2026-11-03,ina_79,Concordia,861.8,level,9.04,91.5,0
+2026-11-04,ina_79,Concordia,861.8,level,8.39,88.9,0
+2026-11-05,ina_79,Concordia,861.8,level,7.66,85.7,0
+2026-11-06,ina_79,Concordia,861.8,level,7.12,82.7,0
+2026-11-07,ina_79,Concordia,861.8,level,6.91,80.9,0
+2026-09-10,ina_80,Colón,955.0,level,4.22,82.8,0
+2026-09-11,ina_80,Colón,955.0,level,3.92,79.3,0
+2026-09-12,ina_80,Colón,955.0,level,3.52,72.9,0
+2026-09-13,ina_80,Colón,955.0,level,3.58,73.9,0
+2026-09-14,ina_80,Colón,955.0,level,3.8,77.6,0
+2026-09-15,ina_80,Colón,955.0,level,3.6,74.3,0
+2026-09-16,ina_80,Colón,955.0,level,3.52,72.9,0
+2026-09-17,ina_80,Colón,955.0,level,3.63,74.7,0
+2026-09-18,ina_80,Colón,955.0,level,3.88,78.7,0
+2026-09-19,ina_80,Colón,955.0,level,4.12,81.7,0
+2026-09-20,ina_80,Colón,955.0,level,4.29,83.5,0
+2026-09-21,ina_80,Colón,955.0,level,4.29,83.5,0
+2026-09-22,ina_80,Colón,955.0,level,4.29,83.5,0
+2026-09-23,ina_80,Colón,955.0,level,6.24,94.2,0
+2026-09-24,ina_80,Colón,955.0,level,3.86,78.5,0
+2026-09-25,ina_80,Colón,955.0,level,3.5,72.6,0
+2026-09-26,ina_80,Colón,955.0,level,3.3,69.2,0
+2026-09-27,ina_80,Colón,955.0,level,3.54,73.2,0
+2026-09-28,ina_80,Colón,955.0,level,4.19,82.4,0
+2026-09-29,ina_80,Colón,955.0,level,4.46,85.2,0
+2026-09-30,ina_80,Colón,955.0,level,4.68,86.9,0
+2026-10-01,ina_80,Colón,955.0,level,5.16,89.7,0
+2026-10-02,ina_80,Colón,955.0,level,5.4,90.8,0
+2026-10-03,ina_80,Colón,955.0,level,5.45,91.1,0
+2026-10-04,ina_80,Colón,955.0,level,5.68,92.0,0
+2026-10-05,ina_80,Colón,955.0,level,5.7,92.1,0
+2026-10-06,ina_80,Colón,955.0,level,6.1,93.6,0
+2026-10-07,ina_80,Colón,955.0,level,6.29,94.4,0
+2026-10-08,ina_80,Colón,955.0,level,6.65,95.4,0
+2026-10-09,ina_80,Colón,955.0,level,7.1,96.5,0
+2026-10-10,ina_80,Colón,955.0,level,7.33,96.9,0
+2026-10-11,ina_80,Colón,955.0,level,7.4,97.0,0
+2026-10-12,ina_80,Colón,955.0,level,7.48,97.1,0
+2026-10-13,ina_80,Colón,955.0,level,7.45,97.0,0
+2026-10-14,ina_80,Colón,955.0,level,7.25,96.8,0
+2026-10-15,ina_80,Colón,955.0,level,7.1,96.5,0
+2026-10-16,ina_80,Colón,955.0,level,6.99,96.2,0
+2026-10-17,ina_80,Colón,955.0,level,6.85,96.0,0
+2026-10-18,ina_80,Colón,955.0,level,6.81,95.8,0
+2026-10-19,ina_80,Colón,955.0,level,6.79,95.7,0
+2026-10-20,ina_80,Colón,955.0,level,6.79,95.7,0
+2026-10-21,ina_80,Colón,955.0,level,6.71,95.5,0
+2026-10-22,ina_80,Colón,955.0,level,6.68,95.4,0
+2026-10-23,ina_80,Colón,955.0,level,6.6,95.2,0
+2026-10-24,ina_80,Colón,955.0,level,6.58,95.2,0
+2026-10-25,ina_80,Colón,955.0,level,6.3,94.5,0
+2026-10-26,ina_80,Colón,955.0,level,6.06,93.5,0
+2026-10-27,ina_80,Colón,955.0,level,5.76,92.4,0
+2026-10-28,ina_80,Colón,955.0,level,5.64,91.8,0
+2026-10-29,ina_80,Colón,955.0,level,5.5,91.3,0
+2026-10-30,ina_80,Colón,955.0,level,5.45,91.1,0
+2026-10-31,ina_80,Colón,955.0,level,5.41,90.9,0
+2026-11-01,ina_80,Colón,955.0,level,5.5,91.3,0
+2026-11-02,ina_80,Colón,955.0,level,5.56,91.6,0
+2026-11-03,ina_80,Colón,955.0,level,5.6,91.7,0
+2026-11-04,ina_80,Colón,955.0,level,5.48,91.2,0
+2026-11-05,ina_80,Colón,955.0,level,5.02,88.9,0
+2026-11-06,ina_80,Colón,955.0,level,4.92,88.4,0
+2026-11-07,ina_80,Colón,955.0,level,4.36,84.3,0
+2026-09-10,ina_81,Concepción del Uruguay,984.8,level,3.34,81.7,0
+2026-09-11,ina_81,Concepción del Uruguay,984.8,level,3.12,78.4,0
+2026-09-12,ina_81,Concepción del Uruguay,984.8,level,2.9,73.9,0
+2026-09-13,ina_81,Concepción del Uruguay,984.8,level,3.16,79.1,0
+2026-09-14,ina_81,Concepción del Uruguay,984.8,level,3.14,78.7,0
+2026-09-15,ina_81,Concepción del Uruguay,984.8,level,2.9,73.9,0
+2026-09-16,ina_81,Concepción del Uruguay,984.8,level,2.8,71.8,0
+2026-09-17,ina_81,Concepción del Uruguay,984.8,level,3.07,77.4,0
+2026-09-18,ina_81,Concepción del Uruguay,984.8,level,3.02,76.7,0
+2026-09-19,ina_81,Concepción del Uruguay,984.8,level,3.16,79.1,0
+2026-09-20,ina_81,Concepción del Uruguay,984.8,level,3.3,81.2,0
+2026-09-21,ina_81,Concepción del Uruguay,984.8,level,3.3,81.2,0
+2026-09-22,ina_81,Concepción del Uruguay,984.8,level,3.34,81.7,0
+2026-09-23,ina_81,Concepción del Uruguay,984.8,level,3.3,81.2,0
+2026-09-24,ina_81,Concepción del Uruguay,984.8,level,3.07,77.4,0
+2026-09-25,ina_81,Concepción del Uruguay,984.8,level,2.8,71.8,0
+2026-09-26,ina_81,Concepción del Uruguay,984.8,level,2.55,65.8,0
+2026-09-27,ina_81,Concepción del Uruguay,984.8,level,2.8,71.8,0
+2026-09-28,ina_81,Concepción del Uruguay,984.8,level,3.12,78.4,0
+2026-09-29,ina_81,Concepción del Uruguay,984.8,level,3.46,83.5,0
+2026-09-30,ina_81,Concepción del Uruguay,984.8,level,3.68,86.2,0
+2026-10-01,ina_81,Concepción del Uruguay,984.8,level,4.04,89.2,0
+2026-10-02,ina_81,Concepción del Uruguay,984.8,level,4.22,90.4,0
+2026-10-03,ina_81,Concepción del Uruguay,984.8,level,4.3,90.9,0
+2026-10-04,ina_81,Concepción del Uruguay,984.8,level,4.4,91.5,0
+2026-10-05,ina_81,Concepción del Uruguay,984.8,level,4.48,91.9,0
+2026-10-06,ina_81,Concepción del Uruguay,984.8,level,4.48,91.9,0
+2026-10-07,ina_81,Concepción del Uruguay,984.8,level,4.88,93.9,0
+2026-10-08,ina_81,Concepción del Uruguay,984.8,level,5.12,94.8,0
+2026-10-09,ina_81,Concepción del Uruguay,984.8,level,5.42,95.8,0
+2026-10-10,ina_81,Concepción del Uruguay,984.8,level,5.76,96.7,0
+2026-10-11,ina_81,Concepción del Uruguay,984.8,level,5.86,96.9,0
+2026-10-12,ina_81,Concepción del Uruguay,984.8,level,5.96,97.0,0
+2026-10-13,ina_81,Concepción del Uruguay,984.8,level,5.96,97.0,0
+2026-10-14,ina_81,Concepción del Uruguay,984.8,level,5.78,96.8,0
+2026-10-15,ina_81,Concepción del Uruguay,984.8,level,5.68,96.6,0
+2026-10-16,ina_81,Concepción del Uruguay,984.8,level,5.56,96.2,0
+2026-10-17,ina_81,Concepción del Uruguay,984.8,level,5.52,96.1,0
+2026-10-18,ina_81,Concepción del Uruguay,984.8,level,5.5,96.0,0
+2026-10-19,ina_81,Concepción del Uruguay,984.8,level,5.46,95.9,0
+2026-10-20,ina_81,Concepción del Uruguay,984.8,level,5.36,95.7,0
+2026-10-21,ina_81,Concepción del Uruguay,984.8,level,5.3,95.5,0
+2026-10-22,ina_81,Concepción del Uruguay,984.8,level,5.24,95.2,0
+2026-10-23,ina_81,Concepción del Uruguay,984.8,level,5.17,95.0,0
+2026-10-24,ina_81,Concepción del Uruguay,984.8,level,5.12,94.8,0
+2026-10-25,ina_81,Concepción del Uruguay,984.8,level,5.02,94.5,0
+2026-10-26,ina_81,Concepción del Uruguay,984.8,level,4.86,93.8,0
+2026-10-27,ina_81,Concepción del Uruguay,984.8,level,4.68,93.0,0
+2026-10-28,ina_81,Concepción del Uruguay,984.8,level,4.46,91.8,0
+2026-10-29,ina_81,Concepción del Uruguay,984.8,level,4.38,91.3,0
+2026-10-30,ina_81,Concepción del Uruguay,984.8,level,4.28,90.8,0
+2026-10-31,ina_81,Concepción del Uruguay,984.8,level,4.29,90.8,0
+2026-11-01,ina_81,Concepción del Uruguay,984.8,level,4.3,90.9,0
+2026-11-02,ina_81,Concepción del Uruguay,984.8,level,4.34,91.1,0
+2026-11-03,ina_81,Concepción del Uruguay,984.8,level,4.35,91.2,0
+2026-11-04,ina_81,Concepción del Uruguay,984.8,level,4.3,90.9,0
+2026-11-05,ina_81,Concepción del Uruguay,984.8,level,4.1,89.7,0
+2026-11-06,ina_81,Concepción del Uruguay,984.8,level,4.1,89.7,0
+2026-11-07,ina_81,Concepción del Uruguay,984.8,level,3.44,83.2,0
+2026-09-10,ina_82,Campichuelo,1009.5,level,2.7,77.5,0
+2026-09-11,ina_82,Campichuelo,1009.5,level,2.6,75.1,0
+2026-09-12,ina_82,Campichuelo,1009.5,level,2.36,68.7,0
+2026-09-13,ina_82,Campichuelo,1009.5,level,2.46,71.7,0
+2026-09-14,ina_82,Campichuelo,1009.5,level,2.76,78.9,0
+2026-09-15,ina_82,Campichuelo,1009.5,level,2.49,72.2,0
+2026-09-16,ina_82,Campichuelo,1009.5,level,2.4,70.1,0
+2026-09-17,ina_82,Campichuelo,1009.5,level,2.6,75.1,0
+2026-09-18,ina_82,Campichuelo,1009.5,level,2.5,72.9,0
+2026-09-19,ina_82,Campichuelo,1009.5,level,2.64,75.9,0
+2026-09-20,ina_82,Campichuelo,1009.5,level,2.56,74.1,0
+2026-09-21,ina_82,Campichuelo,1009.5,level,2.56,74.1,0
+2026-09-22,ina_82,Campichuelo,1009.5,level,2.68,76.9,0
+2026-09-23,ina_82,Campichuelo,1009.5,level,2.61,75.2,0
+2026-09-24,ina_82,Campichuelo,1009.5,level,2.62,75.5,0
+2026-09-25,ina_82,Campichuelo,1009.5,level,2.3,67.3,0
+2026-09-26,ina_82,Campichuelo,1009.5,level,2.0,57.1,0
+2026-09-27,ina_82,Campichuelo,1009.5,level,2.24,65.1,0
+2026-09-28,ina_82,Campichuelo,1009.5,level,2.52,73.3,0
+2026-09-29,ina_82,Campichuelo,1009.5,level,2.94,82.3,0
+2026-09-30,ina_82,Campichuelo,1009.5,level,3.08,84.7,0
+2026-10-01,ina_82,Campichuelo,1009.5,level,3.42,88.6,0
+2026-10-02,ina_82,Campichuelo,1009.5,level,3.45,88.7,0
+2026-10-03,ina_82,Campichuelo,1009.5,level,3.52,89.5,0
+2026-10-04,ina_82,Campichuelo,1009.5,level,3.4,88.5,0
+2026-10-05,ina_82,Campichuelo,1009.5,level,3.52,89.5,0
+2026-10-06,ina_82,Campichuelo,1009.5,level,3.52,89.5,0
+2026-10-07,ina_82,Campichuelo,1009.5,level,3.9,92.2,0
+2026-10-08,ina_82,Campichuelo,1009.5,level,4.09,93.6,0
+2026-10-09,ina_82,Campichuelo,1009.5,level,4.35,94.9,0
+2026-10-10,ina_82,Campichuelo,1009.5,level,4.66,96.3,0
+2026-10-11,ina_82,Campichuelo,1009.5,level,4.76,96.6,0
+2026-10-12,ina_82,Campichuelo,1009.5,level,4.86,96.8,0
+2026-10-13,ina_82,Campichuelo,1009.5,level,4.84,96.8,0
+2026-10-14,ina_82,Campichuelo,1009.5,level,4.66,96.3,0
+2026-10-15,ina_82,Campichuelo,1009.5,level,4.54,95.7,0
+2026-10-16,ina_82,Campichuelo,1009.5,level,4.52,95.7,0
+2026-10-17,ina_82,Campichuelo,1009.5,level,4.54,95.7,0
+2026-10-18,ina_82,Campichuelo,1009.5,level,4.48,95.5,0
+2026-10-19,ina_82,Campichuelo,1009.5,level,4.46,95.4,0
+2026-10-20,ina_82,Campichuelo,1009.5,level,4.4,95.2,0
+2026-10-21,ina_82,Campichuelo,1009.5,level,4.3,94.7,0
+2026-10-22,ina_82,Campichuelo,1009.5,level,4.24,94.4,0
+2026-10-23,ina_82,Campichuelo,1009.5,level,4.15,93.9,0
+2026-10-24,ina_82,Campichuelo,1009.5,level,4.1,93.7,0
+2026-10-25,ina_82,Campichuelo,1009.5,level,4.03,93.3,0
+2026-10-26,ina_82,Campichuelo,1009.5,level,4.4,95.2,0
+2026-10-27,ina_82,Campichuelo,1009.5,level,3.62,90.3,0
+2026-10-28,ina_82,Campichuelo,1009.5,level,3.59,90.0,0
+2026-10-29,ina_82,Campichuelo,1009.5,level,3.43,88.6,0
+2026-10-30,ina_82,Campichuelo,1009.5,level,3.3,87.4,0
+2026-10-31,ina_82,Campichuelo,1009.5,level,3.46,88.9,0
+2026-11-01,ina_82,Campichuelo,1009.5,level,3.32,87.5,0
+2026-11-02,ina_82,Campichuelo,1009.5,level,3.4,88.5,0
+2026-11-03,ina_82,Campichuelo,1009.5,level,3.28,87.1,0
+2026-11-04,ina_82,Campichuelo,1009.5,level,3.34,87.7,0
+2026-11-05,ina_82,Campichuelo,1009.5,level,3.2,86.2,0
+2026-11-06,ina_82,Campichuelo,1009.5,level,3.2,86.2,0
+2026-11-07,ina_82,Campichuelo,1009.5,level,2.96,82.7,0
+2026-09-10,ina_84,Boca Gualeguaychú,1055.6,level,1.9,72.5,0
+2026-09-11,ina_84,Boca Gualeguaychú,1055.6,level,1.92,73.3,0
+2026-09-12,ina_84,Boca Gualeguaychú,1055.6,level,1.94,74.2,0
+2026-09-13,ina_84,Boca Gualeguaychú,1055.6,level,2.6,92.3,0
+2026-09-14,ina_84,Boca Gualeguaychú,1055.6,level,2.3,86.5,0
+2026-09-15,ina_84,Boca Gualeguaychú,1055.6,level,1.88,71.3,0
+2026-09-16,ina_84,Boca Gualeguaychú,1055.6,level,1.72,63.3,0
+2026-09-17,ina_84,Boca Gualeguaychú,1055.6,level,2.1,81.0,0
+2026-09-18,ina_84,Boca Gualeguaychú,1055.6,level,1.8,67.8,0
+2026-09-19,ina_84,Boca Gualeguaychú,1055.6,level,1.7,62.4,0
+2026-09-20,ina_84,Boca Gualeguaychú,1055.6,level,1.64,58.8,0
+2026-09-21,ina_84,Boca Gualeguaychú,1055.6,level,1.76,65.3,0
+2026-09-22,ina_84,Boca Gualeguaychú,1055.6,level,1.76,65.3,0
+2026-09-23,ina_84,Boca Gualeguaychú,1055.6,level,2.3,86.5,0
+2026-09-24,ina_84,Boca Gualeguaychú,1055.6,level,1.78,66.3,0
+2026-09-25,ina_84,Boca Gualeguaychú,1055.6,level,1.4,43.9,0
+2026-09-26,ina_84,Boca Gualeguaychú,1055.6,level,1.4,43.9,0
+2026-09-27,ina_84,Boca Gualeguaychú,1055.6,level,1.78,66.3,0
+2026-09-28,ina_84,Boca Gualeguaychú,1055.6,level,2.0,77.1,0
+2026-09-29,ina_84,Boca Gualeguaychú,1055.6,level,1.98,75.8,0
+2026-09-30,ina_84,Boca Gualeguaychú,1055.6,level,1.98,75.8,0
+2026-10-01,ina_84,Boca Gualeguaychú,1055.6,level,2.28,85.9,0
+2026-10-02,ina_84,Boca Gualeguaychú,1055.6,level,2.38,88.2,0
+2026-10-03,ina_84,Boca Gualeguaychú,1055.6,level,2.2,83.9,0
+2026-10-04,ina_84,Boca Gualeguaychú,1055.6,level,2.04,78.6,0
+2026-10-05,ina_84,Boca Gualeguaychú,1055.6,level,2.06,79.3,0
+2026-10-06,ina_84,Boca Gualeguaychú,1055.6,level,2.1,81.0,0
+2026-10-07,ina_84,Boca Gualeguaychú,1055.6,level,2.2,83.9,0
+2026-10-08,ina_84,Boca Gualeguaychú,1055.6,level,2.48,90.2,0
+2026-10-09,ina_84,Boca Gualeguaychú,1055.6,level,2.66,92.9,0
+2026-10-10,ina_84,Boca Gualeguaychú,1055.6,level,3.04,96.3,0
+2026-10-11,ina_84,Boca Gualeguaychú,1055.6,level,3.04,96.3,0
+2026-10-12,ina_84,Boca Gualeguaychú,1055.6,level,3.04,96.3,0
+2026-10-13,ina_84,Boca Gualeguaychú,1055.6,level,3.0,96.1,0
+2026-10-14,ina_84,Boca Gualeguaychú,1055.6,level,3.0,96.1,0
+2026-10-15,ina_84,Boca Gualeguaychú,1055.6,level,2.94,95.8,0
+2026-10-16,ina_84,Boca Gualeguaychú,1055.6,level,3.0,96.1,0
+2026-10-17,ina_84,Boca Gualeguaychú,1055.6,level,3.06,96.5,0
+2026-10-18,ina_84,Boca Gualeguaychú,1055.6,level,3.04,96.3,0
+2026-10-19,ina_84,Boca Gualeguaychú,1055.6,level,2.98,96.0,0
+2026-10-20,ina_84,Boca Gualeguaychú,1055.6,level,2.9,95.6,0
+2026-10-21,ina_84,Boca Gualeguaychú,1055.6,level,2.74,93.8,0
+2026-10-22,ina_84,Boca Gualeguaychú,1055.6,level,2.56,91.7,0
+2026-10-23,ina_84,Boca Gualeguaychú,1055.6,level,2.54,91.4,0
+2026-10-24,ina_84,Boca Gualeguaychú,1055.6,level,2.5,90.8,0
+2026-10-25,ina_84,Boca Gualeguaychú,1055.6,level,2.74,93.8,0
+2026-10-26,ina_84,Boca Gualeguaychú,1055.6,level,2.8,94.5,0
+2026-10-27,ina_84,Boca Gualeguaychú,1055.6,level,2.6,92.3,0
+2026-10-28,ina_84,Boca Gualeguaychú,1055.6,level,2.5,90.8,0
+2026-10-29,ina_84,Boca Gualeguaychú,1055.6,level,2.3,86.5,0
+2026-10-30,ina_84,Boca Gualeguaychú,1055.6,level,2.26,85.5,0
+2026-10-31,ina_84,Boca Gualeguaychú,1055.6,level,2.24,84.9,0
+2026-11-01,ina_84,Boca Gualeguaychú,1055.6,level,2.1,81.0,0
+2026-11-02,ina_84,Boca Gualeguaychú,1055.6,level,2.14,82.0,0
+2026-11-03,ina_84,Boca Gualeguaychú,1055.6,level,2.16,82.6,0
+2026-11-04,ina_84,Boca Gualeguaychú,1055.6,level,2.5,90.8,0
+2026-11-05,ina_84,Boca Gualeguaychú,1055.6,level,2.3,86.5,0
+2026-11-06,ina_84,Boca Gualeguaychú,1055.6,level,2.1,81.0,0
+2026-11-07,ina_84,Boca Gualeguaychú,1055.6,level,2.1,81.0,0

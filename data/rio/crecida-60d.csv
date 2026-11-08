@@ -117,6 +117,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-05,ina_61,El Soberbio,249.7,discharge,4768.0,90.1,0
 2026-11-06,ina_61,El Soberbio,249.7,discharge,15239.0,99.0,0
 2026-11-07,ina_61,El Soberbio,249.7,discharge,11459.0,98.2,0
+2026-11-08,ina_61,El Soberbio,249.7,discharge,12254.0,98.5,1
 2026-09-10,ina_63,Alba Posse,305.8,level,4.0,79.8,0
 2026-09-11,ina_63,Alba Posse,305.8,level,3.7,74.2,0
 2026-09-12,ina_63,Alba Posse,305.8,level,4.6,84.7,0
@@ -294,6 +295,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-05,ina_65,San Javier,363.5,discharge,5066.0,88.8,0
 2026-11-06,ina_65,San Javier,363.5,discharge,10771.0,97.4,0
 2026-11-07,ina_65,San Javier,363.5,discharge,15917.0,99.0,0
+2026-11-08,ina_65,San Javier,363.5,discharge,11880.0,97.9,1
 2026-09-10,ina_66,Puerto Concepción,414.7,level,2.32,51.7,0
 2026-09-11,ina_66,Puerto Concepción,414.7,level,2.75,64.9,0
 2026-09-12,ina_66,Puerto Concepción,414.7,level,2.75,64.9,0
@@ -412,6 +414,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-05,ina_67,Garruchos,424.6,discharge,3890.94,76.0,0
 2026-11-06,ina_67,Garruchos,424.6,discharge,5625.69,85.7,0
 2026-11-07,ina_67,Garruchos,424.6,discharge,12661.4,97.2,0
+2026-11-08,ina_67,Garruchos,424.6,discharge,14947.0,98.3,1
 2026-09-10,ina_68,Santo Tomé,479.9,discharge,2581.0,60.8,0
 2026-09-11,ina_68,Santo Tomé,479.9,discharge,2880.0,65.9,0
 2026-09-12,ina_68,Santo Tomé,479.9,discharge,3453.0,73.7,0
@@ -471,6 +474,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-05,ina_68,Santo Tomé,479.9,discharge,4768.0,82.8,0
 2026-11-06,ina_68,Santo Tomé,479.9,discharge,6769.0,89.8,0
 2026-11-07,ina_68,Santo Tomé,479.9,discharge,10290.0,95.5,0
+2026-11-08,ina_68,Santo Tomé,479.9,discharge,12901.0,97.3,1
 2026-09-10,ina_69,Alvear,561.0,level,5.6,78.4,0
 2026-09-11,ina_69,Alvear,561.0,level,4.32,65.7,0
 2026-09-12,ina_69,Alvear,561.0,level,4.26,65.0,0
@@ -530,6 +534,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-05,ina_69,Alvear,561.0,level,5.8,80.0,0
 2026-11-06,ina_69,Alvear,561.0,level,5.98,81.5,0
 2026-11-07,ina_69,Alvear,561.0,level,6.65,86.0,0
+2026-11-08,ina_69,Alvear,561.0,level,8.03,92.9,1
 2026-09-10,ina_70,La Cruz,573.4,level,5.4,77.1,0
 2026-09-11,ina_70,La Cruz,573.4,level,4.39,66.6,0
 2026-09-12,ina_70,La Cruz,573.4,level,4.27,65.0,0
@@ -707,6 +712,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-05,ina_72,Paso de los Libres,647.9,discharge,6950.0,78.6,0
 2026-11-06,ina_72,Paso de los Libres,647.9,discharge,6817.0,78.0,0
 2026-11-07,ina_72,Paso de los Libres,647.9,discharge,7839.0,82.5,0
+2026-11-08,ina_72,Paso de los Libres,647.9,discharge,9238.0,87.5,1
 2026-09-10,ina_74,Monte Caseros,728.1,level,4.4,81.7,0
 2026-09-11,ina_74,Monte Caseros,728.1,level,4.08,77.3,0
 2026-09-12,ina_74,Monte Caseros,728.1,level,3.48,68.2,0
@@ -825,65 +831,66 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-05,ina_75,Mocoretá,782.8,level,8.98,77.5,0
 2026-11-06,ina_75,Mocoretá,782.8,level,8.92,74.2,0
 2026-11-07,ina_75,Mocoretá,782.8,level,8.78,68.0,0
-2026-09-10,ina_77,Salto Grande Arriba,846.0,discharge,8922.0,81.7,0
-2026-09-11,ina_77,Salto Grande Arriba,846.0,discharge,7355.0,74.3,0
-2026-09-12,ina_77,Salto Grande Arriba,846.0,discharge,5625.0,64.2,0
-2026-09-13,ina_77,Salto Grande Arriba,846.0,discharge,4635.0,56.6,0
-2026-09-14,ina_77,Salto Grande Arriba,846.0,discharge,4924.0,58.9,0
-2026-09-15,ina_77,Salto Grande Arriba,846.0,discharge,5558.0,63.8,0
-2026-09-16,ina_77,Salto Grande Arriba,846.0,discharge,7881.0,76.8,0
-2026-09-17,ina_77,Salto Grande Arriba,846.0,discharge,9881.0,85.3,0
-2026-09-18,ina_77,Salto Grande Arriba,846.0,discharge,10526.0,87.4,0
-2026-09-19,ina_77,Salto Grande Arriba,846.0,discharge,10813.0,88.2,0
-2026-09-20,ina_77,Salto Grande Arriba,846.0,discharge,10559.0,87.5,0
-2026-09-21,ina_77,Salto Grande Arriba,846.0,discharge,9176.0,82.8,0
-2026-09-22,ina_77,Salto Grande Arriba,846.0,discharge,7553.0,75.2,0
-2026-09-23,ina_77,Salto Grande Arriba,846.0,discharge,6361.0,69.0,0
-2026-09-24,ina_77,Salto Grande Arriba,846.0,discharge,6279.0,68.5,0
-2026-09-25,ina_77,Salto Grande Arriba,846.0,discharge,6963.0,72.4,0
-2026-09-26,ina_77,Salto Grande Arriba,846.0,discharge,7224.0,73.7,0
-2026-09-27,ina_77,Salto Grande Arriba,846.0,discharge,8265.0,78.7,0
-2026-09-28,ina_77,Salto Grande Arriba,846.0,discharge,8721.0,80.9,0
-2026-09-29,ina_77,Salto Grande Arriba,846.0,discharge,11297.0,89.3,0
-2026-09-30,ina_77,Salto Grande Arriba,846.0,discharge,12574.0,91.8,0
-2026-10-01,ina_77,Salto Grande Arriba,846.0,discharge,13039.0,92.6,0
-2026-10-02,ina_77,Salto Grande Arriba,846.0,discharge,12129.0,91.1,0
-2026-10-03,ina_77,Salto Grande Arriba,846.0,discharge,9808.0,85.1,0
-2026-10-04,ina_77,Salto Grande Arriba,846.0,discharge,11051.0,88.7,0
-2026-10-05,ina_77,Salto Grande Arriba,846.0,discharge,12561.0,91.8,0
-2026-10-06,ina_77,Salto Grande Arriba,846.0,discharge,13971.0,93.9,0
-2026-10-07,ina_77,Salto Grande Arriba,846.0,discharge,14805.0,94.8,0
-2026-10-08,ina_77,Salto Grande Arriba,846.0,discharge,15690.0,95.5,0
-2026-10-09,ina_77,Salto Grande Arriba,846.0,discharge,16985.0,96.3,0
-2026-10-10,ina_77,Salto Grande Arriba,846.0,discharge,17966.0,96.7,0
-2026-10-11,ina_77,Salto Grande Arriba,846.0,discharge,18476.0,97.0,0
-2026-10-12,ina_77,Salto Grande Arriba,846.0,discharge,18593.0,97.1,0
-2026-10-13,ina_77,Salto Grande Arriba,846.0,discharge,18613.0,97.1,0
-2026-10-14,ina_77,Salto Grande Arriba,846.0,discharge,18328.0,97.0,0
-2026-10-15,ina_77,Salto Grande Arriba,846.0,discharge,18358.0,97.0,0
-2026-10-16,ina_77,Salto Grande Arriba,846.0,discharge,18235.0,96.9,0
-2026-10-17,ina_77,Salto Grande Arriba,846.0,discharge,18316.0,96.9,0
-2026-10-18,ina_77,Salto Grande Arriba,846.0,discharge,18362.0,97.0,0
-2026-10-19,ina_77,Salto Grande Arriba,846.0,discharge,18254.0,96.9,0
-2026-10-20,ina_77,Salto Grande Arriba,846.0,discharge,17962.0,96.7,0
-2026-10-21,ina_77,Salto Grande Arriba,846.0,discharge,17241.0,96.4,0
-2026-10-22,ina_77,Salto Grande Arriba,846.0,discharge,15999.0,95.7,0
-2026-10-23,ina_77,Salto Grande Arriba,846.0,discharge,15244.0,95.1,0
-2026-10-24,ina_77,Salto Grande Arriba,846.0,discharge,13233.0,93.0,0
-2026-10-25,ina_77,Salto Grande Arriba,846.0,discharge,12464.0,91.6,0
-2026-10-26,ina_77,Salto Grande Arriba,846.0,discharge,11638.0,90.1,0
-2026-10-27,ina_77,Salto Grande Arriba,846.0,discharge,11275.0,89.3,0
-2026-10-28,ina_77,Salto Grande Arriba,846.0,discharge,12139.0,91.1,0
-2026-10-29,ina_77,Salto Grande Arriba,846.0,discharge,13146.0,92.8,0
-2026-10-30,ina_77,Salto Grande Arriba,846.0,discharge,13737.0,93.6,0
-2026-10-31,ina_77,Salto Grande Arriba,846.0,discharge,14049.0,93.9,0
-2026-11-01,ina_77,Salto Grande Arriba,846.0,discharge,13956.0,93.9,0
-2026-11-02,ina_77,Salto Grande Arriba,846.0,discharge,13344.0,93.1,0
-2026-11-03,ina_77,Salto Grande Arriba,846.0,discharge,12176.0,91.1,0
-2026-11-04,ina_77,Salto Grande Arriba,846.0,discharge,10658.0,87.8,0
-2026-11-05,ina_77,Salto Grande Arriba,846.0,discharge,8999.0,82.0,0
-2026-11-06,ina_77,Salto Grande Arriba,846.0,discharge,7752.0,76.3,0
-2026-11-07,ina_77,Salto Grande Arriba,846.0,discharge,7383.0,74.4,0
+2026-09-10,ina_77,Salto Grande Arriba,846.0,level,35.06,75.5,0
+2026-09-11,ina_77,Salto Grande Arriba,846.0,level,35.12,79.1,0
+2026-09-12,ina_77,Salto Grande Arriba,846.0,level,35.04,74.2,0
+2026-09-13,ina_77,Salto Grande Arriba,846.0,level,34.82,63.7,0
+2026-09-14,ina_77,Salto Grande Arriba,846.0,level,34.53,51.1,0
+2026-09-15,ina_77,Salto Grande Arriba,846.0,level,34.32,44.0,0
+2026-09-16,ina_77,Salto Grande Arriba,846.0,level,34.29,42.8,0
+2026-09-17,ina_77,Salto Grande Arriba,846.0,level,34.48,49.4,0
+2026-09-18,ina_77,Salto Grande Arriba,846.0,level,34.67,56.9,0
+2026-09-19,ina_77,Salto Grande Arriba,846.0,level,34.88,66.4,0
+2026-09-20,ina_77,Salto Grande Arriba,846.0,level,34.97,70.2,0
+2026-09-21,ina_77,Salto Grande Arriba,846.0,level,34.92,68.0,0
+2026-09-22,ina_77,Salto Grande Arriba,846.0,level,34.82,63.7,0
+2026-09-23,ina_77,Salto Grande Arriba,846.0,level,34.72,59.3,0
+2026-09-24,ina_77,Salto Grande Arriba,846.0,level,34.61,54.6,0
+2026-09-25,ina_77,Salto Grande Arriba,846.0,level,34.49,49.7,0
+2026-09-26,ina_77,Salto Grande Arriba,846.0,level,34.49,49.7,0
+2026-09-27,ina_77,Salto Grande Arriba,846.0,level,34.36,45.3,0
+2026-09-28,ina_77,Salto Grande Arriba,846.0,level,34.2,40.1,0
+2026-09-29,ina_77,Salto Grande Arriba,846.0,level,34.29,42.8,0
+2026-09-30,ina_77,Salto Grande Arriba,846.0,level,34.38,46.1,0
+2026-10-01,ina_77,Salto Grande Arriba,846.0,level,34.54,51.9,0
+2026-10-02,ina_77,Salto Grande Arriba,846.0,level,34.65,56.1,0
+2026-10-03,ina_77,Salto Grande Arriba,846.0,level,34.33,44.1,0
+2026-10-04,ina_77,Salto Grande Arriba,846.0,level,33.85,30.1,0
+2026-10-05,ina_77,Salto Grande Arriba,846.0,level,33.64,25.7,0
+2026-10-06,ina_77,Salto Grande Arriba,846.0,level,33.36,19.5,0
+2026-10-07,ina_77,Salto Grande Arriba,846.0,level,33.03,14.0,0
+2026-10-08,ina_77,Salto Grande Arriba,846.0,level,32.63,9.3,0
+2026-10-09,ina_77,Salto Grande Arriba,846.0,level,32.35,6.3,0
+2026-10-10,ina_77,Salto Grande Arriba,846.0,level,32.2,5.3,0
+2026-10-11,ina_77,Salto Grande Arriba,846.0,level,32.24,5.5,0
+2026-10-12,ina_77,Salto Grande Arriba,846.0,level,32.28,5.8,0
+2026-10-13,ina_77,Salto Grande Arriba,846.0,level,32.51,8.0,0
+2026-10-14,ina_77,Salto Grande Arriba,846.0,level,32.78,11.1,0
+2026-10-15,ina_77,Salto Grande Arriba,846.0,level,32.78,11.1,0
+2026-10-16,ina_77,Salto Grande Arriba,846.0,level,33.4,20.4,0
+2026-10-17,ina_77,Salto Grande Arriba,846.0,level,33.7,27.0,0
+2026-10-18,ina_77,Salto Grande Arriba,846.0,level,34.04,35.7,0
+2026-10-19,ina_77,Salto Grande Arriba,846.0,level,34.39,46.2,0
+2026-10-20,ina_77,Salto Grande Arriba,846.0,level,34.68,57.6,0
+2026-10-21,ina_77,Salto Grande Arriba,846.0,level,34.9,67.1,0
+2026-10-22,ina_77,Salto Grande Arriba,846.0,level,35.03,73.3,0
+2026-10-23,ina_77,Salto Grande Arriba,846.0,level,35.06,75.5,0
+2026-10-24,ina_77,Salto Grande Arriba,846.0,level,34.92,68.0,0
+2026-10-25,ina_77,Salto Grande Arriba,846.0,level,34.84,64.6,0
+2026-10-26,ina_77,Salto Grande Arriba,846.0,level,34.7,58.4,0
+2026-10-27,ina_77,Salto Grande Arriba,846.0,level,34.55,52.2,0
+2026-10-28,ina_77,Salto Grande Arriba,846.0,level,34.47,49.0,0
+2026-10-29,ina_77,Salto Grande Arriba,846.0,level,34.53,51.1,0
+2026-10-30,ina_77,Salto Grande Arriba,846.0,level,34.74,60.3,0
+2026-10-31,ina_77,Salto Grande Arriba,846.0,level,34.81,63.1,0
+2026-11-01,ina_77,Salto Grande Arriba,846.0,level,34.91,67.2,0
+2026-11-02,ina_77,Salto Grande Arriba,846.0,level,34.99,71.4,0
+2026-11-03,ina_77,Salto Grande Arriba,846.0,level,34.96,70.1,0
+2026-11-04,ina_77,Salto Grande Arriba,846.0,level,34.96,70.1,0
+2026-11-05,ina_77,Salto Grande Arriba,846.0,level,34.92,68.0,0
+2026-11-06,ina_77,Salto Grande Arriba,846.0,level,34.89,66.5,0
+2026-11-07,ina_77,Salto Grande Arriba,846.0,level,34.74,60.3,0
+2026-11-08,ina_77,Salto Grande Arriba,846.0,level,34.6,54.4,1
 2026-09-10,ina_79,Concordia,861.8,level,6.84,80.2,0
 2026-09-11,ina_79,Concordia,861.8,level,5.96,70.5,0
 2026-09-12,ina_79,Concordia,861.8,level,6.16,72.8,0
@@ -943,6 +950,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-05,ina_79,Concordia,861.8,level,7.66,85.7,0
 2026-11-06,ina_79,Concordia,861.8,level,7.12,82.7,0
 2026-11-07,ina_79,Concordia,861.8,level,6.91,80.9,0
+2026-11-08,ina_79,Concordia,861.8,level,7.04,82.1,1
 2026-09-10,ina_80,Colón,955.0,level,4.22,82.8,0
 2026-09-11,ina_80,Colón,955.0,level,3.92,79.3,0
 2026-09-12,ina_80,Colón,955.0,level,3.52,72.9,0

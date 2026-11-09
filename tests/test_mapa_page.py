@@ -275,6 +275,15 @@ def test_links_only_for_cities_with_a_pack(fresh):
     assert not (fresh / "rio/mapa/salto/index.html").exists()
 
 
+def test_home_names_each_city_map_under_the_table(fresh):
+    home = (fresh / "index.html").read_text(encoding="utf-8")
+    line = ('<p class="mas"><a href="/clima-uy/rio/mapa/paysandu/">Mapa de crecida de Paysandú: '
+            'qué terreno y cuánta gente queda bajo el agua a cada altura del río</a></p>')
+    assert home.count(line) == 1
+    assert home.index("</tbody></table></div>\n" + line) < home.index("<h2>Perfil del río hoy</h2>")
+    assert home.count("Mapa de crecida de") == 1
+
+
 def test_other_sheets_renumbered(fresh):
     for page, n in {"index.html": 1, "rio/index.html": 2, "rio/crecida/index.html": 3, "nino/index.html": 5,
                     "datos/index.html": 6, "rio/metodologia/index.html": 7}.items():

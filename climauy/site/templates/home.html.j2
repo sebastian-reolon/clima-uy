@@ -27,7 +27,8 @@
 {% endif %}
 {% endfor %}
 </tbody></table></div>
-</section>
+{% for r in city_rows if r.mapa %}<p class="mas"><a href="{{ r.mapa }}">Mapa de crecida de {{ r.city }}: qué terreno y cuánta gente queda bajo el agua a cada altura del río</a></p>
+{% endfor %}</section>
 <section class="sec"><h2>Perfil del río hoy</h2>
 <p class="que">Cada estación comparada con su propia historia, de las represas de Brasil a Nueva Palmira.</p>
 {{ profile_wide }}{{ profile_phone }}

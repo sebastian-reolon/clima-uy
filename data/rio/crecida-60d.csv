@@ -1,9 +1,8 @@
 date,station_id,station,km,variable,value,percentile,partial
-2026-09-23,ina_60,Pepirí Miní,217.5,level,9.43,96.9,0
 2026-09-24,ina_60,Pepirí Miní,217.5,level,7.85,93.9,0
 2026-09-25,ina_60,Pepirí Miní,217.5,level,6.5,89.4,0
 2026-09-26,ina_60,Pepirí Miní,217.5,level,6.3,88.8,0
-2026-09-27,ina_60,Pepirí Miní,217.5,level,4.6,81.7,0
+2026-09-27,ina_60,Pepirí Miní,217.5,level,4.6,81.6,0
 2026-09-28,ina_60,Pepirí Miní,217.5,level,4.85,83.2,0
 2026-09-29,ina_60,Pepirí Miní,217.5,level,3.78,74.2,0
 2026-09-30,ina_60,Pepirí Miní,217.5,level,7.22,91.2,0
@@ -12,14 +11,14 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-03,ina_60,Pepirí Miní,217.5,level,9.33,96.7,0
 2026-10-04,ina_60,Pepirí Miní,217.5,level,7.58,92.9,0
 2026-10-05,ina_60,Pepirí Miní,217.5,level,8.05,94.4,0
-2026-10-06,ina_60,Pepirí Miní,217.5,level,7.35,91.6,0
+2026-10-06,ina_60,Pepirí Miní,217.5,level,7.35,91.5,0
 2026-10-07,ina_60,Pepirí Miní,217.5,level,7.25,91.3,0
 2026-10-08,ina_60,Pepirí Miní,217.5,level,6.65,89.7,0
 2026-10-09,ina_60,Pepirí Miní,217.5,level,5.52,86.3,0
-2026-10-10,ina_60,Pepirí Miní,217.5,level,8.4,95.1,0
+2026-10-10,ina_60,Pepirí Miní,217.5,level,8.4,95.0,0
 2026-10-11,ina_60,Pepirí Miní,217.5,level,8.91,96.2,0
 2026-10-12,ina_60,Pepirí Miní,217.5,level,9.43,96.9,0
-2026-10-13,ina_60,Pepirí Miní,217.5,level,7.1,91.0,0
+2026-10-13,ina_60,Pepirí Miní,217.5,level,7.1,90.9,0
 2026-10-14,ina_60,Pepirí Miní,217.5,level,9.7,97.1,0
 2026-10-15,ina_60,Pepirí Miní,217.5,level,9.5,96.9,0
 2026-10-16,ina_60,Pepirí Miní,217.5,level,7.38,91.7,0
@@ -30,7 +29,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-21,ina_60,Pepirí Miní,217.5,level,2.88,57.9,0
 2026-10-22,ina_60,Pepirí Miní,217.5,level,3.65,73.0,0
 2026-10-23,ina_60,Pepirí Miní,217.5,level,3.85,75.4,0
-2026-10-24,ina_60,Pepirí Miní,217.5,level,6.8,90.2,0
+2026-10-24,ina_60,Pepirí Miní,217.5,level,6.8,90.1,0
 2026-10-25,ina_60,Pepirí Miní,217.5,level,13.4,98.6,0
 2026-10-26,ina_60,Pepirí Miní,217.5,level,9.9,97.3,0
 2026-10-27,ina_60,Pepirí Miní,217.5,level,7.7,93.5,0
@@ -52,14 +51,13 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-12,ina_60,Pepirí Miní,217.5,level,6.1,88.2,0
 2026-11-13,ina_60,Pepirí Miní,217.5,level,6.4,89.1,0
 2026-11-14,ina_60,Pepirí Miní,217.5,level,6.73,90.0,0
-2026-11-15,ina_60,Pepirí Miní,217.5,level,5.53,86.4,0
+2026-11-15,ina_60,Pepirí Miní,217.5,level,5.53,86.3,0
 2026-11-16,ina_60,Pepirí Miní,217.5,level,2.1,43.8,0
 2026-11-17,ina_60,Pepirí Miní,217.5,level,3.55,71.7,0
 2026-11-18,ina_60,Pepirí Miní,217.5,level,5.1,84.5,0
 2026-11-19,ina_60,Pepirí Miní,217.5,level,5.6,86.6,0
 2026-11-20,ina_60,Pepirí Miní,217.5,level,4.8,83.1,0
-2026-11-21,ina_60,Pepirí Miní,217.5,level,3.9,76.1,1
-2026-09-23,ina_61,El Soberbio,249.7,discharge,7697.0,96.0,0
+2026-11-21,ina_60,Pepirí Miní,217.5,level,3.9,76.1,0
 2026-09-24,ina_61,El Soberbio,249.7,discharge,7936.0,96.3,0
 2026-09-25,ina_61,El Soberbio,249.7,discharge,5052.0,91.2,0
 2026-09-26,ina_61,El Soberbio,249.7,discharge,5485.0,92.4,0
@@ -109,7 +107,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-09,ina_61,El Soberbio,249.7,discharge,12076.0,98.4,0
 2026-11-10,ina_61,El Soberbio,249.7,discharge,10079.0,97.7,0
 2026-11-11,ina_61,El Soberbio,249.7,discharge,4839.0,90.5,0
-2026-11-12,ina_61,El Soberbio,249.7,discharge,4698.0,89.9,0
+2026-11-12,ina_61,El Soberbio,249.7,discharge,4698.0,89.8,0
 2026-11-13,ina_61,El Soberbio,249.7,discharge,5195.0,91.6,0
 2026-11-14,ina_61,El Soberbio,249.7,discharge,5268.0,91.9,0
 2026-11-15,ina_61,El Soberbio,249.7,discharge,4689.0,89.8,0
@@ -118,8 +116,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_61,El Soberbio,249.7,discharge,4077.0,87.1,0
 2026-11-19,ina_61,El Soberbio,249.7,discharge,3875.0,86.0,0
 2026-11-20,ina_61,El Soberbio,249.7,discharge,3610.0,84.4,0
-2026-11-21,ina_61,El Soberbio,249.7,discharge,2968.0,78.6,1
-2026-09-23,ina_63,Alba Posse,305.8,level,5.6,90.9,0
+2026-11-21,ina_61,El Soberbio,249.7,discharge,2968.0,78.6,0
 2026-09-24,ina_63,Alba Posse,305.8,level,7.3,96.2,0
 2026-09-25,ina_63,Alba Posse,305.8,level,6.0,92.6,0
 2026-09-26,ina_63,Alba Posse,305.8,level,5.5,90.3,0
@@ -133,7 +130,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-04,ina_63,Alba Posse,305.8,level,6.4,93.9,0
 2026-10-05,ina_63,Alba Posse,305.8,level,6.25,93.4,0
 2026-10-06,ina_63,Alba Posse,305.8,level,6.8,95.2,0
-2026-10-07,ina_63,Alba Posse,305.8,level,5.85,91.6,0
+2026-10-07,ina_63,Alba Posse,305.8,level,5.85,91.7,0
 2026-10-08,ina_63,Alba Posse,305.8,level,5.35,89.3,0
 2026-10-09,ina_63,Alba Posse,305.8,level,5.6,90.9,0
 2026-10-10,ina_63,Alba Posse,305.8,level,6.4,93.9,0
@@ -145,7 +142,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-16,ina_63,Alba Posse,305.8,level,7.3,96.2,0
 2026-10-17,ina_63,Alba Posse,305.8,level,6.2,93.3,0
 2026-10-18,ina_63,Alba Posse,305.8,level,5.6,90.9,0
-2026-10-19,ina_63,Alba Posse,305.8,level,4.75,85.5,0
+2026-10-19,ina_63,Alba Posse,305.8,level,4.75,85.4,0
 2026-10-20,ina_63,Alba Posse,305.8,level,3.85,76.2,0
 2026-10-21,ina_63,Alba Posse,305.8,level,3.9,77.4,0
 2026-10-22,ina_63,Alba Posse,305.8,level,3.6,72.4,0
@@ -156,7 +153,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-27,ina_63,Alba Posse,305.8,level,7.75,97.0,0
 2026-10-28,ina_63,Alba Posse,305.8,level,6.3,93.6,0
 2026-10-29,ina_63,Alba Posse,305.8,level,5.25,88.9,0
-2026-10-30,ina_63,Alba Posse,305.8,level,4.75,85.5,0
+2026-10-30,ina_63,Alba Posse,305.8,level,4.75,85.4,0
 2026-10-31,ina_63,Alba Posse,305.8,level,4.85,86.3,0
 2026-11-01,ina_63,Alba Posse,305.8,level,4.45,83.4,0
 2026-11-02,ina_63,Alba Posse,305.8,level,4.0,79.7,0
@@ -173,20 +170,19 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-13,ina_63,Alba Posse,305.8,level,5.25,88.9,0
 2026-11-14,ina_63,Alba Posse,305.8,level,5.55,90.4,0
 2026-11-15,ina_63,Alba Posse,305.8,level,5.2,88.8,0
-2026-11-16,ina_63,Alba Posse,305.8,level,4.75,85.5,0
+2026-11-16,ina_63,Alba Posse,305.8,level,4.75,85.4,0
 2026-11-17,ina_63,Alba Posse,305.8,level,3.2,64.0,0
 2026-11-18,ina_63,Alba Posse,305.8,level,4.25,81.8,0
-2026-11-19,ina_63,Alba Posse,305.8,level,4.9,87.0,0
+2026-11-19,ina_63,Alba Posse,305.8,level,4.9,86.9,0
 2026-11-20,ina_63,Alba Posse,305.8,level,5.05,88.0,0
-2026-11-21,ina_63,Alba Posse,305.8,level,4.6,84.6,1
-2026-09-23,ina_64,Panambí,334.9,level,5.3,96.7,0
+2026-11-21,ina_63,Alba Posse,305.8,level,4.6,84.6,0
 2026-09-24,ina_64,Panambí,334.9,level,5.6,97.2,0
 2026-09-25,ina_64,Panambí,334.9,level,5.9,97.6,0
-2026-09-26,ina_64,Panambí,334.9,level,5.0,96.2,0
-2026-09-27,ina_64,Panambí,334.9,level,5.0,96.2,0
-2026-09-28,ina_64,Panambí,334.9,level,3.7,89.5,0
-2026-09-29,ina_64,Panambí,334.9,level,3.7,89.5,0
-2026-09-30,ina_64,Panambí,334.9,level,3.7,89.5,0
+2026-09-26,ina_64,Panambí,334.9,level,5.0,96.1,0
+2026-09-27,ina_64,Panambí,334.9,level,5.0,96.1,0
+2026-09-28,ina_64,Panambí,334.9,level,3.7,89.4,0
+2026-09-29,ina_64,Panambí,334.9,level,3.7,89.4,0
+2026-09-30,ina_64,Panambí,334.9,level,3.7,89.4,0
 2026-10-01,ina_64,Panambí,334.9,level,4.9,95.7,0
 2026-10-02,ina_64,Panambí,334.9,level,7.9,99.1,0
 2026-10-03,ina_64,Panambí,334.9,level,8.1,99.1,0
@@ -195,7 +191,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-06,ina_64,Panambí,334.9,level,5.7,97.3,0
 2026-10-07,ina_64,Panambí,334.9,level,5.6,97.2,0
 2026-10-08,ina_64,Panambí,334.9,level,4.8,95.4,0
-2026-10-09,ina_64,Panambí,334.9,level,5.0,96.2,0
+2026-10-09,ina_64,Panambí,334.9,level,5.0,96.1,0
 2026-10-10,ina_64,Panambí,334.9,level,5.6,97.2,0
 2026-10-11,ina_64,Panambí,334.9,level,6.42,98.1,0
 2026-10-12,ina_64,Panambí,334.9,level,7.25,98.8,0
@@ -204,13 +200,13 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-15,ina_64,Panambí,334.9,level,6.8,98.4,0
 2026-10-16,ina_64,Panambí,334.9,level,6.65,98.3,0
 2026-10-17,ina_64,Panambí,334.9,level,5.1,96.3,0
-2026-10-18,ina_64,Panambí,334.9,level,5.0,96.2,0
+2026-10-18,ina_64,Panambí,334.9,level,5.0,96.1,0
 2026-10-19,ina_64,Panambí,334.9,level,4.45,94.0,0
 2026-10-20,ina_64,Panambí,334.9,level,3.9,91.0,0
-2026-10-21,ina_64,Panambí,334.9,level,3.8,90.5,0
+2026-10-21,ina_64,Panambí,334.9,level,3.8,90.4,0
 2026-10-22,ina_64,Panambí,334.9,level,3.2,85.1,0
 2026-10-23,ina_64,Panambí,334.9,level,2.85,78.7,0
-2026-10-24,ina_64,Panambí,334.9,level,3.7,89.5,0
+2026-10-24,ina_64,Panambí,334.9,level,3.7,89.4,0
 2026-10-25,ina_64,Panambí,334.9,level,8.2,99.1,0
 2026-10-26,ina_64,Panambí,334.9,level,8.9,99.3,0
 2026-10-27,ina_64,Panambí,334.9,level,7.3,98.8,0
@@ -218,10 +214,10 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-29,ina_64,Panambí,334.9,level,4.8,95.4,0
 2026-10-30,ina_64,Panambí,334.9,level,4.0,92.1,0
 2026-10-31,ina_64,Panambí,334.9,level,3.95,91.1,0
-2026-11-01,ina_64,Panambí,334.9,level,3.7,89.5,0
-2026-11-02,ina_64,Panambí,334.9,level,3.8,90.5,0
+2026-11-01,ina_64,Panambí,334.9,level,3.7,89.4,0
+2026-11-02,ina_64,Panambí,334.9,level,3.8,90.4,0
 2026-11-03,ina_64,Panambí,334.9,level,3.4,86.7,0
-2026-11-04,ina_64,Panambí,334.9,level,3.5,88.0,0
+2026-11-04,ina_64,Panambí,334.9,level,3.5,87.9,0
 2026-11-05,ina_64,Panambí,334.9,level,4.0,92.1,0
 2026-11-06,ina_64,Panambí,334.9,level,5.7,97.3,0
 2026-11-07,ina_64,Panambí,334.9,level,8.45,99.2,0
@@ -232,14 +228,13 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-12,ina_64,Panambí,334.9,level,4.9,95.7,0
 2026-11-13,ina_64,Panambí,334.9,level,4.15,92.7,0
 2026-11-14,ina_64,Panambí,334.9,level,4.15,92.7,0
-2026-11-15,ina_64,Panambí,334.9,level,4.86,95.5,0
+2026-11-15,ina_64,Panambí,334.9,level,4.86,95.4,0
 2026-11-16,ina_64,Panambí,334.9,level,4.4,93.9,0
-2026-11-17,ina_64,Panambí,334.9,level,3.8,90.5,0
+2026-11-17,ina_64,Panambí,334.9,level,3.8,90.4,0
 2026-11-18,ina_64,Panambí,334.9,level,3.65,88.9,0
 2026-11-19,ina_64,Panambí,334.9,level,4.55,94.3,0
 2026-11-20,ina_64,Panambí,334.9,level,4.7,95.0,0
-2026-11-21,ina_64,Panambí,334.9,level,4.5,94.3,1
-2026-09-23,ina_65,San Javier,363.5,discharge,5792.0,91.1,0
+2026-11-21,ina_64,Panambí,334.9,level,4.5,94.3,0
 2026-09-24,ina_65,San Javier,363.5,discharge,9193.0,96.3,0
 2026-09-25,ina_65,San Javier,363.5,discharge,7125.0,94.0,0
 2026-09-26,ina_65,San Javier,363.5,discharge,5581.0,90.4,0
@@ -265,7 +260,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-16,ina_65,San Javier,363.5,discharge,9709.0,96.6,0
 2026-10-17,ina_65,San Javier,363.5,discharge,7241.0,94.2,0
 2026-10-18,ina_65,San Javier,363.5,discharge,6116.0,92.0,0
-2026-10-19,ina_65,San Javier,363.5,discharge,4375.0,85.5,0
+2026-10-19,ina_65,San Javier,363.5,discharge,4375.0,85.4,0
 2026-10-20,ina_65,San Javier,363.5,discharge,2954.0,75.1,0
 2026-10-21,ina_65,San Javier,363.5,discharge,3019.0,75.7,0
 2026-10-22,ina_65,San Javier,363.5,discharge,2556.0,69.8,0
@@ -297,9 +292,8 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-17,ina_65,San Javier,363.5,discharge,2267.0,64.8,0
 2026-11-18,ina_65,San Javier,363.5,discharge,3291.0,78.3,0
 2026-11-19,ina_65,San Javier,363.5,discharge,4551.0,86.3,0
-2026-11-20,ina_65,San Javier,363.5,discharge,4746.0,87.1,0
-2026-11-21,ina_65,San Javier,363.5,discharge,4038.0,83.4,1
-2026-09-23,ina_66,Puerto Concepción,414.7,level,4.7,89.3,0
+2026-11-20,ina_65,San Javier,363.5,discharge,4746.0,87.0,0
+2026-11-21,ina_65,San Javier,363.5,discharge,4038.0,83.4,0
 2026-09-24,ina_66,Puerto Concepción,414.7,level,4.7,89.3,0
 2026-09-25,ina_66,Puerto Concepción,414.7,level,5.5,92.8,0
 2026-09-26,ina_66,Puerto Concepción,414.7,level,5.13,91.4,0
@@ -342,7 +336,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-02,ina_66,Puerto Concepción,414.7,level,3.6,81.9,0
 2026-11-03,ina_66,Puerto Concepción,414.7,level,3.1,74.5,0
 2026-11-04,ina_66,Puerto Concepción,414.7,level,3.1,74.5,0
-2026-11-05,ina_66,Puerto Concepción,414.7,level,3.35,78.5,0
+2026-11-05,ina_66,Puerto Concepción,414.7,level,3.35,78.4,0
 2026-11-06,ina_66,Puerto Concepción,414.7,level,4.95,90.5,0
 2026-11-07,ina_66,Puerto Concepción,414.7,level,9.0,97.9,0
 2026-11-08,ina_66,Puerto Concepción,414.7,level,9.41,98.1,0
@@ -358,14 +352,13 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_66,Puerto Concepción,414.7,level,3.4,79.3,0
 2026-11-19,ina_66,Puerto Concepción,414.7,level,4.1,86.1,0
 2026-11-20,ina_66,Puerto Concepción,414.7,level,4.18,86.4,0
-2026-11-21,ina_66,Puerto Concepción,414.7,level,3.95,84.9,1
-2026-09-23,ina_67,Garruchos,424.6,discharge,5877.54,86.5,0
+2026-11-21,ina_66,Puerto Concepción,414.7,level,3.95,84.9,0
 2026-09-24,ina_67,Garruchos,424.6,discharge,5757.77,86.2,0
 2026-09-25,ina_67,Garruchos,424.6,discharge,8833.31,93.3,0
 2026-09-26,ina_67,Garruchos,424.6,discharge,6255.49,87.7,0
-2026-09-27,ina_67,Garruchos,424.6,discharge,5455.56,85.2,0
+2026-09-27,ina_67,Garruchos,424.6,discharge,5455.56,85.1,0
 2026-09-28,ina_67,Garruchos,424.6,discharge,4364.14,79.4,0
-2026-09-29,ina_67,Garruchos,424.6,discharge,3293.22,70.2,0
+2026-09-29,ina_67,Garruchos,424.6,discharge,3293.22,70.1,0
 2026-09-30,ina_67,Garruchos,424.6,discharge,3304.18,70.3,0
 2026-10-01,ina_67,Garruchos,424.6,discharge,4007.49,76.8,0
 2026-10-02,ina_67,Garruchos,424.6,discharge,9845.17,94.6,0
@@ -399,7 +392,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-30,ina_67,Garruchos,424.6,discharge,5691.6,85.9,0
 2026-10-31,ina_67,Garruchos,424.6,discharge,4546.33,80.6,0
 2026-11-01,ina_67,Garruchos,424.6,discharge,3718.33,74.7,0
-2026-11-02,ina_67,Garruchos,424.6,discharge,3525.97,72.7,0
+2026-11-02,ina_67,Garruchos,424.6,discharge,3525.97,72.6,0
 2026-11-03,ina_67,Garruchos,424.6,discharge,2875.65,64.6,0
 2026-11-04,ina_67,Garruchos,424.6,discharge,2165.09,52.1,0
 2026-11-05,ina_67,Garruchos,424.6,discharge,3890.94,76.0,0
@@ -412,14 +405,13 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-12,ina_67,Garruchos,424.6,discharge,10017.7,94.8,0
 2026-11-13,ina_67,Garruchos,424.6,discharge,5904.27,86.6,0
 2026-11-14,ina_67,Garruchos,424.6,discharge,5573.16,85.6,0
-2026-11-15,ina_67,Garruchos,424.6,discharge,5364.7,84.9,0
+2026-11-15,ina_67,Garruchos,424.6,discharge,5364.7,84.8,0
 2026-11-16,ina_67,Garruchos,424.6,discharge,5146.21,83.8,0
 2026-11-17,ina_67,Garruchos,424.6,discharge,3775.57,75.1,0
 2026-11-18,ina_67,Garruchos,424.6,discharge,2236.17,53.7,0
 2026-11-19,ina_67,Garruchos,424.6,discharge,3890.94,76.0,0
 2026-11-20,ina_67,Garruchos,424.6,discharge,4364.14,79.4,0
-2026-11-21,ina_67,Garruchos,424.6,discharge,4546.33,80.6,1
-2026-09-23,ina_68,Santo Tomé,479.9,discharge,6441.0,88.9,0
+2026-11-21,ina_67,Garruchos,424.6,discharge,4546.33,80.6,0
 2026-09-24,ina_68,Santo Tomé,479.9,discharge,6323.0,88.6,0
 2026-09-25,ina_68,Santo Tomé,479.9,discharge,8187.0,92.6,0
 2026-09-26,ina_68,Santo Tomé,479.9,discharge,7970.0,92.2,0
@@ -449,7 +441,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-20,ina_68,Santo Tomé,479.9,discharge,7230.0,90.9,0
 2026-10-21,ina_68,Santo Tomé,479.9,discharge,5343.0,85.4,0
 2026-10-22,ina_68,Santo Tomé,479.9,discharge,4524.0,81.4,0
-2026-10-23,ina_68,Santo Tomé,479.9,discharge,4010.0,78.4,0
+2026-10-23,ina_68,Santo Tomé,479.9,discharge,4010.0,78.3,0
 2026-10-24,ina_68,Santo Tomé,479.9,discharge,4158.0,79.4,0
 2026-10-25,ina_68,Santo Tomé,479.9,discharge,7324.0,91.1,0
 2026-10-26,ina_68,Santo Tomé,479.9,discharge,11804.0,96.7,0
@@ -461,7 +453,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-01,ina_68,Santo Tomé,479.9,discharge,5616.0,86.4,0
 2026-11-02,ina_68,Santo Tomé,479.9,discharge,4925.0,83.5,0
 2026-11-03,ina_68,Santo Tomé,479.9,discharge,4268.0,79.9,0
-2026-11-04,ina_68,Santo Tomé,479.9,discharge,3422.0,73.5,0
+2026-11-04,ina_68,Santo Tomé,479.9,discharge,3422.0,73.4,0
 2026-11-05,ina_68,Santo Tomé,479.9,discharge,4768.0,82.7,0
 2026-11-06,ina_68,Santo Tomé,479.9,discharge,6769.0,89.8,0
 2026-11-07,ina_68,Santo Tomé,479.9,discharge,10290.0,95.5,0
@@ -478,8 +470,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_68,Santo Tomé,479.9,discharge,3817.0,76.8,0
 2026-11-19,ina_68,Santo Tomé,479.9,discharge,4378.0,80.4,0
 2026-11-20,ina_68,Santo Tomé,479.9,discharge,5356.0,85.4,0
-2026-11-21,ina_68,Santo Tomé,479.9,discharge,5574.0,86.2,1
-2026-09-23,ina_69,Alvear,561.0,level,5.72,79.4,0
+2026-11-21,ina_68,Santo Tomé,479.9,discharge,5574.0,86.2,0
 2026-09-24,ina_69,Alvear,561.0,level,6.02,81.7,0
 2026-09-25,ina_69,Alvear,561.0,level,6.26,83.3,0
 2026-09-26,ina_69,Alvear,561.0,level,6.88,87.1,0
@@ -538,15 +529,14 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_69,Alvear,561.0,level,6.52,85.1,0
 2026-11-19,ina_69,Alvear,561.0,level,5.77,79.7,0
 2026-11-20,ina_69,Alvear,561.0,level,5.52,77.6,0
-2026-11-21,ina_69,Alvear,561.0,level,5.81,80.0,1
-2026-09-23,ina_70,La Cruz,573.4,level,5.68,79.1,0
-2026-09-24,ina_70,La Cruz,573.4,level,5.95,81.2,0
+2026-11-21,ina_69,Alvear,561.0,level,5.81,80.0,0
+2026-09-24,ina_70,La Cruz,573.4,level,5.95,81.3,0
 2026-09-25,ina_70,La Cruz,573.4,level,6.14,82.7,0
 2026-09-26,ina_70,La Cruz,573.4,level,6.76,87.0,0
 2026-09-27,ina_70,La Cruz,573.4,level,6.89,87.8,0
 2026-09-28,ina_70,La Cruz,573.4,level,6.72,86.8,0
-2026-09-29,ina_70,La Cruz,573.4,level,6.36,84.4,0
-2026-09-30,ina_70,La Cruz,573.4,level,6.13,82.6,0
+2026-09-29,ina_70,La Cruz,573.4,level,6.36,84.5,0
+2026-09-30,ina_70,La Cruz,573.4,level,6.13,82.7,0
 2026-10-01,ina_70,La Cruz,573.4,level,6.02,81.9,0
 2026-10-02,ina_70,La Cruz,573.4,level,6.33,84.2,0
 2026-10-03,ina_70,La Cruz,573.4,level,7.25,89.9,0
@@ -598,8 +588,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_70,La Cruz,573.4,level,6.56,85.8,0
 2026-11-19,ina_70,La Cruz,573.4,level,5.76,79.8,0
 2026-11-20,ina_70,La Cruz,573.4,level,5.58,78.3,0
-2026-11-21,ina_70,La Cruz,573.4,level,5.87,80.5,1
-2026-09-23,ina_71,Yapeyú,609.9,level,5.08,77.3,0
+2026-11-21,ina_70,La Cruz,573.4,level,5.87,80.5,0
 2026-09-24,ina_71,Yapeyú,609.9,level,5.46,80.8,0
 2026-09-25,ina_71,Yapeyú,609.9,level,5.68,82.5,0
 2026-09-26,ina_71,Yapeyú,609.9,level,6.32,87.2,0
@@ -654,12 +643,11 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-14,ina_71,Yapeyú,609.9,level,8.18,95.3,0
 2026-11-15,ina_71,Yapeyú,609.9,level,7.47,93.2,0
 2026-11-16,ina_71,Yapeyú,609.9,level,7.2,92.1,0
-2026-11-17,ina_71,Yapeyú,609.9,level,6.78,90.0,0
+2026-11-17,ina_71,Yapeyú,609.9,level,6.78,90.1,0
 2026-11-18,ina_71,Yapeyú,609.9,level,6.2,86.4,0
 2026-11-19,ina_71,Yapeyú,609.9,level,5.52,81.2,0
 2026-11-20,ina_71,Yapeyú,609.9,level,5.14,77.8,0
-2026-11-21,ina_71,Yapeyú,609.9,level,5.32,79.4,1
-2026-09-23,ina_72,Paso de los Libres,647.9,discharge,6151.0,74.4,0
+2026-11-21,ina_71,Yapeyú,609.9,level,5.32,79.4,0
 2026-09-24,ina_72,Paso de los Libres,647.9,discharge,6588.0,76.7,0
 2026-09-25,ina_72,Paso de los Libres,647.9,discharge,7198.0,79.8,0
 2026-09-26,ina_72,Paso de los Libres,647.9,discharge,8078.0,83.6,0
@@ -669,7 +657,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-09-30,ina_72,Paso de los Libres,647.9,discharge,8177.0,84.0,0
 2026-10-01,ina_72,Paso de los Libres,647.9,discharge,7660.0,81.8,0
 2026-10-02,ina_72,Paso de los Libres,647.9,discharge,7720.0,82.0,0
-2026-10-03,ina_72,Paso de los Libres,647.9,discharge,9176.0,87.2,0
+2026-10-03,ina_72,Paso de los Libres,647.9,discharge,9176.0,87.3,0
 2026-10-04,ina_72,Paso de los Libres,647.9,discharge,11690.0,93.4,0
 2026-10-05,ina_72,Paso de los Libres,647.9,discharge,12476.0,94.4,0
 2026-10-06,ina_72,Paso de los Libres,647.9,discharge,14181.0,96.1,0
@@ -718,8 +706,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_72,Paso de los Libres,647.9,discharge,8316.0,84.5,0
 2026-11-19,ina_72,Paso de los Libres,647.9,discharge,7084.0,79.2,0
 2026-11-20,ina_72,Paso de los Libres,647.9,discharge,6224.0,74.7,0
-2026-11-21,ina_72,Paso de los Libres,647.9,discharge,6497.0,76.1,1
-2026-09-23,ina_74,Monte Caseros,728.1,level,3.67,71.1,0
+2026-11-21,ina_72,Paso de los Libres,647.9,discharge,6497.0,76.1,0
 2026-09-24,ina_74,Monte Caseros,728.1,level,3.61,70.2,0
 2026-09-25,ina_74,Monte Caseros,728.1,level,3.82,73.5,0
 2026-09-26,ina_74,Monte Caseros,728.1,level,4.0,76.2,0
@@ -767,7 +754,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-07,ina_74,Monte Caseros,728.1,level,3.97,75.6,0
 2026-11-08,ina_74,Monte Caseros,728.1,level,4.31,80.4,0
 2026-11-09,ina_74,Monte Caseros,728.1,level,4.68,84.8,0
-2026-11-10,ina_74,Monte Caseros,728.1,level,5.12,89.2,0
+2026-11-10,ina_74,Monte Caseros,728.1,level,5.12,89.3,0
 2026-11-11,ina_74,Monte Caseros,728.1,level,5.42,91.7,0
 2026-11-12,ina_74,Monte Caseros,728.1,level,5.6,92.9,0
 2026-11-13,ina_74,Monte Caseros,728.1,level,5.78,93.7,0
@@ -778,8 +765,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_74,Monte Caseros,728.1,level,5.0,88.5,0
 2026-11-19,ina_74,Monte Caseros,728.1,level,4.5,82.9,0
 2026-11-20,ina_74,Monte Caseros,728.1,level,4.0,76.2,0
-2026-11-21,ina_74,Monte Caseros,728.1,level,3.97,75.6,1
-2026-09-23,ina_75,Mocoretá,782.8,level,8.72,65.8,0
+2026-11-21,ina_74,Monte Caseros,728.1,level,3.97,75.6,0
 2026-09-24,ina_75,Mocoretá,782.8,level,8.56,60.6,0
 2026-09-25,ina_75,Mocoretá,782.8,level,8.48,57.7,0
 2026-09-26,ina_75,Mocoretá,782.8,level,8.5,58.7,0
@@ -802,7 +788,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-13,ina_75,Mocoretá,782.8,level,7.78,35.7,0
 2026-10-14,ina_75,Mocoretá,782.8,level,7.92,40.0,0
 2026-10-15,ina_75,Mocoretá,782.8,level,8.1,46.0,0
-2026-10-16,ina_75,Mocoretá,782.8,level,8.34,53.3,0
+2026-10-16,ina_75,Mocoretá,782.8,level,8.34,53.2,0
 2026-10-17,ina_75,Mocoretá,782.8,level,8.56,60.6,0
 2026-10-18,ina_75,Mocoretá,782.8,level,8.78,67.9,0
 2026-10-19,ina_75,Mocoretá,782.8,level,9.02,79.8,0
@@ -814,7 +800,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-25,ina_75,Mocoretá,782.8,level,9.1,83.5,0
 2026-10-26,ina_75,Mocoretá,782.8,level,8.92,74.2,0
 2026-10-27,ina_75,Mocoretá,782.8,level,8.78,67.9,0
-2026-10-28,ina_75,Mocoretá,782.8,level,8.72,65.8,0
+2026-10-28,ina_75,Mocoretá,782.8,level,8.72,65.9,0
 2026-10-29,ina_75,Mocoretá,782.8,level,8.81,69.0,0
 2026-10-30,ina_75,Mocoretá,782.8,level,8.96,76.3,0
 2026-10-31,ina_75,Mocoretá,782.8,level,9.06,81.5,0
@@ -825,7 +811,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-05,ina_75,Mocoretá,782.8,level,8.98,77.5,0
 2026-11-06,ina_75,Mocoretá,782.8,level,8.92,74.2,0
 2026-11-07,ina_75,Mocoretá,782.8,level,8.78,67.9,0
-2026-11-08,ina_75,Mocoretá,782.8,level,8.72,65.8,0
+2026-11-08,ina_75,Mocoretá,782.8,level,8.72,65.9,0
 2026-11-09,ina_75,Mocoretá,782.8,level,8.62,62.7,0
 2026-11-10,ina_75,Mocoretá,782.8,level,8.58,61.2,0
 2026-11-11,ina_75,Mocoretá,782.8,level,8.56,60.6,0
@@ -838,8 +824,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_75,Mocoretá,782.8,level,9.2,87.7,0
 2026-11-19,ina_75,Mocoretá,782.8,level,9.18,86.5,0
 2026-11-20,ina_75,Mocoretá,782.8,level,9.16,85.9,0
-2026-11-21,ina_75,Mocoretá,782.8,level,9.1,83.5,1
-2026-09-23,ina_77,Salto Grande Arriba,846.0,discharge,6361.0,69.0,0
+2026-11-21,ina_75,Mocoretá,782.8,level,9.1,83.5,0
 2026-09-24,ina_77,Salto Grande Arriba,846.0,discharge,6279.0,68.5,0
 2026-09-25,ina_77,Salto Grande Arriba,846.0,discharge,6963.0,72.4,0
 2026-09-26,ina_77,Salto Grande Arriba,846.0,discharge,7224.0,73.7,0
@@ -871,7 +856,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-22,ina_77,Salto Grande Arriba,846.0,discharge,15999.0,95.7,0
 2026-10-23,ina_77,Salto Grande Arriba,846.0,discharge,15244.0,95.2,0
 2026-10-24,ina_77,Salto Grande Arriba,846.0,discharge,13233.0,93.0,0
-2026-10-25,ina_77,Salto Grande Arriba,846.0,discharge,12464.0,91.6,0
+2026-10-25,ina_77,Salto Grande Arriba,846.0,discharge,12464.0,91.7,0
 2026-10-26,ina_77,Salto Grande Arriba,846.0,discharge,11638.0,90.1,0
 2026-10-27,ina_77,Salto Grande Arriba,846.0,discharge,11275.0,89.3,0
 2026-10-28,ina_77,Salto Grande Arriba,846.0,discharge,12139.0,91.1,0
@@ -898,8 +883,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_77,Salto Grande Arriba,846.0,discharge,10267.0,86.6,0
 2026-11-19,ina_77,Salto Grande Arriba,846.0,discharge,9007.0,82.1,0
 2026-11-20,ina_77,Salto Grande Arriba,846.0,discharge,7783.0,76.4,0
-2026-11-21,ina_77,Salto Grande Arriba,846.0,discharge,6808.0,71.5,1
-2026-09-23,ina_79,Concordia,861.8,level,6.54,77.0,0
+2026-11-21,ina_77,Salto Grande Arriba,846.0,discharge,6808.0,71.5,0
 2026-09-24,ina_79,Concordia,861.8,level,6.32,74.7,0
 2026-09-25,ina_79,Concordia,861.8,level,6.36,75.1,0
 2026-09-26,ina_79,Concordia,861.8,level,6.54,77.0,0
@@ -927,7 +911,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-18,ina_79,Concordia,861.8,level,10.74,95.9,0
 2026-10-19,ina_79,Concordia,861.8,level,10.66,95.8,0
 2026-10-20,ina_79,Concordia,861.8,level,10.62,95.7,0
-2026-10-21,ina_79,Concordia,861.8,level,10.56,95.6,0
+2026-10-21,ina_79,Concordia,861.8,level,10.56,95.7,0
 2026-10-22,ina_79,Concordia,861.8,level,10.44,95.4,0
 2026-10-23,ina_79,Concordia,861.8,level,10.44,95.4,0
 2026-10-24,ina_79,Concordia,861.8,level,10.06,94.5,0
@@ -958,9 +942,8 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_79,Concordia,861.8,level,7.98,87.1,0
 2026-11-19,ina_79,Concordia,861.8,level,7.56,85.1,0
 2026-11-20,ina_79,Concordia,861.8,level,6.5,76.7,0
-2026-11-21,ina_79,Concordia,861.8,level,6.26,74.0,1
-2026-09-23,ina_80,Colón,955.0,level,6.24,94.2,0
-2026-09-24,ina_80,Colón,955.0,level,3.86,78.5,0
+2026-11-21,ina_79,Concordia,861.8,level,6.26,74.0,0
+2026-09-24,ina_80,Colón,955.0,level,3.86,78.4,0
 2026-09-25,ina_80,Colón,955.0,level,3.5,72.5,0
 2026-09-26,ina_80,Colón,955.0,level,3.3,69.1,0
 2026-09-27,ina_80,Colón,955.0,level,3.54,73.2,0
@@ -995,31 +978,30 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-10-26,ina_80,Colón,955.0,level,6.06,93.5,0
 2026-10-27,ina_80,Colón,955.0,level,5.76,92.4,0
 2026-10-28,ina_80,Colón,955.0,level,5.64,91.8,0
-2026-10-29,ina_80,Colón,955.0,level,5.5,91.4,0
+2026-10-29,ina_80,Colón,955.0,level,5.5,91.3,0
 2026-10-30,ina_80,Colón,955.0,level,5.45,91.1,0
 2026-10-31,ina_80,Colón,955.0,level,5.41,90.9,0
-2026-11-01,ina_80,Colón,955.0,level,5.5,91.4,0
+2026-11-01,ina_80,Colón,955.0,level,5.5,91.3,0
 2026-11-02,ina_80,Colón,955.0,level,5.56,91.6,0
 2026-11-03,ina_80,Colón,955.0,level,5.6,91.7,0
-2026-11-04,ina_80,Colón,955.0,level,5.48,91.3,0
-2026-11-05,ina_80,Colón,955.0,level,5.02,89.0,0
+2026-11-04,ina_80,Colón,955.0,level,5.48,91.2,0
+2026-11-05,ina_80,Colón,955.0,level,5.02,88.9,0
 2026-11-06,ina_80,Colón,955.0,level,4.92,88.4,0
 2026-11-07,ina_80,Colón,955.0,level,4.36,84.3,0
 2026-11-08,ina_80,Colón,955.0,level,4.38,84.5,0
-2026-11-09,ina_80,Colón,955.0,level,4.31,83.8,0
+2026-11-09,ina_80,Colón,955.0,level,4.31,83.7,0
 2026-11-10,ina_80,Colón,955.0,level,4.43,84.9,0
 2026-11-11,ina_80,Colón,955.0,level,4.67,86.8,0
 2026-11-12,ina_80,Colón,955.0,level,5.08,89.3,0
 2026-11-13,ina_80,Colón,955.0,level,5.0,88.9,0
-2026-11-14,ina_80,Colón,955.0,level,5.02,89.0,0
+2026-11-14,ina_80,Colón,955.0,level,5.02,88.9,0
 2026-11-15,ina_80,Colón,955.0,level,5.1,89.3,0
 2026-11-16,ina_80,Colón,955.0,level,5.1,89.3,0
 2026-11-17,ina_80,Colón,955.0,level,5.16,89.7,0
 2026-11-18,ina_80,Colón,955.0,level,5.04,89.0,0
 2026-11-19,ina_80,Colón,955.0,level,4.76,87.3,0
 2026-11-20,ina_80,Colón,955.0,level,4.47,85.2,0
-2026-11-21,ina_80,Colón,955.0,level,3.83,78.0,1
-2026-09-23,ina_81,Concepción del Uruguay,984.8,level,3.3,81.2,0
+2026-11-21,ina_80,Colón,955.0,level,3.83,78.0,0
 2026-09-24,ina_81,Concepción del Uruguay,984.8,level,3.07,77.4,0
 2026-09-25,ina_81,Concepción del Uruguay,984.8,level,2.8,71.7,0
 2026-09-26,ina_81,Concepción del Uruguay,984.8,level,2.55,65.7,0
@@ -1078,8 +1060,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_81,Concepción del Uruguay,984.8,level,3.98,88.8,0
 2026-11-19,ina_81,Concepción del Uruguay,984.8,level,3.76,86.9,0
 2026-11-20,ina_81,Concepción del Uruguay,984.8,level,3.5,84.2,0
-2026-11-21,ina_81,Concepción del Uruguay,984.8,level,3.1,78.1,1
-2026-09-23,ina_82,Campichuelo,1009.5,level,2.61,75.2,0
+2026-11-21,ina_81,Concepción del Uruguay,984.8,level,3.1,78.1,0
 2026-09-24,ina_82,Campichuelo,1009.5,level,2.62,75.5,0
 2026-09-25,ina_82,Campichuelo,1009.5,level,2.3,67.2,0
 2026-09-26,ina_82,Campichuelo,1009.5,level,2.0,57.0,0
@@ -1138,8 +1119,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_82,Campichuelo,1009.5,level,3.21,86.3,0
 2026-11-19,ina_82,Campichuelo,1009.5,level,2.88,81.5,0
 2026-11-20,ina_82,Campichuelo,1009.5,level,2.62,75.5,0
-2026-11-21,ina_82,Campichuelo,1009.5,level,2.4,70.1,1
-2026-09-23,ina_84,Boca Gualeguaychú,1055.6,level,2.3,86.5,0
+2026-11-21,ina_82,Campichuelo,1009.5,level,2.4,70.1,0
 2026-09-24,ina_84,Boca Gualeguaychú,1055.6,level,1.78,66.3,0
 2026-09-25,ina_84,Boca Gualeguaychú,1055.6,level,1.4,43.9,0
 2026-09-26,ina_84,Boca Gualeguaychú,1055.6,level,1.4,43.9,0
@@ -1188,7 +1168,7 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-08,ina_84,Boca Gualeguaychú,1055.6,level,2.18,83.2,0
 2026-11-09,ina_84,Boca Gualeguaychú,1055.6,level,2.28,85.9,0
 2026-11-10,ina_84,Boca Gualeguaychú,1055.6,level,2.0,77.1,0
-2026-11-11,ina_84,Boca Gualeguaychú,1055.6,level,1.82,68.6,0
+2026-11-11,ina_84,Boca Gualeguaychú,1055.6,level,1.82,68.5,0
 2026-11-12,ina_84,Boca Gualeguaychú,1055.6,level,1.86,70.3,0
 2026-11-13,ina_84,Boca Gualeguaychú,1055.6,level,2.0,77.1,0
 2026-11-14,ina_84,Boca Gualeguaychú,1055.6,level,2.02,77.8,0
@@ -1198,4 +1178,4 @@ date,station_id,station,km,variable,value,percentile,partial
 2026-11-18,ina_84,Boca Gualeguaychú,1055.6,level,2.1,81.0,0
 2026-11-19,ina_84,Boca Gualeguaychú,1055.6,level,2.1,81.0,0
 2026-11-20,ina_84,Boca Gualeguaychú,1055.6,level,2.0,77.1,0
-2026-11-21,ina_84,Boca Gualeguaychú,1055.6,level,2.02,77.8,1
+2026-11-21,ina_84,Boca Gualeguaychú,1055.6,level,2.02,77.8,0
